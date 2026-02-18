@@ -6,7 +6,6 @@ export interface Env {
   SUPABASE_SERVICE_KEY: string;
 }
 
-// 1. ¡NUEVO! Agregamos "Authorization" para que el navegador deje pasar el Token
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -17,135 +16,89 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
-    // 2. ¡NUEVO! Capturamos el Token que nos envía la página web
     const authHeader = request.headers.get('Authorization');
-
-    // 3. ¡NUEVO! Le pasamos ese Token a Supabase para que aplique tu RLS
     const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
-      global: {
-        headers: {
-          Authorization: authHeader ? authHeader : ''
-        }
-      }
+      global: { headers: { Authorization: authHeader ? authHeader : '' } }
     });
 
     const url = new URL(request.url);
 
-    // --- NUEVO ENDPOINT: GET (Leer Planes) ---
+    // --- ENDPOINTS DE LECTURA ---
     if (url.pathname === '/planes' && request.method === 'GET') {
-      const { data, error } = await supabase.from('planes').select('*');
-      if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }});
-      return new Response(JSON.stringify(data), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      const { data } = await supabase.from('planes').select('*');
+      return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // --- ENDPOINT GET (Leer suscriptores - SE MANTIENE IGUAL) ---
     if (url.pathname === '/suscriptores' && request.method === 'GET') {
-      const { data, error } = await supabase.from('suscriptores').select('*');
-      if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }});
-      return new Response(JSON.stringify(data), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      const { data } = await supabase.from('suscriptores').select('*');
+      return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // --- ENDPOINT POST ACTUALIZADO (Crear Cliente + Historial) ---
+    // --- REGISTRO DE SOCIO CON FOTO ---
     if (url.pathname === '/suscriptores' && request.method === 'POST') {
       try {
         const body = await request.json() as any;
-        
-        // 1. Insertamos al cliente primero
-        const { data: cliente, error: errCliente } = await supabase.from('suscriptores').insert([
-            {
-              tenant_id: body.tenant_id,
-              nombre_completo: body.nombre_completo,
-              telefono: body.telefono,
-              email: body.email,
-              estado: 'Activo'
-            }
-          ]).select().single(); // .single() nos devuelve el objeto exacto recién creado con su ID
+        const { data: cliente, error: errC } = await supabase.from('suscriptores').insert([{
+            tenant_id: body.tenant_id,
+            nombre_completo: body.nombre_completo,
+            telefono: body.telefono,
+            email: body.email,
+            foto_url: body.foto_url,
+            estado: 'Activo'
+        }]).select().single();
 
-        if (errCliente) throw errCliente;
+        if (errC) throw errC;
 
-        // 2. Calculamos las fechas con JavaScript puro
-        const fechaInicio = new Date();
         const fechaFin = new Date();
-        fechaFin.setMonth(fechaFin.getMonth() + parseInt(body.meses_duracion)); // Sumamos los meses del plan
+        fechaFin.setMonth(fechaFin.getMonth() + parseInt(body.meses_duracion));
 
-        // 3. Insertamos su primera transacción en el historial
-        const { error: errHistorial } = await supabase.from('historial_suscripciones').insert([
-          {
+        await supabase.from('historial_suscripciones').insert([{
             tenant_id: body.tenant_id,
             suscriptor_id: cliente.id,
             plan_id: body.plan_id,
-            fecha_inicio: fechaInicio.toISOString().split('T')[0], // Formato YYYY-MM-DD
+            fecha_inicio: new Date().toISOString().split('T')[0],
             fecha_fin: fechaFin.toISOString().split('T')[0],
-            estado_pago: 'Pagado' // Entra pagado por defecto
-          }
-        ]);
+            estado_pago: 'Pagado'
+        }]);
 
-        if (errHistorial) throw errHistorial;
-
-        return new Response(JSON.stringify({ mensaje: "Cliente y suscripción creados con éxito" }), { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-
-      } catch (err: any) {
-        return new Response(JSON.stringify({ error: err.message || "Error interno" }), { status: 400, headers: corsHeaders });
+        return new Response(JSON.stringify({ ok: true }), { status: 201, headers: corsHeaders });
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 400, headers: corsHeaders });
       }
     }
 
-    return new Response("Endpoint no encontrado", { status: 404, headers: corsHeaders });
-  },
+    // --- VALIDACIÓN DE QR (PANTALLA VERDE/ROJA) ---
+    if (url.pathname.startsWith('/checkin/')) {
+      const id = url.pathname.split('/')[2];
+      const admin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+      const { data } = await admin.from('historial_suscripciones')
+        .select('fecha_fin, estado_pago, tenant_id, suscriptores(nombre_completo, foto_url)')
+        .eq('suscriptor_id', id).order('fecha_fin', { ascending: false }).limit(1);
 
-  
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
-    // IMPORTANTE: Usamos la Service Key para saltar la seguridad RLS al hacer tareas de administrador
-    const supabaseAdmin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
-    
-    console.log(`\n⏰ [${new Date().toISOString()}] Iniciando auditoría automática...`);
+      let res = { color: "#EF4444", icono: "❌", msg: "Acceso Denegado", nombre: "Desconocido", foto: "https://via.placeholder.com/150" };
 
-    // Obtenemos la fecha de hoy en formato YYYY-MM-DD
-    const hoy = new Date().toISOString().split('T')[0];
+      if (data && data.length > 0) {
+        const h = data[0];
+        const hoy = new Date().toLocaleDateString("en-CA", { timeZone: "America/Guayaquil" });
+        res.nombre = (h.suscriptores as any).nombre_completo;
+        res.foto = (h.suscriptores as any).foto_url || res.foto;
 
-    // --- FASE 1: ACTUALIZACIÓN DE ESTADOS ---
-    console.log(`🔍 Buscando suscripciones vencidas (Fecha Fin < ${hoy})...`);
-    
-    const { data: actualizados, error: errUpdate } = await supabaseAdmin
-      .from('historial_suscripciones')
-      .update({ estado_pago: 'Atrasado' })
-      .eq('estado_pago', 'Pagado') // Solo tocamos los que están pagados
-      .lt('fecha_fin', hoy)        // "lt" significa Less Than (Menor que hoy)
-      .select();
-
-    if (errUpdate) {
-      console.error("❌ Error en Fase 1:", errUpdate.message);
-      return;
-    }
-
-    if (actualizados && actualizados.length > 0) {
-      console.log(`🔄 ¡Se encontraron y actualizaron ${actualizados.length} clientes a 'Atrasado'!`);
-    } else {
-      console.log(`✅ No hay nuevas suscripciones vencidas hoy.`);
-    }
-
-    // --- FASE 2: ENVÍO DE COBRANZAS (Lo que ya tenías) ---
-    console.log(`\n💸 Buscando clientes con estado 'Atrasado' para cobrar...`);
-    
-    const { data: morosos, error: errCobros } = await supabaseAdmin
-      .from('historial_suscripciones')
-      .select(`fecha_fin, suscriptores (nombre_completo, telefono)`)
-      .eq('estado_pago', 'Atrasado');
-
-    if (errCobros) {
-      console.error("❌ Error en Fase 2:", errCobros.message);
-      return;
-    }
-
-    if (morosos && morosos.length > 0) {
-      for (const registro of morosos) {
-        const cliente = registro.suscriptores as any; 
-        const mensaje = `Hola ${cliente.nombre_completo}. Te recordamos que tu membresía venció el ${registro.fecha_fin}. Por favor, regulariza tu pago para seguir entrenando. 💪`;
-        
-        console.log(`🚀 [SIMULANDO WHATSAPP] -> Destino: ${cliente.telefono} | Mensaje: "${mensaje}"`);
+        if (h.estado_pago === 'Pagado' && h.fecha_fin >= hoy) {
+          res = { ...res, color: "#10B981", icono: "✅", msg: "Pase Autorizado" };
+          await admin.from('asistencias').insert([{ tenant_id: h.tenant_id, suscriptor_id: id }]);
+        }
       }
-    } else {
-      console.log("✅ Ningún mensaje enviado. Todos están al día.");
+
+      return new Response(`
+        <html>
+          <body style="background:${res.color}; color:white; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0;">
+            <h1 style="font-size:5rem;">${res.icono}</h1>
+            <img src="${res.foto}" style="width:180px; height:180px; border-radius:50%; border:5px solid white; object-fit:cover; margin:20px 0;">
+            <h2>${res.msg}</h2>
+            <p style="font-size:1.5rem;">${res.nombre}</p>
+          </body>
+        </html>`, { headers: { 'Content-Type': 'text/html' } });
     }
-    console.log(`🏁 Auditoría finalizada.\n`);
-  },
-};
+    return new Response("Not Found", { status: 404 });
+  }
+}
