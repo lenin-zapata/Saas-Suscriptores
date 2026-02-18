@@ -331,7 +331,7 @@
             document.getElementById('nombreClienteQR').innerText = nombre;
             const cont = document.getElementById('contenedorQR');
             cont.innerHTML = '';
-            new QRCode(cont, { text: `https://late-gifts-count.loca.lt/checkin/${id}`, width: 220, height: 220 });
+            new QRCode(cont, { text: `https://wide-waves-shave.loca.lt/checkin/${id}`, width: 220, height: 220 });
             document.getElementById('btnEnviarWA').onclick = () => window.open(`https://wa.me/${tel.replace(/\D/g,'')}?text=Hola ${nombre}, aquí tienes tu pase QR.`, '_blank');
         }
 

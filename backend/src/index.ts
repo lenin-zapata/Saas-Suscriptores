@@ -68,36 +68,67 @@ export default {
     }
 
     // --- VALIDACIÓN DE QR (PANTALLA VERDE/ROJA) ---
-    if (url.pathname.startsWith('/checkin/')) {
+    if (request.method === 'GET' && url.pathname.startsWith('/checkin/')) {
       const id = url.pathname.split('/')[2];
       const admin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+      
+      // 1. Consultamos el historial y TRAEMOS LA FOTO del suscriptor
       const { data } = await admin.from('historial_suscripciones')
         .select('fecha_fin, estado_pago, tenant_id, suscriptores(nombre_completo, foto_url)')
-        .eq('suscriptor_id', id).order('fecha_fin', { ascending: false }).limit(1);
+        .eq('suscriptor_id', id)
+        .order('fecha_fin', { ascending: false })
+        .limit(1);
 
-      let res = { color: "#EF4444", icono: "❌", msg: "Acceso Denegado", nombre: "Desconocido", foto: "https://via.placeholder.com/150" };
+      // 2. Valores por defecto (Asumimos Pantalla Roja inicialmente)
+      let res = { 
+        color: "#EF4444", 
+        icono: "❌", 
+        msg: "Acceso Denegado", 
+        nombre: "Cliente Desconocido", 
+        foto: "https://via.placeholder.com/150?text=Sin+Foto" // Placeholder si no hay foto
+      };
 
       if (data && data.length > 0) {
         const h = data[0];
         const hoy = new Date().toLocaleDateString("en-CA", { timeZone: "America/Guayaquil" });
+        
+        // Asignamos el nombre
         res.nombre = (h.suscriptores as any).nombre_completo;
-        res.foto = (h.suscriptores as any).foto_url || res.foto;
+        
+        // Si el cliente tiene una foto guardada en Supabase, la usamos
+        if ((h.suscriptores as any).foto_url) {
+            res.foto = (h.suscriptores as any).foto_url;
+        }
 
+        // 3. Validamos si está al día (Cambiamos a Pantalla Verde)
         if (h.estado_pago === 'Pagado' && h.fecha_fin >= hoy) {
           res = { ...res, color: "#10B981", icono: "✅", msg: "Pase Autorizado" };
-          await admin.from('asistencias').insert([{ tenant_id: h.tenant_id, suscriptor_id: id }]);
+          
+          // Registramos la asistencia
+          await admin.from('asistencias').insert([{ tenant_id: h.tenant_id, suscriptor_id: id, metodo_acceso: 'QR' }]);
         }
       }
 
+      // 4. Renderizamos el HTML (La pantalla que ve el recepcionista)
       return new Response(`
-        <html>
-          <body style="background:${res.color}; color:white; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0;">
-            <h1 style="font-size:5rem;">${res.icono}</h1>
-            <img src="${res.foto}" style="width:180px; height:180px; border-radius:50%; border:5px solid white; object-fit:cover; margin:20px 0;">
-            <h2>${res.msg}</h2>
-            <p style="font-size:1.5rem;">${res.nombre}</p>
-          </body>
-        </html>`, { headers: { 'Content-Type': 'text/html' } });
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Validación de Pase</title>
+        </head>
+        <body style="background-color: ${res.color}; color: white; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center;">
+            <div style="background: rgba(0,0,0,0.2); padding: 40px 20px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 350px;">
+                <h1 style="font-size: 4rem; margin: 0 0 10px 0;">${res.icono}</h1>
+                
+                <img src="${res.foto}" alt="Foto del Socio" style="width: 160px; height: 160px; border-radius: 50%; border: 6px solid white; object-fit: cover; margin: 15px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background-color: white;">
+                
+                <h2 style="font-size: 1.8rem; margin: 10px 0; font-weight: bold;">${res.msg}</h2>
+                <p style="font-size: 1.4rem; margin: 0; font-weight: 500;">${res.nombre}</p>
+            </div>
+        </body>
+        </html>`, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
     }
     return new Response("Not Found", { status: 404 });
   }
