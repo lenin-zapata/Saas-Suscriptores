@@ -133,7 +133,7 @@
                         </form>
                     </div>
 
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+                    <div class="solo-admin bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
                         <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">📊 Estado de Pagos</h2>
                         <div class="flex-1 flex items-center justify-center relative min-h-[200px]">
                             <canvas id="graficoPagos"></canvas>
@@ -233,6 +233,32 @@
                 document.getElementById('pantallaDashboard').classList.remove('hidden');
                 cargarPlanes();
                 cargarDatosYDashboard();
+
+                // Dentro del evento de login, después de obtener el tenant_id:
+                const { data: perfil, error: errPerfil } = await miSupabase
+                    .from('perfiles_staff')
+                    .select('rol')
+                    .single();
+
+                if (perfil) {
+                    aplicarPermisos(perfil.rol);
+                }
+
+                // Nueva función para gestionar la UI según el rol
+                function aplicarPermisos(rol) {
+                    const elementosAdmin = document.querySelectorAll('.solo-admin');
+                    
+                    if (rol === 'recepcionista') {
+                        // Ocultar elementos financieros y de configuración
+                        elementosAdmin.forEach(el => el.classList.add('hidden'));
+                        console.log("Acceso limitado: Rol Recepcionista");
+                    } else {
+                        // Mostrar todo si es admin
+                        elementosAdmin.forEach(el => el.classList.remove('hidden'));
+                        console.log("Acceso total: Rol Administrador");
+                    }
+                }
+
             }
         });
 
