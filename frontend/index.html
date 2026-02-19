@@ -132,7 +132,16 @@
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 bg-gray-50"><h2 class="text-lg font-bold text-gray-800">📋 Directorio de Clientes</h2></div>
+                    <div class="p-6 border-b border-gray-100 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <h2 class="text-lg font-bold text-gray-800">📋 Directorio de Clientes</h2>
+                        
+                        <div class="relative w-full md:w-72">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">🔍</span>
+                            <input type="text" id="inputBuscarCliente" onkeyup="filtrarClientes()" 
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" 
+                                placeholder="Buscar por nombre o email...">
+                        </div>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-white"><tr><th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nombre</th><th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Contacto</th><th class="px-6 py-3"></th></tr></thead>
@@ -248,6 +257,7 @@
         let miTenantId = null; 
         let graficoInstancia = null;
         let modoRecuperacion = false;
+        let listaClientesOriginal = []; // Variable para guardar la copia de seguridad
 
         // LOGIN (SINCRONIZACIÓN AUTOMÁTICA)
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
@@ -413,6 +423,9 @@
                 const res = await fetch(API_URL, { headers: { 'Authorization': `Bearer ${tokenActual}` } });
                 const clientes = await res.json();
                 const { data: historial } = await miSupabase.from('historial_suscripciones').select('estado_pago');
+
+                listaClientesOriginal = clientes; // Guardamos la copia aquí
+                renderizarTablaClientes(clientes); // Llamamos a una nueva función de dibujo
 
                 document.getElementById('tablaCuerpo').innerHTML = clientes.map(c => `
                     <tr class="hover:bg-gray-50 transition border-b border-gray-50">
@@ -585,6 +598,42 @@
                 btn.disabled = false;
             }
         });
+
+        // Función para dibujar la tabla (la extraemos para poder reutilizarla)
+        function renderizarTablaClientes(arreglo) {
+            const tabla = document.getElementById('tablaCuerpo');
+            if (arreglo.length === 0) {
+                tabla.innerHTML = `<tr><td colspan="3" class="px-6 py-10 text-center text-gray-400 italic">No se encontraron clientes que coincidan...</td></tr>`;
+                return;
+            }
+
+            tabla.innerHTML = arreglo.map(c => `
+                <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+                    <td class="px-6 py-4 font-medium text-gray-900">${c.nombre_completo}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        <div class="flex flex-col">
+                            <span class="flex items-center gap-1">📞 ${c.telefono}</span>
+                            <span class="flex items-center gap-1 text-indigo-400">✉️ ${c.email}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}')" 
+                                class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-bold">📱 QR</button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        // La función que activa el buscador
+        function filtrarClientes() {
+            const texto = document.getElementById('inputBuscarCliente').value.toLowerCase();
+            
+            const filtrados = listaClientesOriginal.filter(c => 
+                c.nombre_completo.toLowerCase().includes(texto) || 
+                c.email.toLowerCase().includes(texto)
+            );
+            
+            renderizarTablaClientes(filtrados);
+        }
     </script>
 </body>
 </html>
