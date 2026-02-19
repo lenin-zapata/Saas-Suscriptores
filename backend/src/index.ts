@@ -13,6 +13,9 @@ const corsHeaders = {
 };
 
 export default {
+  // =========================================================================
+  // 1. EVENTO FETCH (Atiende las peticiones HTTP del Frontend)
+  // =========================================================================
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -85,7 +88,7 @@ export default {
         icono: "❌", 
         msg: "Acceso Denegado", 
         nombre: "Cliente Desconocido", 
-        foto: "https://via.placeholder.com/150?text=Sin+Foto" // Placeholder si no hay foto
+        foto: "https://via.placeholder.com/150?text=Sin+Foto" 
       };
 
       if (data && data.length > 0) {
@@ -121,9 +124,7 @@ export default {
         <body style="background-color: ${res.color}; color: white; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center;">
             <div style="background: rgba(0,0,0,0.2); padding: 40px 20px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 350px;">
                 <h1 style="font-size: 4rem; margin: 0 0 10px 0;">${res.icono}</h1>
-                
                 <img src="${res.foto}" alt="Foto del Socio" style="width: 160px; height: 160px; border-radius: 50%; border: 6px solid white; object-fit: cover; margin: 15px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background-color: white;">
-                
                 <h2 style="font-size: 1.8rem; margin: 10px 0; font-weight: bold;">${res.msg}</h2>
                 <p style="font-size: 1.4rem; margin: 0; font-weight: 500;">${res.nombre}</p>
             </div>
@@ -131,5 +132,73 @@ export default {
         </html>`, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
     }
     return new Response("Not Found", { status: 404 });
+  },
+
+  // =========================================================================
+  // 2. EVENTO SCHEDULED (El Cron Job Automático que corre en segundo plano)
+  // =========================================================================
+  async scheduled(event: any, env: Env, ctx: ExecutionContext): Promise<void> {
+    // Usamos SERVICE_KEY para tener acceso a todos los tenants en este proceso global
+    const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+    
+    // Ajustamos la fecha para Ecuador (GMT-5)
+    const fechaEcuador = new Date(new Date().getTime() - (5 * 60 * 60 * 1000));
+    const hoy = fechaEcuador.toISOString().split('T')[0]; 
+
+    try {
+        console.log(`⏱️ Iniciando revisión automática de pagos para el: ${hoy}`);
+
+        // 1. Buscamos suscripciones vencidas de gimnasios Pro o Elite
+        const { data: suscripciones, error } = await adminSupabase
+            .from('historial_suscripciones')
+            .select(`
+                id,
+                fecha_fin,
+                estado_pago,
+                suscriptores!inner (nombre_completo, telefono),
+                tenants!inner (nombre_negocio, plan_saas)
+            `)
+            .eq('estado_pago', 'Pagado')
+            .lt('fecha_fin', hoy) 
+            .in('tenants.plan_saas', ['Pro', 'elite']);
+
+        if (error) throw error;
+
+        if (!suscripciones || suscripciones.length === 0) {
+            console.log("✅ No hay suscripciones vencidas de planes Premium para alertar hoy.");
+            return;
+        }
+
+        console.log(`⚠️ Se encontraron ${suscripciones.length} suscripciones vencidas. Iniciando actualizaciones...`);
+
+        // 2. Procesamos cada suscripción encontrada
+        for (const sub of suscripciones) {
+            
+            // A. Cambiamos el estado a 'Atrasado' en Supabase
+            await adminSupabase
+                .from('historial_suscripciones')
+                .update({ estado_pago: 'Atrasado' })
+                .eq('id', sub.id);
+
+            // B. Variables tipadas para la simulación de WhatsApp
+            const nombre = (sub.suscriptores as any).nombre_completo;
+            const telefono = (sub.suscriptores as any).telefono;
+            const gym = (sub.tenants as any).nombre_negocio;
+            const plan = (sub.tenants as any).plan_saas;
+
+            console.log(`
+            =========================================
+            📲 SIMULACIÓN DE WHATSAPP ENVIADO
+            Destino: ${telefono}
+            Gimnasio: ${gym} (Plan: ${plan.toUpperCase()})
+            Mensaje: "Hola ${nombre}, notamos que tu mensualidad en ${gym} se venció el ${sub.fecha_fin}. ¡Te extrañamos en el entrenamiento! Escríbenos para regularizar tu cuenta."
+            =========================================`);
+        }
+
+        console.log("✅ Revisión automática completada con éxito.");
+
+    } catch (error: any) {
+        console.error("❌ Error grave en el Cron Job:", error.message);
+    }
   }
-}
+};

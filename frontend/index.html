@@ -46,22 +46,18 @@
 </head>
 <body class="bg-gray-50 text-gray-800 h-screen flex overflow-hidden">
 
-    <!-- ===================== PANTALLA LOGIN ===================== -->
     <div id="pantallaLogin" class="w-full h-full flex items-center justify-center login-bg fixed z-50">
 
-        <!-- Decorative blobs -->
         <div class="absolute top-0 left-0 w-72 h-72 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
         <div class="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
 
         <div class="relative bg-white rounded-3xl shadow-2xl w-[420px] max-w-[calc(100vw-2rem)] overflow-hidden">
-            <!-- Header strip -->
             <div class="bg-emerald-600 px-10 pt-10 pb-8 text-center">
                 <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">🏋️‍♂️</div>
                 <h1 class="text-2xl font-extrabold text-white tracking-tight">JS MemberLy</h1>
                 <p class="text-emerald-100 text-sm mt-1">Panel de Administración</p>
             </div>
 
-            <!-- Form body -->
             <form id="formLogin" class="px-10 py-8 flex flex-col gap-5">
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Correo Electrónico</label>
@@ -101,13 +97,10 @@
         </div>
     </div>
 
-    <!-- ===================== DASHBOARD ===================== -->
     <div id="pantallaDashboard" class="flex w-full h-full hidden">
 
-        <!-- SIDEBAR -->
         <aside class="w-64 bg-emerald-900 text-white flex flex-col shadow-2xl z-10 shrink-0">
 
-            <!-- Gym branding -->
             <div class="p-6 flex flex-col items-center border-b border-white/10 text-center">
                 <div class="relative group cursor-pointer w-20 h-20 rounded-2xl bg-white/10 flex items-center justify-center overflow-hidden mb-3 border border-white/20 shadow-inner">
                     <img id="logoGymImg" src="https://via.placeholder.com/150?text=Logo" alt="Logo Gym" class="w-full h-full object-cover">
@@ -119,23 +112,25 @@
                 <h2 id="nombreGymSidebar" class="text-sm font-bold tracking-wide text-white">Cargando...</h2>
             </div>
 
-            <!-- Nav -->
             <nav class="flex-1 p-4 flex flex-col gap-1">
-                <a href="#" onclick="mostrarSeccion('dashboard')" id="btnNavDashboard"
+                <a href="#" onclick="cambiarVista('resumen')" id="btnNavDashboard"
                     class="nav-link active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold">
                     <span class="text-base">📊</span> Dashboard
                 </a>
-                <a href="#" onclick="mostrarSeccion('seccionStaff')" id="btnNavStaff"
+                <a href="#" onclick="cambiarVista('staff')" id="btnNavStaff"
                     class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
                     <span class="text-base">👥</span> Gestionar Staff
                 </a>
-                <a onclick="abrirEscanner()"
+                <a href="#" onclick="cambiarVista('finanzas')" id="btnMenuFinanzas" class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
+                    <span>📊</span> <span class="font-medium">Finanzas</span>
+                    <span class="ml-auto text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded-full uppercase">Elite</span>
+                </a>
+                <a onclick="cambiarVista('escanear')"
                     class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70 cursor-pointer">
                     <span class="text-base">📷</span> Escanear Pase
                 </a>
             </nav>
 
-            <!-- Footer -->
             <div class="p-4 border-t border-white/10">
                 <button onclick="cerrarSesion()"
                     class="w-full flex items-center justify-center gap-2 text-white/50 hover:text-white px-4 py-2 rounded-xl text-sm transition font-medium">
@@ -144,10 +139,8 @@
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
         <main class="flex-1 flex flex-col overflow-y-auto bg-gray-50">
 
-            <!-- Top header -->
             <header class="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-40">
                 <div>
                     <h1 class="text-xl font-extrabold text-gray-900 tracking-tight">Resumen General</h1>
@@ -162,7 +155,6 @@
                             <p class="text-[10px] text-gray-400 font-semibold uppercase mt-1">Mi Cuenta ▼</p>
                         </div>
                     </button>
-                    <!-- Dropdown -->
                     <div class="absolute right-0 w-48 mt-1 bg-white rounded-2xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                         <div class="p-2">
                             <button onclick="document.getElementById('modalPassword').classList.remove('hidden')"
@@ -175,13 +167,10 @@
                 </div>
             </header>
 
-            <!-- =================== VISTA RESUMEN =================== -->
             <div id="vistaResumen" class="p-8 space-y-6">
 
-                <!-- KPI Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-                    <!-- Clientes Activos + Barra SaaS -->
                     <div class="solo-admin kpi-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col gap-4">
                         <div class="flex items-center gap-4">
                             <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-2xl shrink-0">👥</div>
@@ -207,7 +196,6 @@
                         </div>
                     </div>
 
-                    <!-- Al Día -->
                     <div class="solo-admin kpi-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
                         <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-2xl shrink-0">✅</div>
                         <div>
@@ -216,7 +204,6 @@
                         </div>
                     </div>
 
-                    <!-- Atrasados -->
                     <div class="solo-admin kpi-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
                         <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center text-2xl shrink-0">⚠️</div>
                         <div>
@@ -226,10 +213,8 @@
                     </div>
                 </div>
 
-                <!-- Form + Chart row -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-                    <!-- Form Nuevo Suscriptor -->
                     <div class="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
                         <h2 class="text-base font-extrabold text-gray-800 mb-5 flex items-center gap-2">
                             <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">➕</span>
@@ -265,7 +250,6 @@
                         </form>
                     </div>
 
-                    <!-- Gráfico -->
                     <div class="solo-admin bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex flex-col">
                         <h2 class="text-base font-extrabold text-gray-800 mb-4 flex items-center gap-2">
                             <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">📊</span>
@@ -277,7 +261,6 @@
                     </div>
                 </div>
 
-                <!-- Directorio de Clientes -->
                 <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                     <div class="px-6 py-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
                         <h2 class="text-base font-extrabold text-gray-800 flex items-center gap-2">
@@ -305,13 +288,61 @@
                     </div>
                 </div>
 
-            </div><!-- /vistaResumen -->
+            </div>
+            
+            <div id="vistaFinanzas" class="hidden p-8 relative min-h-[600px] max-w-5xl mx-auto w-full">
+                <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center md:text-left">Reportes Financieros Avanzados</h2>
 
-            <!-- =================== SECCIÓN STAFF =================== -->
-            <div id="seccionStaff" class="hidden p-8">
+                <div id="paywallFinanzas" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
+                    <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
+                        <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🔒</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Exclusivo del Plan Elite</h3>
+                        <p class="text-gray-500 text-sm mb-6 leading-relaxed">Desbloquea proyecciones de flujo de caja, análisis de retención y métricas de ingresos recurrentes para escalar tu negocio.</p>
+                        <button onclick="prepararYAbrirModalUpgrade()" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-md flex justify-center items-center gap-2">
+                            Desbloquear Finanzas 🚀
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pb-10 items-start">
+                    
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center h-full">
+                        <p class="text-sm text-gray-500 font-medium mb-2 uppercase tracking-wider">Ingreso Recurrente Mensual (MRR)</p>
+                        <h3 class="text-5xl font-extrabold text-emerald-600 mb-3 tracking-tight">$<span id="kpiMRR">0.00</span></h3>
+                        <p class="text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full font-bold inline-flex items-center gap-1">
+                            <span>📈</span> +12% vs mes anterior
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center h-full">
+                        <p class="text-sm text-gray-500 font-medium mb-2 uppercase tracking-wider">Tasa de Retención Anual</p>
+                        <h3 class="text-5xl font-extrabold text-indigo-600 mb-3 tracking-tight"><span id="kpiRetencion">0</span>%</h3>
+                        <p class="text-xs text-red-700 bg-red-50 px-3 py-1.5 rounded-full font-bold inline-flex items-center gap-1">
+                            <span>📉</span> Tasa de abandono: <span id="kpiChurn">0</span>%
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                        <h3 class="text-base font-bold text-gray-800 mb-6 text-center md:text-left">Proyección de Flujo de Caja (15 días)</h3>
+                        <div class="relative h-72 w-full">
+                            <canvas id="graficoFlujoCaja"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                        <h3 class="text-base font-bold text-gray-800 mb-6 text-center md:text-left">Distribución de Ingresos</h3>
+                        <div class="relative h-72 w-full flex justify-center">
+                            <canvas id="graficoPlanes"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="vistaStaff" class="hidden p-8 w-full max-w-6xl mx-auto">
                 <div class="flex justify-between items-center mb-8">
                     <div>
-                        <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Gestionar Personal</h2>
+                        <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">Gestionar Personal</h2>
                         <p class="text-xs text-gray-400 font-medium mt-1">Administra los accesos de tu equipo</p>
                     </div>
                     <button onclick="document.getElementById('modalNuevoStaff').classList.remove('hidden')"
@@ -333,10 +364,23 @@
                 </div>
             </div>
 
+            <div id="vistaEscanear" class="hidden p-8 w-full max-w-6xl mx-auto">
+                <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Escanear Pase</h2>
+                <p class="text-xs text-gray-400 font-medium mb-8">Verifica el acceso de tus clientes con código QR</p>
+                
+                <div class="bg-white p-10 rounded-3xl border border-gray-100 shadow-sm text-center max-w-lg mx-auto flex flex-col items-center">
+                    <div class="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-4xl mb-6">📷</div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Lector de Accesos</h3>
+                    <p class="text-sm text-gray-500 mb-8">Usa la cámara de tu dispositivo para leer el código QR del pase del cliente.</p>
+                    <button onclick="abrirEscanner()" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100">
+                        Activar Cámara y Escanear
+                    </button>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <!-- ===================== MODAL: CAMBIAR CONTRASEÑA ===================== -->
     <div id="modalPassword" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
         <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm border border-gray-100">
             <h2 class="text-lg font-extrabold mb-1 text-gray-900">🔒 Actualizar Contraseña</h2>
@@ -353,7 +397,6 @@
         </div>
     </div>
 
-    <!-- ===================== MODAL: NUEVO STAFF ===================== -->
     <div id="modalNuevoStaff" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
         <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md border border-gray-100">
             <h2 class="text-lg font-extrabold mb-1 text-gray-900">➕ Agregar Personal</h2>
@@ -387,7 +430,6 @@
         </div>
     </div>
 
-    <!-- ===================== MODAL: QR ===================== -->
     <div id="modalQR" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[60] backdrop-blur-sm">
         <div class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-sm w-full mx-4 border border-gray-100">
             <div class="bg-emerald-700 p-6 text-center relative">
@@ -407,7 +449,6 @@
         </div>
     </div>
 
-    <!-- ===================== LECTOR QR ===================== -->
     <div id="lectorQRContainer" class="fixed inset-0 bg-black/80 hidden z-[70] flex items-center justify-center">
         <div class="bg-white p-6 rounded-3xl w-full max-w-md text-center border border-gray-100">
             <div id="reader"></div>
@@ -416,7 +457,6 @@
         </div>
     </div>
 
-    <!-- ===================== MODAL: ACTIVAR CUENTA (STAFF) ===================== -->
     <div id="modalRegistro" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
         <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm border border-gray-100">
             <div class="text-center mb-6">
@@ -445,7 +485,6 @@
         </div>
     </div>
 
-    <!-- ===================== MODAL: UPGRADE PLAN ===================== -->
     <div id="modalUpgrade" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-[110] backdrop-blur-sm">
         <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-lg text-center border border-emerald-100">
             <div class="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto mb-4 border-4 border-emerald-100 text-4xl">🚀</div>
@@ -471,7 +510,6 @@
         </div>
     </div>
 
-    <!-- ===================== JAVASCRIPT (100% IGUAL AL ORIGINAL) ===================== -->
     <script>
         const SUPABASE_URL = 'https://kfqdefzuwejwmupgvelg.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcWRlZnp1d2Vqd211cGd2ZWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MTcwMzYsImV4cCI6MjA4Njk5MzAzNn0.Wdr14R9gZ6Osy8RrVaYXC6CKUtBoYqbE9tV3oiekCPE';
@@ -551,25 +589,7 @@
             }
         });
 
-        // NAVEGACIÓN
-        function mostrarSeccion(idSeccion) {
-            const resumen = document.getElementById('vistaResumen');
-            const staff = document.getElementById('seccionStaff');
-            const btnDash = document.getElementById('btnNavDashboard');
-            const btnStaff = document.getElementById('btnNavStaff');
-
-            if (idSeccion === 'dashboard') {
-                resumen.classList.remove('hidden'); staff.classList.add('hidden');
-                btnDash.classList.add('active'); btnDash.classList.remove('text-white/70');
-                btnStaff.classList.remove('active'); btnStaff.classList.add('text-white/70');
-            } else {
-                resumen.classList.add('hidden'); staff.classList.remove('hidden');
-                btnStaff.classList.add('active'); btnStaff.classList.remove('text-white/70');
-                btnDash.classList.remove('active'); btnDash.classList.add('text-white/70');
-                cargarStaff();
-            }
-        }
-
+        // NAVEGACIÓN Y CARGA DE STAFF
         async function cargarStaff() {
             if (!miTenantId) return;
             const { data: staff } = await miSupabase.from('perfiles_staff').select('*').eq('tenant_id', miTenantId).order('nombre');
@@ -942,6 +962,185 @@
                 btn.innerHTML = 'Contactar a Soporte <span>🎧</span>';
             }
             document.getElementById('modalUpgrade').classList.remove('hidden');
+        }
+
+        // --- SISTEMA DE NAVEGACIÓN COMPLETO (CORREGIDO) ---
+        function cambiarVista(vistaDestino) {
+            // 1. Mapeamos todas tus pantallas principales por su ID
+            const vistas = {
+                'resumen': document.getElementById('vistaResumen'),
+                'finanzas': document.getElementById('vistaFinanzas'),
+                'staff': document.getElementById('vistaStaff'), // ID para la sección "Gestionar Personal"
+                'escanear': document.getElementById('vistaEscanear') // ID para la sección "Escanear Pase"
+            };
+
+            // 2. Apagamos TODAS las pantallas (añadimos 'hidden')
+            Object.values(vistas).forEach(pantalla => {
+                if (pantalla) {
+                    pantalla.classList.add('hidden');
+                }
+            });
+
+            // 3. Encendemos SOLO la pantalla que el usuario pidió
+            if (vistas[vistaDestino]) {
+                vistas[vistaDestino].classList.remove('hidden');
+            }
+
+            // 4. Ejecutamos cálculos adicionales solo si es necesario
+            if (vistaDestino === 'finanzas') {
+                cargarDashboardFinanciero();
+            } else if (vistaDestino === 'staff') {
+                cargarStaff(); // Descomentado para que dibuje la tabla de personal al entrar
+            }
+        }
+
+        // Variables globales para evitar duplicar gráficos al hacer clics múltiples
+        let chartFlujo = null;
+        let chartPlanes = null;
+
+        // --- LÓGICA DEL DASHBOARD FINANCIERO ---
+        async function cargarDashboardFinanciero() {
+            const paywall = document.getElementById('paywallFinanzas');
+            
+            // 1. GATEKEEPER SAAS
+            if (planSaasActual.toLowerCase() !== 'elite') {
+                paywall.classList.remove('hidden');
+                return; // Si no es Elite, detenemos la ejecución para no gastar consultas a la BD
+            } else {
+                paywall.classList.add('hidden');
+            }
+
+            try {
+                // 2. EXTRAER DATOS REALES DE SUPABASE
+                // Hacemos un JOIN entre historial_suscripciones y planes
+                const { data: historial, error } = await miSupabase
+                    .from('historial_suscripciones')
+                    .select(`
+                        estado_pago,
+                        fecha_fin,
+                        planes ( nombre, precio, meses )
+                    `)
+                    .eq('tenant_id', miTenantId);
+
+                if (error) throw error;
+
+                // 3. VARIABLES PARA MATEMÁTICAS
+                let mrr = 0;
+                let activos = 0;
+                let atrasados = 0;
+                
+                let ingresosPorPlan = {}; // Para el gráfico de anillo
+                let cashFlow15Dias = Array(15).fill(0); // Array de 15 días en cero
+                
+                const hoy = new Date();
+                const limite15Dias = new Date();
+                limite15Dias.setDate(hoy.getDate() + 15);
+
+                // 4. PROCESAMIENTO DE DATOS (Data Pipeline)
+                historial.forEach(sub => {
+                    // Manejo seguro de nulos por si algún plan fue borrado
+                    const precio = sub.planes?.precio || 0;
+                    const meses = sub.planes?.meses || 1;
+                    const nombrePlan = sub.planes?.nombre || 'Plan Genérico';
+                    const ingresoMensualReal = precio / meses;
+
+                    if (sub.estado_pago === 'Pagado') {
+                        activos++;
+                        mrr += ingresoMensualReal;
+
+                        // Agrupamos para el gráfico de anillo
+                        if (!ingresosPorPlan[nombrePlan]) ingresosPorPlan[nombrePlan] = 0;
+                        ingresosPorPlan[nombrePlan] += ingresoMensualReal;
+                    } else if (sub.estado_pago === 'Atrasado') {
+                        atrasados++;
+                    }
+
+                    // Cálculo de Flujo de Caja (¿Quién vence en los próximos 15 días?)
+                    if (sub.fecha_fin) {
+                        const fechaVence = new Date(sub.fecha_fin);
+                        // Si la fecha está entre hoy y los próximos 15 días
+                        if (fechaVence >= hoy && fechaVence <= limite15Dias) {
+                            const diffTime = Math.abs(fechaVence - hoy);
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            
+                            if (diffDays >= 0 && diffDays < 15) {
+                                // Proyectamos que el cliente pagará su renovación ese día
+                                cashFlow15Dias[diffDays] += precio; 
+                            }
+                        }
+                    }
+                });
+
+                // 5. CÁLCULO DE CHURN Y RETENCIÓN
+                const totalHistorico = activos + atrasados;
+                let churn = 0;
+                let retencion = 100;
+                if (totalHistorico > 0) {
+                    churn = Math.round((atrasados / totalHistorico) * 100);
+                    retencion = 100 - churn;
+                }
+
+                // 6. ACTUALIZAR HTML (KPIs)
+                document.getElementById('kpiMRR').innerText = mrr.toFixed(2);
+                document.getElementById('kpiRetencion').innerText = retencion;
+                document.getElementById('kpiChurn').innerText = churn;
+
+                // 7. PREPARAR DATOS PARA GRÁFICOS
+                const etiquetasDias = Array.from({length: 15}, (_, i) => `Día ${i+1}`);
+                const etiquetasPlanes = Object.keys(ingresosPorPlan);
+                const datosPlanes = Object.values(ingresosPorPlan);
+
+                // 8. RENDERIZAR GRÁFICO DE FLUJO DE CAJA
+                const ctxFlujo = document.getElementById('graficoFlujoCaja').getContext('2d');
+                if (chartFlujo) chartFlujo.destroy();
+                
+                chartFlujo = new Chart(ctxFlujo, {
+                    type: 'bar',
+                    data: {
+                        labels: etiquetasDias,
+                        datasets: [{
+                            label: 'Renovaciones Proyectadas ($)',
+                            data: cashFlow15Dias,
+                            backgroundColor: '#10B981',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // 9. RENDERIZAR GRÁFICO DE ANILLO
+                const ctxPlanes = document.getElementById('graficoPlanes').getContext('2d');
+                if (chartPlanes) chartPlanes.destroy();
+                
+                // Colores dinámicos por si tienes muchos planes
+                const colores = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+
+                chartPlanes = new Chart(ctxPlanes, {
+                    type: 'doughnut',
+                    data: {
+                        labels: etiquetasPlanes.length > 0 ? etiquetasPlanes : ['Sin datos'],
+                        datasets: [{
+                            data: datosPlanes.length > 0 ? datosPlanes : [1],
+                            backgroundColor: colores.slice(0, etiquetasPlanes.length || 1),
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } },
+                        cutout: '70%'
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error al cargar datos financieros:", error);
+            }
         }
     </script>
 </body>
