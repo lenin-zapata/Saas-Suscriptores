@@ -100,9 +100,24 @@
 
             <div id="vistaResumen" class="p-8">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="solo-admin bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-2xl">👥</div>
-                        <div><p class="text-sm text-gray-500 font-medium">Total Clientes</p><h3 id="kpiTotal" class="text-3xl font-bold text-gray-800">0</h3></div>
+                    <div class="solo-admin bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex flex-col justify-between">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-2xl">👥</div>
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">Clientes Activos</p>
+                                <h3 class="text-3xl font-bold text-gray-800"><span id="kpiTotal">0</span> <span class="text-lg text-gray-400 font-normal">/ <span id="kpiLimite">100</span></span></h3>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full bg-gray-100 rounded-full h-2.5 mb-2 overflow-hidden">
+                            <div id="barraUsoPlan" class="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs text-gray-500 font-medium">Plan <span id="nombrePlanSaas" class="capitalize font-bold text-emerald-600">Starter</span></p>
+                            <button onclick="prepararYAbrirModalUpgrade()" class="text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg font-bold hover:bg-emerald-100 transition shadow-sm flex items-center gap-1">
+                                🚀 Subir de Nivel
+                            </button>
+                        </div>
                     </div>
                     <div class="solo-admin bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center gap-4">
                         <div class="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center text-2xl">✅</div>
@@ -246,6 +261,31 @@
         </div>
     </div>
 
+    <div id="modalUpgrade" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-[110] backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg text-center border border-indigo-100">
+            <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-indigo-100">
+                <span class="text-4xl">🚀</span>
+            </div>
+            <h2 class="text-2xl font-bold mb-2 text-gray-800">¡Tu gimnasio está creciendo!</h2>
+            <p class="text-gray-600 mb-6">Estás alcanzando el límite de clientes de tu plan actual. Para seguir registrando nuevos miembros y acceder a herramientas avanzadas, es momento de subir de nivel.</p>
+            
+            <div class="bg-gray-50 rounded-xl p-6 mb-6 text-left border border-gray-100">
+                <h3 id="tituloPlanUpsell" class="font-bold text-gray-800 mb-3">Cargando plan...</h3>
+                <ul id="listaFeaturesUpsell" class="text-sm text-gray-600 space-y-2">
+                    </ul>
+            </div>
+
+            <div class="flex gap-3">
+                <button id="btnPagarUpgrade" onclick="iniciarPagoUpgrade()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-lg flex justify-center items-center gap-2">
+                    Mejorar Plan <span>💳</span>
+                </button>
+                <button onclick="document.getElementById('modalUpgrade').classList.add('hidden')" class="px-6 text-gray-500 font-medium hover:text-gray-700 transition">
+                    Quizás luego
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://kfqdefzuwejwmupgvelg.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcWRlZnp1d2Vqd211cGd2ZWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MTcwMzYsImV4cCI6MjA4Njk5MzAzNn0.Wdr14R9gZ6Osy8RrVaYXC6CKUtBoYqbE9tV3oiekCPE';
@@ -258,6 +298,10 @@
         let graficoInstancia = null;
         let modoRecuperacion = false;
         let listaClientesOriginal = []; // Variable para guardar la copia de seguridad
+
+        let limiteClientesActual = 100;
+        let planSaasActual = 'starter';
+        let totalClientesActual = 0;
 
         // LOGIN (SINCRONIZACIÓN AUTOMÁTICA)
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
@@ -301,6 +345,14 @@
                     if (negocio) {
                         document.getElementById('nombreGymSidebar').innerText = negocio.nombre_negocio;
                         if (negocio.logo_url) document.getElementById('logoGymImg').src = negocio.logo_url;
+                        
+                        // Guardamos las variables SaaS
+                        planSaasActual = negocio.plan_saas || 'starter';
+                        limiteClientesActual = negocio.limite_clientes || 100;
+                        
+                        if (negocio.estado_suscripcion !== 'activa') {
+                            alert("⚠️ La suscripción de tu gimnasio está inactiva. Funcionalidades limitadas.");
+                        }
                     }
 
                     // Entrar al Dashboard
@@ -450,6 +502,28 @@
                 document.getElementById('kpiAlDia').innerText = alDia;
                 document.getElementById('kpiMorosos').innerText = morosos;
                 actualizarGrafico(alDia, morosos);
+
+                // Agrega esto justo debajo de donde calculas `clientes.length`
+                totalClientesActual = clientes.length;
+
+                // Asumimos que ya trajimos el limite y el plan en el login (lo haremos en el Paso C)
+                document.getElementById('kpiTotal').innerText = totalClientesActual;
+                document.getElementById('kpiLimite').innerText = limiteClientesActual;
+                document.getElementById('nombrePlanSaas').innerText = planSaasActual;
+
+                // Calcular porcentaje de la barra (máximo 100%)
+                let porcentajeUso = (totalClientesActual / limiteClientesActual) * 100;
+                if (porcentajeUso > 100) porcentajeUso = 100;
+
+                const barra = document.getElementById('barraUsoPlan');
+                barra.style.width = `${porcentajeUso}%`;
+
+                // Si está al 90% o más, la barra se pone roja para alertar
+                if (porcentajeUso >= 90) {
+                    barra.classList.replace('bg-indigo-600', 'bg-red-500');
+                } else {
+                    barra.classList.replace('bg-red-500', 'bg-indigo-600');
+                }
             } catch (e) { console.error(e); }
         }
 
@@ -633,6 +707,104 @@
             );
             
             renderizarTablaClientes(filtrados);
+        }
+
+        // --- REGISTRO DE NUEVO SUSCRIPTOR (RESTAURADO + VALIDACIÓN SAAS) ---
+        document.getElementById('formSuscriptor').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // 1. VALIDACIÓN SAAS: ¿Superó el límite de su plan?
+            if (totalClientesActual >= limiteClientesActual) {
+                
+                prepararYAbrirModalUpgrade(); return;
+            }
+            // -----------------------------
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Guardando...';
+            btn.disabled = true;
+
+            try {
+                let fotoUrl = null;
+                // Si tienes el input de foto activo, lo procesamos
+                const inputFoto = document.getElementById('fotoInput');
+                if (inputFoto && inputFoto.files[0]) {
+                    const fotoFile = inputFoto.files[0];
+                    const fileName = `${miTenantId}/${Date.now()}_socio.png`;
+                    const { data } = await miSupabase.storage.from('avatars').upload(fileName, fotoFile);
+                    if (data) fotoUrl = miSupabase.storage.from('avatars').getPublicUrl(fileName).data.publicUrl;
+                }
+
+                const sel = document.getElementById('planElegido');
+                const nuevoCliente = {
+                    tenant_id: miTenantId,
+                    nombre_completo: document.getElementById('nombre').value,
+                    telefono: document.getElementById('telefono').value,
+                    email: document.getElementById('email').value,
+                    plan_id: sel.value,
+                    meses_duracion: sel.options[sel.selectedIndex].getAttribute('data-meses'),
+                    foto_url: fotoUrl
+                };
+
+                // Enviamos los datos a tu API en Cloudflare Workers
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${tokenActual}` 
+                    },
+                    body: JSON.stringify(nuevoCliente)
+                });
+
+                if (!res.ok) throw new Error("Error al guardar el cliente en el servidor.");
+
+                // Limpiamos el formulario y recargamos los datos
+                e.target.reset();
+                await cargarDatosYDashboard(); // Esto actualizará la barra SaaS automáticamente
+
+            } catch (err) {
+                console.error("Error al registrar suscriptor:", err);
+                alert("❌ Error: " + err.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Función global para configurar y abrir el modal
+        function prepararYAbrirModalUpgrade() {
+            const titulo = document.getElementById('tituloPlanUpsell');
+            const lista = document.getElementById('listaFeaturesUpsell');
+            const btn = document.getElementById('btnPagarUpgrade');
+
+            if (planSaasActual.toLowerCase() === 'starter') {
+                titulo.innerText = 'Plan Pro - $69/mes';
+                lista.innerHTML = `
+                    <li class="flex items-center gap-2">✅ <span class="font-medium">Hasta 500 clientes activos</span></li>
+                    <li class="flex items-center gap-2">✅ Usuarios de Staff ilimitados</li>
+                    <li class="flex items-center gap-2">✅ Recordatorios automáticos por WhatsApp</li>
+                `;
+                btn.innerHTML = 'Mejorar a Plan Pro <span>💳</span>';
+                
+            } else if (planSaasActual.toLowerCase() === 'pro') {
+                titulo.innerText = 'Plan Elite - $149/mes';
+                lista.innerHTML = `
+                    <li class="flex items-center gap-2">✅ <span class="font-medium">Clientes y Staff Ilimitados</span></li>
+                    <li class="flex items-center gap-2">✅ Reportes avanzados de retención</li>
+                    <li class="flex items-center gap-2">✅ Soporte Prioritario 24/7</li>
+                `;
+                btn.innerHTML = 'Mejorar a Plan Elite <span>💳</span>';
+                
+            } else {
+                titulo.innerText = 'Ampliación de Capacidad';
+                lista.innerHTML = `
+                    <li class="flex items-center gap-2">✅ <span class="font-medium">Aumenta tu límite actual de servidor</span></li>
+                `;
+                btn.innerHTML = 'Contactar a Soporte <span>🎧</span>';
+            }
+
+            document.getElementById('modalUpgrade').classList.remove('hidden');
         }
     </script>
 </body>

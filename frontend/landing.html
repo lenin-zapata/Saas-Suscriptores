@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS MemberLy - Gestión de Gimnasios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 antialiased selection:bg-emerald-200">
+
+    <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <img src="tu_logo.png" alt="JS Logo" class="w-12 h-12 rounded-xl object-contain bg-white shadow-sm">
+            <span class="text-xl font-extrabold text-emerald-700 tracking-tight">JS MemberLy</span>
+        </div>
+        <div>
+            <a href="index.html" class="text-emerald-700 font-semibold hover:text-emerald-900 transition mr-6">Iniciar Sesión</a>
+            <a href="#precios" class="bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-bold shadow-md hover:bg-emerald-700 transition">Comenzar Ahora</a>
+        </div>
+    </nav>
+
+    <header class="container mx-auto px-6 py-20 text-center max-w-4xl">
+        <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
+            El sistema inteligente para <span class="text-emerald-600">escalar tu gimnasio</span>
+        </h1>
+        <p class="text-xl text-gray-600 mb-10 leading-relaxed">
+            Controla accesos, gestiona pagos y fideliza a tus clientes en una plataforma unificada. Deja el papeleo y enfócate en lo que mejor sabes hacer: transformar vidas.
+        </p>
+    </header>
+
+    <section id="precios" class="bg-white py-20 border-t border-gray-100">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Planes transparentes que crecen contigo</h2>
+                <p class="text-gray-500">Paga usando tarjetas de crédito o débito a través de PlaceToPay.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                
+                <div class="bg-gray-50 rounded-3xl p-8 border border-gray-200 hover:border-emerald-300 transition-all hover:shadow-xl flex flex-col">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Starter</h3>
+                    <p class="text-gray-500 text-sm mb-6">Para estudios pequeños y entrenadores independientes.</p>
+                    <div class="text-4xl font-extrabold text-gray-900 mb-8">$29<span class="text-lg text-gray-500 font-normal">/mes</span></div>
+                    
+                    <ul class="space-y-4 mb-8 flex-1 text-gray-600">
+                        <li class="flex items-center gap-3">✅ <span>Hasta <strong>100 clientes</strong> activos</span></li>
+                        <li class="flex items-center gap-3">✅ <span>2 Cuentas de personal (Staff)</span></li>
+                        <li class="flex items-center gap-3">✅ <span>Pases con Código QR</span></li>
+                        <li class="flex items-center gap-3">✅ <span>Dashboard de métricas</span></li>
+                    </ul>
+                    <button onclick="abrirModalRegistro('Starter', 29)" class="w-full py-3 px-4 bg-white border-2 border-emerald-600 text-emerald-600 font-bold rounded-xl hover:bg-emerald-50 transition">Elegir Starter</button>
+                </div>
+
+                <div class="bg-emerald-600 rounded-3xl p-8 shadow-2xl transform md:-translate-y-4 flex flex-col relative text-white">
+                    <div class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-3xl uppercase tracking-wider">Más Popular</div>
+                    <h3 class="text-xl font-bold mb-2">Pro</h3>
+                    <p class="text-emerald-100 text-sm mb-6">Para gimnasios establecidos en fase de crecimiento.</p>
+                    <div class="text-4xl font-extrabold mb-8">$69<span class="text-lg text-emerald-200 font-normal">/mes</span></div>
+                    
+                    <ul class="space-y-4 mb-8 flex-1 text-emerald-50">
+                        <li class="flex items-center gap-3">✨ <span>Hasta <strong>500 clientes</strong> activos</span></li>
+                        <li class="flex items-center gap-3">✨ <span>Cuentas de personal <strong>ilimitadas</strong></span></li>
+                        <li class="flex items-center gap-3">✨ <span>Recordatorios por WhatsApp</span></li>
+                        <li class="flex items-center gap-3">✨ <span>Todo lo del plan Starter</span></li>
+                    </ul>
+                    <button onclick="abrirModalRegistro('Pro', 69)" class="w-full py-3 px-4 bg-white text-emerald-700 font-bold rounded-xl hover:bg-gray-50 shadow-lg transition">Elegir Pro</button>
+                </div>
+
+                <div class="bg-gray-50 rounded-3xl p-8 border border-gray-200 hover:border-emerald-300 transition-all hover:shadow-xl flex flex-col">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Elite</h3>
+                    <p class="text-gray-500 text-sm mb-6">Para franquicias y negocios sin límites.</p>
+                    <div class="text-4xl font-extrabold text-gray-900 mb-8">$149<span class="text-lg text-gray-500 font-normal">/mes</span></div>
+                    
+                    <ul class="space-y-4 mb-8 flex-1 text-gray-600">
+                        <li class="flex items-center gap-3">🔥 <span>Clientes <strong>Ilimitados</strong></span></li>
+                        <li class="flex items-center gap-3">🔥 <span>Reportes financieros avanzados</span></li>
+                        <li class="flex items-center gap-3">🔥 <span>Soporte prioritario 24/7</span></li>
+                        <li class="flex items-center gap-3">🔥 <span>Todo lo del plan Pro</span></li>
+                    </ul>
+                    <button onclick="abrirModalRegistro('Elite', 149)" class="w-full py-3 px-4 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:border-emerald-600 hover:text-emerald-600 transition">Elegir Elite</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <div id="modalRegistroSaaS" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-emerald-100 flex flex-col max-h-[90vh]">
+            
+            <div class="bg-emerald-600 p-6 text-white text-center relative shrink-0">
+                <h2 class="text-2xl font-bold">Crea tu cuenta de Gimnasio</h2>
+                <p class="text-emerald-100 text-sm mt-1">Estás a un paso de revolucionar tu negocio con el <span id="spanPlanSeleccionado" class="font-bold text-white uppercase tracking-wide">...</span></p>
+                <button type="button" onclick="cerrarModalRegistro()" class="absolute top-4 right-4 text-emerald-200 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-8 overflow-y-auto">
+                <form id="formRegistroSaaS" class="space-y-5">
+                    <input type="hidden" id="inputPlanElegido" value="">
+                    <input type="hidden" id="inputPrecioElegido" value="">
+
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">Datos del Gimnasio</h3>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Gimnasio o Estudio</label>
+                        <input type="text" id="regNombreGym" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: Iron Gym">
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2 mt-6">Datos del Administrador</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tu Nombre Completo</label>
+                                <input type="text" id="regNombreAdmin" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: Lenin Zapata">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico (Será tu usuario)</label>
+                                <input type="email" id="regEmailAdmin" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="tu@correo.com">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono / WhatsApp</label>
+                                <input type="text" id="regTelefonoAdmin" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="+593...">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Crea una Contraseña</label>
+                                <input type="password" id="regPassAdmin" required minlength="6" class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Mínimo 6 caracteres">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg flex justify-center items-center gap-2">
+                            Continuar al Pago Seguro <span>🔒</span>
+                        </button>
+                        <p class="text-xs text-center text-gray-400 mt-3">Serás redirigido a la pasarela de pagos para procesar tu suscripción.</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Inicializa tu conexión a Supabase (Usa tus llaves reales aquí)
+        const supabaseUrl = 'https://kfqdefzuwejwmupgvelg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcWRlZnp1d2Vqd211cGd2ZWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MTcwMzYsImV4cCI6MjA4Njk5MzAzNn0.Wdr14R9gZ6Osy8RrVaYXC6CKUtBoYqbE9tV3oiekCPE';
+        const miSupabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Funciones del Modal
+        function abrirModalRegistro(nombrePlan, precio) {
+            document.getElementById('spanPlanSeleccionado').innerText = `Plan ${nombrePlan}`;
+            document.getElementById('inputPlanElegido').value = nombrePlan.toLowerCase();
+            document.getElementById('inputPrecioElegido').value = precio;
+            document.getElementById('modalRegistroSaaS').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function cerrarModalRegistro() {
+            document.getElementById('modalRegistroSaaS').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // 2. El evento de Registro (MODO PRUEBAS / COSTO CERO)
+        document.getElementById('formRegistroSaaS').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = 'Simulando Pago en PlaceToPay... 💳';
+            btn.disabled = true;
+
+            // Recopilamos datos
+            const nombreGym = document.getElementById('regNombreGym').value;
+            const nombreAdmin = document.getElementById('regNombreAdmin').value;
+            const emailAdmin = document.getElementById('regEmailAdmin').value;
+            const telefonoAdmin = document.getElementById('regTelefonoAdmin').value;
+            const passAdmin = document.getElementById('regPassAdmin').value;
+            const plan = document.getElementById('inputPlanElegido').value;
+            
+            // Asignamos límites según el plan
+            let limite = plan === 'starter' ? 100 : (plan === 'pro' ? 500 : 9999);
+
+            try {
+                // Simulamos el tiempo de espera de la pasarela de pagos
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                btn.innerHTML = 'Pago Exitoso. Creando Gimnasio... 🏗️';
+
+                // PASO A: Crear el Gimnasio (Tenant) en la base de datos
+                const { data: tenantData, error: tenantError } = await miSupabase
+                    .from('tenants')
+                    .insert([{ 
+                        nombre_negocio: nombreGym,
+                        plan_saas: plan,
+                        limite_clientes: limite,
+                        estado_suscripcion: 'activa'
+                    }])
+                    .select()
+                    .single();
+
+                if (tenantError) throw tenantError;
+                const nuevoTenantId = tenantData.id;
+
+                // PASO B: Registrar al Administrador en Auth de Supabase
+                btn.innerHTML = 'Configurando tu cuenta... 👤';
+                const { data: authData, error: authError } = await miSupabase.auth.signUp({
+                    email: emailAdmin,
+                    password: passAdmin
+                });
+
+                if (authError) throw authError;
+
+                // PASO C: Vincular el Administrador con el Gimnasio en perfiles_staff
+                const { error: staffError } = await miSupabase
+                    .from('perfiles_staff')
+                    .insert([{ 
+                        id: authData.user.id, // ID exacto de Auth
+                        tenant_id: nuevoTenantId, 
+                        nombre: nombreAdmin, 
+                        email: emailAdmin, 
+                        telefono: telefonoAdmin,
+                        rol: 'admin' 
+                    }]);
+
+                if (staffError) throw staffError;
+
+                // ÉXITO: Redirigimos al sistema
+                alert(`✅ ¡Suscripción de prueba exitosa!\n\nTu gimnasio "${nombreGym}" ha sido creado con el plan ${plan.toUpperCase()}.\nConfirma tu correo e inicia sesión.`);
+                window.location.href = 'index.html'; // Lo mandamos al login de tu app
+
+            } catch (error) {
+                console.error(error);
+                alert("❌ Ocurrió un error en la simulación: " + error.message);
+                btn.innerHTML = 'Continuar al Pago Seguro <span>🔒</span>';
+                btn.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+</html>
