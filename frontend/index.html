@@ -1005,20 +1005,19 @@
             // 1. GATEKEEPER SAAS
             if (planSaasActual.toLowerCase() !== 'elite') {
                 paywall.classList.remove('hidden');
-                return; // Si no es Elite, detenemos la ejecución para no gastar consultas a la BD
+                return; 
             } else {
                 paywall.classList.add('hidden');
             }
 
             try {
-                // 2. EXTRAER DATOS REALES DE SUPABASE
-                // Hacemos un JOIN entre historial_suscripciones y planes
+                // 2. EXTRAER DATOS REALES DE SUPABASE (¡Nombres de columnas corregidos!)
                 const { data: historial, error } = await miSupabase
                     .from('historial_suscripciones')
                     .select(`
                         estado_pago,
                         fecha_fin,
-                        planes ( nombre, precio, meses )
+                        planes ( nombre_plan, precio, dias_duracion )
                     `)
                     .eq('tenant_id', miTenantId);
 
@@ -1029,42 +1028,43 @@
                 let activos = 0;
                 let atrasados = 0;
                 
-                let ingresosPorPlan = {}; // Para el gráfico de anillo
-                let cashFlow15Dias = Array(15).fill(0); // Array de 15 días en cero
+                let ingresosPorPlan = {}; 
+                let cashFlow15Dias = Array(15).fill(0); 
                 
                 const hoy = new Date();
                 const limite15Dias = new Date();
                 limite15Dias.setDate(hoy.getDate() + 15);
 
-                // 4. PROCESAMIENTO DE DATOS (Data Pipeline)
+                // 4. PROCESAMIENTO DE DATOS
                 historial.forEach(sub => {
-                    // Manejo seguro de nulos por si algún plan fue borrado
+                    // Adaptamos las variables a tu esquema real
                     const precio = sub.planes?.precio || 0;
-                    const meses = sub.planes?.meses || 1;
-                    const nombrePlan = sub.planes?.nombre || 'Plan Genérico';
+                    const dias = sub.planes?.dias_duracion || 30;
+                    const nombrePlan = sub.planes?.nombre_plan || 'Plan Genérico';
+                    
+                    // Convertimos los días a meses para sacar el MRR (ej. 30 días = 1 mes, 90 días = 3 meses)
+                    const meses = Math.max(1, Math.round(dias / 30));
                     const ingresoMensualReal = precio / meses;
 
                     if (sub.estado_pago === 'Pagado') {
                         activos++;
                         mrr += ingresoMensualReal;
 
-                        // Agrupamos para el gráfico de anillo
                         if (!ingresosPorPlan[nombrePlan]) ingresosPorPlan[nombrePlan] = 0;
                         ingresosPorPlan[nombrePlan] += ingresoMensualReal;
                     } else if (sub.estado_pago === 'Atrasado') {
                         atrasados++;
                     }
 
-                    // Cálculo de Flujo de Caja (¿Quién vence en los próximos 15 días?)
+                    // Cálculo de Flujo de Caja
                     if (sub.fecha_fin) {
                         const fechaVence = new Date(sub.fecha_fin);
-                        // Si la fecha está entre hoy y los próximos 15 días
+                        // Si vence hoy o en los próximos 15 días, no cuenta los que vencieron en el pasado
                         if (fechaVence >= hoy && fechaVence <= limite15Dias) {
                             const diffTime = Math.abs(fechaVence - hoy);
                             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                             
                             if (diffDays >= 0 && diffDays < 15) {
-                                // Proyectamos que el cliente pagará su renovación ese día
                                 cashFlow15Dias[diffDays] += precio; 
                             }
                         }
@@ -1116,7 +1116,6 @@
                 const ctxPlanes = document.getElementById('graficoPlanes').getContext('2d');
                 if (chartPlanes) chartPlanes.destroy();
                 
-                // Colores dinámicos por si tienes muchos planes
                 const colores = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
                 chartPlanes = new Chart(ctxPlanes, {
