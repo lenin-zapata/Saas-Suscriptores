@@ -4,288 +4,474 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JS MemberLy - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-</head>
-<body class="bg-gray-50 text-gray-800 font-sans h-screen flex overflow-hidden">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-    <div id="pantallaLogin" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-900 to-blue-800 fixed z-50">
-        <div class="bg-white p-10 rounded-xl shadow-2xl w-96 max-w-full">
-            <div class="text-center mb-8">
-                <span class="text-4xl">🏋️‍♂️</span>
-                <h1 class="text-2xl font-bold mt-2 text-gray-800">JS MemberLy</h1>
-                <p class="text-gray-500 text-sm">Panel de Administración</p>
+        /* Sidebar nav active / hover */
+        .nav-link { transition: all 0.2s ease; }
+        .nav-link.active  { background: rgba(255,255,255,0.15); color:#fff; }
+        .nav-link:hover:not(.active) { background: rgba(255,255,255,0.08); }
+
+        /* Subtle animated gradient on login */
+        .login-bg {
+            background: linear-gradient(135deg, #065f46 0%, #047857 40%, #059669 70%, #10b981 100%);
+            background-size: 300% 300%;
+            animation: gradientShift 8s ease infinite;
+        }
+        @keyframes gradientShift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* KPI card hover lift */
+        .kpi-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+
+        /* Table row transitions */
+        tbody tr { transition: background 0.15s; }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1fae5; border-radius: 99px; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 h-screen flex overflow-hidden">
+
+    <!-- ===================== PANTALLA LOGIN ===================== -->
+    <div id="pantallaLogin" class="w-full h-full flex items-center justify-center login-bg fixed z-50">
+
+        <!-- Decorative blobs -->
+        <div class="absolute top-0 left-0 w-72 h-72 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
+
+        <div class="relative bg-white rounded-3xl shadow-2xl w-[420px] max-w-[calc(100vw-2rem)] overflow-hidden">
+            <!-- Header strip -->
+            <div class="bg-emerald-600 px-10 pt-10 pb-8 text-center">
+                <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">🏋️‍♂️</div>
+                <h1 class="text-2xl font-extrabold text-white tracking-tight">JS MemberLy</h1>
+                <p class="text-emerald-100 text-sm mt-1">Panel de Administración</p>
             </div>
-            <form id="formLogin" class="flex flex-col gap-5">
+
+            <!-- Form body -->
+            <form id="formLogin" class="px-10 py-8 flex flex-col gap-5">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
-                    <input type="email" id="emailLogin" required class="w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="admin@irongym.com">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Correo Electrónico</label>
+                    <input type="email" id="emailLogin" required
+                        class="w-full border border-gray-200 bg-gray-50 px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition text-sm"
+                        placeholder="admin@irongym.com">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-                    <input type="password" id="passLogin" required class="w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="••••••••">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Contraseña</label>
+                    <input type="password" id="passLogin" required
+                        class="w-full border border-gray-200 bg-gray-50 px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition text-sm"
+                        placeholder="••••••••">
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg mt-2 hover:bg-indigo-700 transition shadow-lg">
+
+                <button type="submit"
+                    class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 mt-1 text-sm">
                     Ingresar al Sistema
                 </button>
+
                 <div class="text-center">
-                    <button type="button" onclick="solicitarResetPassword()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition underline underline-offset-4">
+                    <button type="button" onclick="solicitarResetPassword()"
+                        class="text-xs text-emerald-600 hover:text-emerald-800 font-semibold transition underline underline-offset-4">
                         ¿Olvidaste tu contraseña?
                     </button>
                 </div>
-                <div class="border-t border-gray-200 mt-4 pt-4 text-center">
-                    <p class="text-xs text-gray-500 mb-2">¿Eres personal nuevo?</p>
-                    <button type="button" onclick="abrirRegistro()" class="text-sm text-indigo-600 hover:text-indigo-800 font-bold transition">
+
+                <div class="border-t border-gray-100 pt-5 text-center">
+                    <p class="text-xs text-gray-400 mb-2">¿Eres personal nuevo?</p>
+                    <button type="button" onclick="abrirRegistro()"
+                        class="text-sm text-emerald-600 hover:text-emerald-800 font-bold transition">
                         Crear mi cuenta de acceso
                     </button>
                 </div>
-                <p id="errorLogin" class="text-red-500 text-sm text-center hidden font-medium"></p>
+
+                <p id="errorLogin" class="text-red-500 text-xs text-center hidden font-medium bg-red-50 py-2 px-3 rounded-lg"></p>
             </form>
         </div>
     </div>
 
+    <!-- ===================== DASHBOARD ===================== -->
     <div id="pantallaDashboard" class="flex w-full h-full hidden">
-        <aside class="w-64 bg-indigo-900 text-white flex flex-col shadow-xl z-10">
-            <div class="p-6 flex flex-col items-center border-b border-indigo-800 text-center">
-                <div class="relative group cursor-pointer w-20 h-20 rounded-full bg-white/10 flex items-center justify-center overflow-hidden mb-3 border-2 border-indigo-700">
+
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-emerald-900 text-white flex flex-col shadow-2xl z-10 shrink-0">
+
+            <!-- Gym branding -->
+            <div class="p-6 flex flex-col items-center border-b border-white/10 text-center">
+                <div class="relative group cursor-pointer w-20 h-20 rounded-2xl bg-white/10 flex items-center justify-center overflow-hidden mb-3 border border-white/20 shadow-inner">
                     <img id="logoGymImg" src="https://via.placeholder.com/150?text=Logo" alt="Logo Gym" class="w-full h-full object-cover">
-                    <label for="uploadLogo" class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer text-xs text-white">
-                        <span>📷</span><span class="mt-1">Cambiar</span>
+                    <label for="uploadLogo" class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer text-[10px] text-white gap-1">
+                        <span class="text-lg">📷</span><span>Cambiar</span>
                     </label>
                     <input type="file" id="uploadLogo" class="hidden" accept="image/*" onchange="subirLogo(this)">
                 </div>
-                <h2 id="nombreGymSidebar" class="text-lg font-bold tracking-wide">Cargando...</h2>
+                <h2 id="nombreGymSidebar" class="text-sm font-bold tracking-wide text-white">Cargando...</h2>
             </div>
-            <nav class="flex-1 p-4 flex flex-col gap-2">
-                <a href="#" onclick="mostrarSeccion('dashboard')" id="btnNavDashboard" class="flex items-center gap-3 bg-indigo-800 px-4 py-3 rounded-lg text-sm font-medium text-white shadow">
-                    <span>📊</span> Dashboard
+
+            <!-- Nav -->
+            <nav class="flex-1 p-4 flex flex-col gap-1">
+                <a href="#" onclick="mostrarSeccion('dashboard')" id="btnNavDashboard"
+                    class="nav-link active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold">
+                    <span class="text-base">📊</span> Dashboard
                 </a>
-                <a href="#" onclick="mostrarSeccion('seccionStaff')" id="btnNavStaff" class="solo-admin flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-indigo-100 hover:bg-indigo-800">
-                    <span>👥</span> Gestionar Staff
+                <a href="#" onclick="mostrarSeccion('seccionStaff')" id="btnNavStaff"
+                    class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
+                    <span class="text-base">👥</span> Gestionar Staff
                 </a>
-                <a onclick="abrirEscanner()" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-indigo-100 hover:bg-indigo-800 cursor-pointer">
-                    <span>📷</span> Escanear Pase
+                <a onclick="abrirEscanner()"
+                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70 cursor-pointer">
+                    <span class="text-base">📷</span> Escanear Pase
                 </a>
             </nav>
-            <div class="p-4 border-t border-indigo-800">
-                <button onclick="cerrarSesion()" class="w-full flex items-center justify-center gap-2 text-indigo-200 hover:text-white px-4 py-2 rounded-lg text-sm transition">
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-white/10">
+                <button onclick="cerrarSesion()"
+                    class="w-full flex items-center justify-center gap-2 text-white/50 hover:text-white px-4 py-2 rounded-xl text-sm transition font-medium">
                     <span>🚪</span> Cerrar Sesión
                 </button>
             </div>
         </aside>
 
-        <main class="flex-1 flex flex-col overflow-y-auto">
-            <header class="bg-white shadow-sm px-8 py-4 flex justify-between items-center sticky top-0 z-40">
-                <h1 class="text-2xl font-bold text-gray-800">Resumen General</h1>
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 flex flex-col overflow-y-auto bg-gray-50">
+
+            <!-- Top header -->
+            <header class="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-40">
+                <div>
+                    <h1 class="text-xl font-extrabold text-gray-900 tracking-tight">Resumen General</h1>
+                    <p class="text-xs text-gray-400 font-medium mt-0.5">Panel de control de tu gimnasio</p>
+                </div>
                 <div class="relative group">
-                    <button class="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-xl transition">
-                        <div id="userInitialsCircle" class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border-2 border-white shadow-sm">A</div>
+                    <button class="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-2xl transition">
+                        <div id="userInitialsCircle"
+                            class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 font-extrabold border-2 border-white shadow-sm text-sm">A</div>
                         <div class="text-left hidden md:block">
                             <p id="userNameDisplay" class="text-sm font-bold text-gray-800 leading-none">Usuario</p>
-                            <p class="text-[10px] text-gray-500 font-medium uppercase mt-1">Mi Cuenta ▼</p>
+                            <p class="text-[10px] text-gray-400 font-semibold uppercase mt-1">Mi Cuenta ▼</p>
                         </div>
                     </button>
-                    <div class="absolute right-0 w-48 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                    <!-- Dropdown -->
+                    <div class="absolute right-0 w-48 mt-1 bg-white rounded-2xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                         <div class="p-2">
-                            <button onclick="document.getElementById('modalPassword').classList.remove('hidden')" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-indigo-50 rounded-lg">🔐 Nueva Clave</button>
-                            <div class="border-t my-1"></div>
-                            <button onclick="cerrarSesion()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg font-medium">🚪 Salir</button>
+                            <button onclick="document.getElementById('modalPassword').classList.remove('hidden')"
+                                class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition">🔐 Nueva Clave</button>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <button onclick="cerrarSesion()"
+                                class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-xl font-semibold transition">🚪 Salir</button>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <div id="vistaResumen" class="p-8">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="solo-admin bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex flex-col justify-between">
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-2xl">👥</div>
+            <!-- =================== VISTA RESUMEN =================== -->
+            <div id="vistaResumen" class="p-8 space-y-6">
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                    <!-- Clientes Activos + Barra SaaS -->
+                    <div class="solo-admin kpi-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-2xl shrink-0">👥</div>
                             <div>
-                                <p class="text-sm text-gray-500 font-medium">Clientes Activos</p>
-                                <h3 class="text-3xl font-bold text-gray-800"><span id="kpiTotal">0</span> <span class="text-lg text-gray-400 font-normal">/ <span id="kpiLimite">100</span></span></h3>
+                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Clientes Activos</p>
+                                <h3 class="text-3xl font-extrabold text-gray-900 leading-none mt-1">
+                                    <span id="kpiTotal">0</span>
+                                    <span class="text-base text-gray-300 font-semibold"> / <span id="kpiLimite">100</span></span>
+                                </h3>
                             </div>
                         </div>
-                        
-                        <div class="w-full bg-gray-100 rounded-full h-2.5 mb-2 overflow-hidden">
-                            <div id="barraUsoPlan" class="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <p class="text-xs text-gray-500 font-medium">Plan <span id="nombrePlanSaas" class="capitalize font-bold text-emerald-600">Starter</span></p>
-                            <button onclick="prepararYAbrirModalUpgrade()" class="text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg font-bold hover:bg-emerald-100 transition shadow-sm flex items-center gap-1">
-                                🚀 Subir de Nivel
-                            </button>
+                        <div>
+                            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                <div id="barraUsoPlan" class="bg-emerald-500 h-2 rounded-full transition-all duration-700" style="width:0%"></div>
+                            </div>
+                            <div class="flex justify-between items-center mt-2.5">
+                                <p class="text-[11px] text-gray-400 font-semibold">Plan <span id="nombrePlanSaas" class="capitalize font-extrabold text-emerald-600">Starter</span></p>
+                                <button onclick="prepararYAbrirModalUpgrade()"
+                                    class="text-[11px] bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg font-bold hover:bg-emerald-100 transition flex items-center gap-1">
+                                    🚀 Subir de Nivel
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <div class="solo-admin bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center text-2xl">✅</div>
-                        <div><p class="text-sm text-gray-500 font-medium">Al Día</p><h3 id="kpiAlDia" class="text-3xl font-bold text-green-600">0</h3></div>
+
+                    <!-- Al Día -->
+                    <div class="solo-admin kpi-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-2xl shrink-0">✅</div>
+                        <div>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Al Día</p>
+                            <h3 id="kpiAlDia" class="text-3xl font-extrabold text-emerald-600 leading-none mt-1">0</h3>
+                        </div>
                     </div>
-                    <div class="solo-admin bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-2xl">⚠️</div>
-                        <div><p class="text-sm text-gray-500 font-medium">Atrasados</p><h3 id="kpiMorosos" class="text-3xl font-bold text-red-600">0</h3></div>
+
+                    <!-- Atrasados -->
+                    <div class="solo-admin kpi-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center text-2xl shrink-0">⚠️</div>
+                        <div>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Atrasados</p>
+                            <h3 id="kpiMorosos" class="text-3xl font-extrabold text-red-500 leading-none mt-1">0</h3>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">➕ Registrar Nuevo Suscriptor</h2>
+                <!-- Form + Chart row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+                    <!-- Form Nuevo Suscriptor -->
+                    <div class="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+                        <h2 class="text-base font-extrabold text-gray-800 mb-5 flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">➕</span>
+                            Registrar Nuevo Suscriptor
+                        </h2>
                         <form id="formSuscriptor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label class="block text-sm text-gray-600 mb-1 font-medium">Nombre</label><input type="text" id="nombre" required class="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
-                            <div><label class="block text-sm text-gray-600 mb-1 font-medium">WhatsApp</label><input type="text" id="telefono" required class="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
-                            <div><label class="block text-sm text-gray-600 mb-1 font-medium">Email</label><input type="email" id="email" required class="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
-                            <div><label class="block text-sm text-gray-600 mb-1 font-medium">Plan</label><select id="planElegido" required class="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></select></div>
-                            <div class="md:col-span-2 mt-2"><button type="submit" class="w-full md:w-auto px-8 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition shadow">Guardar Cliente</button></div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre</label>
+                                <input type="text" id="nombre" required
+                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">WhatsApp</label>
+                                <input type="text" id="telefono" required
+                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
+                                <input type="email" id="email" required
+                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Plan</label>
+                                <select id="planElegido" required
+                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition"></select>
+                            </div>
+                            <div class="md:col-span-2 mt-1">
+                                <button type="submit"
+                                    class="px-8 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 text-sm">
+                                    Guardar Cliente
+                                </button>
+                            </div>
                         </form>
                     </div>
-                    <div class="solo-admin bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
-                        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">📊 Estado de Pagos</h2>
-                        <div class="flex-1 flex items-center justify-center min-h-[200px]"><canvas id="graficoPagos"></canvas></div>
+
+                    <!-- Gráfico -->
+                    <div class="solo-admin bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex flex-col">
+                        <h2 class="text-base font-extrabold text-gray-800 mb-4 flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">📊</span>
+                            Estado de Pagos
+                        </h2>
+                        <div class="flex-1 flex items-center justify-center min-h-[180px]">
+                            <canvas id="graficoPagos"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <h2 class="text-lg font-bold text-gray-800">📋 Directorio de Clientes</h2>
-                        
+                <!-- Directorio de Clientes -->
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="px-6 py-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <h2 class="text-base font-extrabold text-gray-800 flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">📋</span>
+                            Directorio de Clientes
+                        </h2>
                         <div class="relative w-full md:w-72">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">🔍</span>
-                            <input type="text" id="inputBuscarCliente" onkeyup="filtrarClientes()" 
-                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" 
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-300 text-sm">🔍</span>
+                            <input type="text" id="inputBuscarCliente" onkeyup="filtrarClientes()"
+                                class="w-full pl-9 pr-4 py-2 border border-gray-200 bg-gray-50 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 outline-none transition"
                                 placeholder="Buscar por nombre o email...">
                         </div>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-white"><tr><th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nombre</th><th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Contacto</th><th class="px-6 py-3"></th></tr></thead>
-                            <tbody id="tablaCuerpo" class="bg-white divide-y divide-gray-100"></tbody>
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="border-b border-gray-100">
+                                    <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nombre</th>
+                                    <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Contacto</th>
+                                    <th class="px-6 py-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaCuerpo" class="divide-y divide-gray-50"></tbody>
                         </table>
                     </div>
                 </div>
-            </div>
 
+            </div><!-- /vistaResumen -->
+
+            <!-- =================== SECCIÓN STAFF =================== -->
             <div id="seccionStaff" class="hidden p-8">
                 <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-2xl font-bold text-gray-800">Gestionar Personal</h2>
-                    <button onclick="document.getElementById('modalNuevoStaff').classList.remove('hidden')" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg hover:bg-indigo-700">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Gestionar Personal</h2>
+                        <p class="text-xs text-gray-400 font-medium mt-1">Administra los accesos de tu equipo</p>
+                    </div>
+                    <button onclick="document.getElementById('modalNuevoStaff').classList.remove('hidden')"
+                        class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition text-sm">
                         + Nuevo Recepcionista
                     </button>
                 </div>
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Nombre</th><th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Rol</th><th class="px-6 py-4 text-right">Acciones</th></tr>
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="border-b border-gray-100">
+                                <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nombre</th>
+                                <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Rol</th>
+                                <th class="px-6 py-4 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Acciones</th>
+                            </tr>
                         </thead>
-                        <tbody id="tablaStaff" class="divide-y divide-gray-100"></tbody>
+                        <tbody id="tablaStaff" class="divide-y divide-gray-50"></tbody>
                     </table>
                 </div>
             </div>
+
         </main>
     </div>
 
+    <!-- ===================== MODAL: CAMBIAR CONTRASEÑA ===================== -->
     <div id="modalPassword" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">🔒 Actualizar Contraseña</h2>
-            <form id="formUpdatePassword" class="flex flex-col gap-4 text-left">
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Nueva Clave</label><input type="password" id="newPassword" required minlength="6" class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"></div>
-                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700">Guardar Cambios</button>
-                <button type="button" onclick="cancelarReset()" class="text-gray-500 text-sm">Cancelar</button>
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm border border-gray-100">
+            <h2 class="text-lg font-extrabold mb-1 text-gray-900">🔒 Actualizar Contraseña</h2>
+            <p class="text-xs text-gray-400 mb-6">Mínimo 6 caracteres.</p>
+            <form id="formUpdatePassword" class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nueva Clave</label>
+                    <input type="password" id="newPassword" required minlength="6"
+                        class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition text-sm">Guardar Cambios</button>
+                <button type="button" onclick="cancelarReset()" class="text-gray-400 text-xs text-center hover:text-gray-600 transition">Cancelar</button>
             </form>
         </div>
     </div>
 
+    <!-- ===================== MODAL: NUEVO STAFF ===================== -->
     <div id="modalNuevoStaff" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-            <h2 class="text-xl font-bold mb-6 text-gray-800">➕ Agregar Personal</h2>
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md border border-gray-100">
+            <h2 class="text-lg font-extrabold mb-1 text-gray-900">➕ Agregar Personal</h2>
+            <p class="text-xs text-gray-400 mb-6">Se enviará una invitación por WhatsApp.</p>
             <form id="formNuevoStaff" class="flex flex-col gap-4">
-                <div><label class="block text-sm font-medium text-gray-700">Nombre</label><input type="text" id="nombreStaff" required class="w-full border border-gray-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"></div>
-                <div><label class="block text-sm font-medium text-gray-700">Email</label><input type="email" id="emailStaff" required class="w-full border border-gray-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"></div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono (WhatsApp)</label>
-                    <input type="text" id="telefonoStaff" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="+593...">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre</label>
+                    <input type="text" id="nombreStaff" required class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
                 </div>
-                <div><label class="block text-sm font-medium text-gray-700">Rol</label><select id="rolStaff" class="w-full border border-gray-300 p-2.5 rounded-xl"><option value="recepcionista">Recepcionista</option><option value="admin">Administrador</option></select></div>
-                <div class="flex gap-3 mt-4">
-                    <button type="submit" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 shadow-lg">Registrar</button>
-                    <button type="button" onclick="document.getElementById('modalNuevoStaff').classList.add('hidden')" class="px-4 text-gray-500 font-medium">Cerrar</button>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
+                    <input type="email" id="emailStaff" required class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Teléfono (WhatsApp)</label>
+                    <input type="text" id="telefonoStaff" required class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="+593...">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Rol</label>
+                    <select id="rolStaff" class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
+                        <option value="recepcionista">Recepcionista</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 mt-2">
+                    <button type="submit" class="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition text-sm">Registrar</button>
+                    <button type="button" onclick="document.getElementById('modalNuevoStaff').classList.add('hidden')"
+                        class="px-5 text-gray-400 font-semibold text-sm hover:text-gray-600 transition">Cerrar</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- ===================== MODAL: QR ===================== -->
     <div id="modalQR" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[60] backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full mx-4">
-            <div class="bg-indigo-900 p-6 text-center relative">
-                <button onclick="document.getElementById('modalQR').classList.add('hidden')" class="absolute top-4 right-4 text-indigo-200 hover:text-white">✕</button>
-                <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3"><span class="text-3xl">🎫</span></div>
-                <h2 class="text-xl font-bold text-white">Pase de Acceso</h2>
-                <p id="nombreClienteQR" class="text-indigo-200 text-sm mt-1"></p>
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-sm w-full mx-4 border border-gray-100">
+            <div class="bg-emerald-700 p-6 text-center relative">
+                <button onclick="document.getElementById('modalQR').classList.add('hidden')"
+                    class="absolute top-4 right-4 text-emerald-200 hover:text-white text-lg transition">✕</button>
+                <div class="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">🎫</div>
+                <h2 class="text-lg font-extrabold text-white">Pase de Acceso</h2>
+                <p id="nombreClienteQR" class="text-emerald-200 text-sm mt-1"></p>
             </div>
-            <div class="p-8 flex flex-col items-center">
-                <div id="contenedorQR" class="p-4 bg-white border border-gray-100 mb-6"></div>
-                <button id="btnEnviarWA" class="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-3.5 rounded-xl shadow-lg">Enviar por WhatsApp</button>
+            <div class="p-8 flex flex-col items-center gap-6">
+                <div id="contenedorQR" class="p-4 bg-white border border-gray-100 rounded-2xl shadow-inner"></div>
+                <button id="btnEnviarWA"
+                    class="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-3.5 rounded-2xl shadow-lg transition text-sm">
+                    📲 Enviar por WhatsApp
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- ===================== LECTOR QR ===================== -->
     <div id="lectorQRContainer" class="fixed inset-0 bg-black/80 hidden z-[70] flex items-center justify-center">
-        <div class="bg-white p-6 rounded-2xl w-full max-w-md text-center">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-md text-center border border-gray-100">
             <div id="reader"></div>
-            <button onclick="cerrarEscanner()" class="w-full mt-4 p-2 bg-gray-100 rounded font-bold">Cancelar</button>
+            <button onclick="cerrarEscanner()"
+                class="w-full mt-4 p-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold text-sm transition">Cancelar</button>
         </div>
     </div>
 
+    <!-- ===================== MODAL: ACTIVAR CUENTA (STAFF) ===================== -->
     <div id="modalRegistro" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center border border-gray-100">
-            <h2 class="text-xl font-bold mb-2 text-gray-800">📝 Activar Cuenta</h2>
-            <p class="text-xs text-gray-500 mb-6">Usa exactamente el correo con el que el administrador te registró.</p>
-            
-            <form id="formRegistro" class="flex flex-col gap-4 text-left">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm border border-gray-100">
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-xl mx-auto mb-3">📝</div>
+                <h2 class="text-lg font-extrabold text-gray-900">Activar Cuenta</h2>
+                <p class="text-xs text-gray-400 mt-1">Usa el correo exacto con el que el administrador te registró.</p>
+            </div>
+            <form id="formRegistro" class="flex flex-col gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
-                    <input type="email" id="emailRegistro" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="tu_correo@gym.com">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Correo Electrónico</label>
+                    <input type="email" id="emailRegistro" required
+                        class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="tu_correo@gym.com">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Crea una Contraseña</label>
-                    <input type="password" id="passRegistro" required minlength="6" class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Mínimo 6 caracteres">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Crea una Contraseña</label>
+                    <input type="password" id="passRegistro" required minlength="6"
+                        class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="Mínimo 6 caracteres">
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition shadow-md mt-2">
+                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 mt-2 text-sm">
                     Crear Cuenta
                 </button>
-                <button type="button" onclick="cerrarRegistro()" class="text-gray-500 text-sm mt-1 hover:text-gray-700">
+                <button type="button" onclick="cerrarRegistro()" class="text-gray-400 text-xs text-center hover:text-gray-600 transition">
                     Cancelar y volver al Login
                 </button>
             </form>
         </div>
     </div>
 
+    <!-- ===================== MODAL: UPGRADE PLAN ===================== -->
     <div id="modalUpgrade" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-[110] backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg text-center border border-indigo-100">
-            <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-indigo-100">
-                <span class="text-4xl">🚀</span>
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-lg text-center border border-emerald-100">
+            <div class="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto mb-4 border-4 border-emerald-100 text-4xl">🚀</div>
+            <h2 class="text-2xl font-extrabold mb-2 text-gray-900">¡Tu gimnasio está creciendo!</h2>
+            <p class="text-gray-500 text-sm mb-6 leading-relaxed">
+                Estás alcanzando el límite de clientes de tu plan actual.<br>
+                Es momento de subir de nivel y desbloquear más herramientas.
+            </p>
+            <div class="bg-gray-50 rounded-2xl p-6 mb-6 text-left border border-gray-100">
+                <h3 id="tituloPlanUpsell" class="font-extrabold text-gray-900 mb-3 text-base">Cargando plan...</h3>
+                <ul id="listaFeaturesUpsell" class="text-sm text-gray-600 space-y-2"></ul>
             </div>
-            <h2 class="text-2xl font-bold mb-2 text-gray-800">¡Tu gimnasio está creciendo!</h2>
-            <p class="text-gray-600 mb-6">Estás alcanzando el límite de clientes de tu plan actual. Para seguir registrando nuevos miembros y acceder a herramientas avanzadas, es momento de subir de nivel.</p>
-            
-            <div class="bg-gray-50 rounded-xl p-6 mb-6 text-left border border-gray-100">
-                <h3 id="tituloPlanUpsell" class="font-bold text-gray-800 mb-3">Cargando plan...</h3>
-                <ul id="listaFeaturesUpsell" class="text-sm text-gray-600 space-y-2">
-                    </ul>
-            </div>
-
             <div class="flex gap-3">
-                <button id="btnPagarUpgrade" onclick="iniciarPagoUpgrade()" class="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition shadow-lg flex justify-center items-center gap-2">
+                <button id="btnPagarUpgrade" onclick="iniciarPagoUpgrade()"
+                    class="flex-1 bg-emerald-600 text-white font-bold py-3.5 rounded-2xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 flex justify-center items-center gap-2 text-sm">
                     Mejorar Plan <span>💳</span>
                 </button>
-                <button onclick="document.getElementById('modalUpgrade').classList.add('hidden')" class="px-6 text-gray-500 font-medium hover:text-gray-700 transition">
+                <button onclick="document.getElementById('modalUpgrade').classList.add('hidden')"
+                    class="px-6 text-gray-400 font-semibold hover:text-gray-600 transition text-sm">
                     Quizás luego
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- ===================== JAVASCRIPT (100% IGUAL AL ORIGINAL) ===================== -->
     <script>
         const SUPABASE_URL = 'https://kfqdefzuwejwmupgvelg.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcWRlZnp1d2Vqd211cGd2ZWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MTcwMzYsImV4cCI6MjA4Njk5MzAzNn0.Wdr14R9gZ6Osy8RrVaYXC6CKUtBoYqbE9tV3oiekCPE';
@@ -297,13 +483,13 @@
         let miTenantId = null; 
         let graficoInstancia = null;
         let modoRecuperacion = false;
-        let listaClientesOriginal = []; // Variable para guardar la copia de seguridad
+        let listaClientesOriginal = [];
 
         let limiteClientesActual = 100;
         let planSaasActual = 'starter';
         let totalClientesActual = 0;
 
-        // LOGIN (SINCRONIZACIÓN AUTOMÁTICA)
+        // LOGIN
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
@@ -321,7 +507,6 @@
                 const userEmail = data.session.user.email;
                 const userId = data.session.user.id;
 
-                // 1. Buscamos el perfil del usuario logueado (Por ID o Email)
                 let { data: staffData } = await miSupabase
                     .from('perfiles_staff')
                     .select('*')
@@ -331,7 +516,6 @@
                     const perfil = staffData[0];
                     miTenantId = perfil.tenant_id;
                     
-                    // Si el ID en la tabla no coincide con el de Auth, lo reparamos silenciosamente
                     if (perfil.id !== userId) {
                         await miSupabase.from('perfiles_staff').update({ id: userId }).eq('email', userEmail);
                     }
@@ -340,22 +524,17 @@
                     document.getElementById('userInitialsCircle').innerText = perfil.nombre.charAt(0).toUpperCase();
                     aplicarPermisos(perfil.rol);
 
-                    // 2. Obtener datos del Negocio (Gimnasio)
                     const { data: negocio } = await miSupabase.from('tenants').select('*').eq('id', miTenantId).single();
                     if (negocio) {
                         document.getElementById('nombreGymSidebar').innerText = negocio.nombre_negocio;
                         if (negocio.logo_url) document.getElementById('logoGymImg').src = negocio.logo_url;
-                        
-                        // Guardamos las variables SaaS
                         planSaasActual = negocio.plan_saas || 'starter';
                         limiteClientesActual = negocio.limite_clientes || 100;
-                        
                         if (negocio.estado_suscripcion !== 'activa') {
                             alert("⚠️ La suscripción de tu gimnasio está inactiva. Funcionalidades limitadas.");
                         }
                     }
 
-                    // Entrar al Dashboard
                     document.getElementById('pantallaLogin').classList.add('hidden');
                     document.getElementById('pantallaDashboard').classList.remove('hidden');
                     await cargarPlanes();
@@ -381,15 +560,12 @@
 
             if (idSeccion === 'dashboard') {
                 resumen.classList.remove('hidden'); staff.classList.add('hidden');
-                btnDash.classList.add('bg-indigo-800', 'text-white', 'shadow');
-                btnStaff.classList.remove('bg-indigo-800', 'text-white', 'shadow');
-                btnStaff.classList.add('text-indigo-100');
+                btnDash.classList.add('active'); btnDash.classList.remove('text-white/70');
+                btnStaff.classList.remove('active'); btnStaff.classList.add('text-white/70');
             } else {
                 resumen.classList.add('hidden'); staff.classList.remove('hidden');
-                btnStaff.classList.add('bg-indigo-800', 'text-white', 'shadow');
-                btnStaff.classList.remove('text-indigo-100');
-                btnDash.classList.remove('bg-indigo-800', 'text-white', 'shadow');
-                btnDash.classList.add('text-indigo-100');
+                btnStaff.classList.add('active'); btnStaff.classList.remove('text-white/70');
+                btnDash.classList.remove('active'); btnDash.classList.add('text-white/70');
                 cargarStaff();
             }
         }
@@ -399,10 +575,21 @@
             const { data: staff } = await miSupabase.from('perfiles_staff').select('*').eq('tenant_id', miTenantId).order('nombre');
             if (staff) {
                 document.getElementById('tablaStaff').innerHTML = staff.map(s => `
-                    <tr class="hover:bg-gray-50 border-b border-gray-50">
-                        <td class="px-6 py-5 font-medium">${s.nombre}<br><span class="text-[10px] text-gray-400">${s.email || 'Pendiente'}</span></td>
-                        <td class="px-6 py-5"><span class="px-2 py-1 rounded-lg text-[10px] font-bold ${s.rol === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${s.rol.toUpperCase()}</span></td>
-                        <td class="px-6 py-5 text-right">${s.rol !== 'admin' ? `<button onclick="eliminarStaff('${s.id}')" class="text-red-600 hover:text-red-800 text-sm font-bold">Eliminar</button>` : `<span class="text-gray-400 text-xs italic">Protegido</span>`}</td>
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 font-semibold text-sm text-gray-800">
+                            ${s.nombre}
+                            <br><span class="text-[10px] text-gray-400 font-normal">${s.email || 'Pendiente'}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${s.rol === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'}">
+                                ${s.rol.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            ${s.rol !== 'admin'
+                                ? `<button onclick="eliminarStaff('${s.id}')" class="text-red-500 hover:text-red-700 text-sm font-bold transition">Eliminar</button>`
+                                : `<span class="text-gray-300 text-xs italic">Protegido</span>`}
+                        </td>
                     </tr>
                 `).join('');
             }
@@ -412,50 +599,33 @@
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
-            
-            btn.innerHTML = 'Guardando...';
-            btn.disabled = true;
+            btn.innerHTML = 'Guardando...'; btn.disabled = true;
 
             const nombre = document.getElementById('nombreStaff').value;
             const email = document.getElementById('emailStaff').value;
-            const telefono = document.getElementById('telefonoStaff').value; // Capturamos el teléfono
+            const telefono = document.getElementById('telefonoStaff').value;
             const rol = document.getElementById('rolStaff').value;
 
             try {
-                // 1. Guardamos el perfil en la base de datos (ahora con teléfono)
                 const { error: dbError } = await miSupabase
                     .from('perfiles_staff')
-                    .insert([{ 
-                        tenant_id: miTenantId, 
-                        nombre: nombre, 
-                        email: email, 
-                        telefono: telefono, // Guardamos el dato
-                        rol: rol 
-                    }]);
-
+                    .insert([{ tenant_id: miTenantId, nombre, email, telefono, rol }]);
                 if (dbError) throw dbError;
 
-                // 2. Limpiamos la URL actual (por si tiene tokens raros al final)
                 const urlRegistro = window.location.href.split('#')[0]; 
                 const mensaje = `Hola ${nombre}, te he agregado al equipo de JS MemberLy. \n\nPor favor, ingresa a ${urlRegistro} y haz clic en "Crear mi cuenta de acceso" usando exactamente este correo: ${email}`;
-                
-                // 3. Limpiamos el número para WhatsApp (elimina espacios, guiones, etc.)
                 const numeroWA = telefono.replace(/\D/g, ''); 
 
-                // 4. Mostramos alerta y abrimos WhatsApp directamente en el chat del usuario
                 alert("✅ Perfil creado. Se abrirá WhatsApp para enviar las instrucciones.");
                 window.open(`https://wa.me/${numeroWA}?text=${encodeURIComponent(mensaje)}`, '_blank');
 
-                // Limpiamos el modal y recargamos la tabla
                 document.getElementById('modalNuevoStaff').classList.add('hidden');
                 e.target.reset();
                 cargarStaff();
-
             } catch (err) {
                 alert("❌ Error: " + err.message);
             } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                btn.innerHTML = originalText; btn.disabled = false;
             }
         });
 
@@ -473,70 +643,75 @@
         async function cargarDatosYDashboard() {
             try {
                 const res = await fetch(API_URL, { headers: { 'Authorization': `Bearer ${tokenActual}` } });
-                const clientes = await res.json();
-                const { data: historial } = await miSupabase.from('historial_suscripciones').select('estado_pago');
+                let clientesCrudos = await res.json();
+                
+                const clientes = clientesCrudos.filter(c => c.tenant_id === miTenantId);
+                
+                listaClientesOriginal = clientes; 
+                renderizarTablaClientes(clientes); 
 
-                listaClientesOriginal = clientes; // Guardamos la copia aquí
-                renderizarTablaClientes(clientes); // Llamamos a una nueva función de dibujo
-
-                document.getElementById('tablaCuerpo').innerHTML = clientes.map(c => `
-                    <tr class="hover:bg-gray-50 transition border-b border-gray-50">
-                        <td class="px-6 py-4 font-medium text-gray-900">${c.nombre_completo}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500">
-                            <div class="flex flex-col">
-                                <span class="flex items-center gap-1">📞 ${c.telefono}</span>
-                                <span class="flex items-center gap-1 text-indigo-400">✉️ ${c.email}</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}')" 
-                                    class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-indigo-100 transition">
-                                📱 QR
-                            </button>
-                        </td>
-                    </tr>`).join('');
-
-                const alDia = historial ? historial.filter(h => h.estado_pago === 'Pagado').length : 0;
-                const morosos = historial ? historial.filter(h => h.estado_pago === 'Atrasado').length : 0;
-                document.getElementById('kpiTotal').innerText = clientes.length;
-                document.getElementById('kpiAlDia').innerText = alDia;
-                document.getElementById('kpiMorosos').innerText = morosos;
-                actualizarGrafico(alDia, morosos);
-
-                // Agrega esto justo debajo de donde calculas `clientes.length`
                 totalClientesActual = clientes.length;
-
-                // Asumimos que ya trajimos el limite y el plan en el login (lo haremos en el Paso C)
                 document.getElementById('kpiTotal').innerText = totalClientesActual;
                 document.getElementById('kpiLimite').innerText = limiteClientesActual;
-                document.getElementById('nombrePlanSaas').innerText = planSaasActual;
-
-                // Calcular porcentaje de la barra (máximo 100%)
-                let porcentajeUso = (totalClientesActual / limiteClientesActual) * 100;
-                if (porcentajeUso > 100) porcentajeUso = 100;
 
                 const barra = document.getElementById('barraUsoPlan');
-                barra.style.width = `${porcentajeUso}%`;
-
-                // Si está al 90% o más, la barra se pone roja para alertar
-                if (porcentajeUso >= 90) {
-                    barra.classList.replace('bg-indigo-600', 'bg-red-500');
-                } else {
-                    barra.classList.replace('bg-red-500', 'bg-indigo-600');
+                const nombrePlan = document.getElementById('nombrePlanSaas');
+                if (barra) {
+                    let porcentajeUso = limiteClientesActual > 0 
+                        ? (totalClientesActual / limiteClientesActual) * 100 
+                        : 0;
+                    if (porcentajeUso > 100) porcentajeUso = 100;
+                    barra.style.width = `${porcentajeUso}%`;
+                    barra.className = `transition-all duration-700 h-2 rounded-full ${porcentajeUso >= 90 ? 'bg-red-500' : 'bg-emerald-500'}`;
                 }
-            } catch (e) { console.error(e); }
+                if (nombrePlan) nombrePlan.innerText = planSaasActual;
+
+                // Pagos desde historial_suscripciones
+                const { data: historial, error: histError } = await miSupabase
+                    .from('historial_suscripciones')
+                    .select('suscriptor_id, estado_pago')
+                    .eq('tenant_id', miTenantId);
+
+                let contAlDia = 0;
+                let contAtrasados = 0;
+
+                if (historial && !histError) {
+                    historial.forEach(h => {
+                        if (h.estado_pago === 'Pagado') contAlDia++;
+                        else if (h.estado_pago === 'Atrasado') contAtrasados++;
+                    });
+                }
+
+                const elementoAlDia = document.getElementById('kpiAlDia');
+                const elementoAtrasados = document.getElementById('kpiMorosos');
+                if (elementoAlDia) elementoAlDia.innerText = contAlDia;
+                if (elementoAtrasados) elementoAtrasados.innerText = contAtrasados;
+                
+                actualizarGrafico(contAlDia, contAtrasados);
+
+            } catch (error) { 
+                console.error("Error al cargar el dashboard:", error); 
+            }
         }
 
         function actualizarGrafico(alDia, morosos) {
             const ctx = document.getElementById('graficoPagos').getContext('2d');
             if (graficoInstancia) graficoInstancia.destroy();
-            graficoInstancia = new Chart(ctx, { type: 'doughnut', data: { labels: ['Al Día', 'Atrasados'], datasets: [{ data: [alDia, morosos], backgroundColor: ['#10B981', '#EF4444'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%' } });
+            graficoInstancia = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Al Día', 'Atrasados'],
+                    datasets: [{ data: [alDia, morosos], backgroundColor: ['#10B981', '#EF4444'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '72%' }
+            });
         }
 
-        // FUNCIONES GENERALES
+        // PERMISOS
         function aplicarPermisos(rol) {
-            const elementosAdmin = document.querySelectorAll('.solo-admin');
-            elementosAdmin.forEach(el => rol === 'recepcionista' ? el.classList.add('hidden') : el.classList.remove('hidden'));
+            document.querySelectorAll('.solo-admin').forEach(el =>
+                rol === 'recepcionista' ? el.classList.add('hidden') : el.classList.remove('hidden')
+            );
         }
 
         async function subirLogo(input) {
@@ -564,7 +739,8 @@
             document.getElementById('nombreClienteQR').innerText = nombre;
             const cont = document.getElementById('contenedorQR'); cont.innerHTML = '';
             new QRCode(cont, { text: `https://wide-waves-shave.loca.lt/checkin/${id}`, width: 220, height: 220 });
-            document.getElementById('btnEnviarWA').onclick = () => window.open(`https://wa.me/${tel.replace(/\D/g,'')}?text=Hola ${nombre}, aquí tienes tu pase QR.`, '_blank');
+            document.getElementById('btnEnviarWA').onclick = () =>
+                window.open(`https://wa.me/${tel.replace(/\D/g,'')}?text=Hola ${nombre}, aquí tienes tu pase QR.`, '_blank');
         }
 
         let html5QrCode;
@@ -590,15 +766,16 @@
         miSupabase.auth.onAuthStateChange((event, session) => {
             if (event === "PASSWORD_RECOVERY") {
                 modoRecuperacion = true;
-                // Ocultamos el login por si acaso está visible
                 document.getElementById('pantallaLogin').classList.add('hidden');
-                // Mostramos el modal de contraseña que ya tienes creado
                 document.getElementById('modalPassword').classList.remove('hidden');
                 alert("👋 ¡Bienvenido al equipo! Por favor, crea tu nueva contraseña para activar tu cuenta.");
             }
         });
 
-        function cancelarReset() { document.getElementById('modalPassword').classList.add('hidden'); if(modoRecuperacion) { miSupabase.auth.signOut(); location.reload(); } }
+        function cancelarReset() {
+            document.getElementById('modalPassword').classList.add('hidden');
+            if (modoRecuperacion) { miSupabase.auth.signOut(); location.reload(); }
+        }
         async function solicitarResetPassword() {
             const email = document.getElementById('emailLogin').value;
             if (!email) return alert("⚠️ Ingresa tu correo primero.");
@@ -607,127 +784,102 @@
         }
         function cerrarSesion() { miSupabase.auth.signOut(); location.reload(); }
 
-        // --- FUNCIONES PARA REGISTRO DE STAFF NUEVO ---
         function abrirRegistro() {
             document.getElementById('modalRegistro').classList.remove('hidden');
-            document.getElementById('pantallaLogin').classList.add('hidden'); // Ocultamos el login de fondo
+            document.getElementById('pantallaLogin').classList.add('hidden');
         }
-
         function cerrarRegistro() {
             document.getElementById('modalRegistro').classList.add('hidden');
-            document.getElementById('pantallaLogin').classList.remove('hidden'); // Mostramos el login
+            document.getElementById('pantallaLogin').classList.remove('hidden');
         }
 
         document.getElementById('formRegistro').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
-            
-            btn.innerHTML = 'Verificando...';
-            btn.disabled = true;
+            btn.innerHTML = 'Verificando...'; btn.disabled = true;
 
             const email = document.getElementById('emailRegistro').value;
             const password = document.getElementById('passRegistro').value;
 
             try {
-                // 1. Preguntamos a la base de datos si el correo está pre-registrado
                 const { data: estaAutorizado, error: rpcError } = await miSupabase.rpc('verificar_invitacion', { correo: email });
-                
                 if (rpcError) throw new Error("Error al consultar el directorio de invitaciones.");
-                
-                // 2. Si la base de datos dice que NO, bloqueamos el registro
-                if (!estaAutorizado) {
-                    throw new Error("Acceso denegado: Un administrador debe registrar este correo en el sistema primero.");
-                }
+                if (!estaAutorizado) throw new Error("Acceso denegado: Un administrador debe registrar este correo en el sistema primero.");
 
-                // 3. Si la base de datos dice que SÍ, creamos la cuenta en Auth
                 btn.innerHTML = 'Creando cuenta...';
-                // Busca este bloque y reemplázalo:
                 const { data, error } = await miSupabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        // Esto obliga a Supabase a regresar exactamente a la URL donde estás ahora
-                        emailRedirectTo: window.location.href 
-                    }
+                    email, password,
+                    options: { emailRedirectTo: window.location.href }
                 });
-
                 if (error) throw error;
 
                 alert("✅ ¡Cuenta creada con éxito! Revisa tu bandeja de entrada/spam y confirma tu correo.");
-                
-                // Limpiamos y cerramos
                 e.target.reset();
                 cerrarRegistro();
-                
-                // Autocompletamos el login para facilitarle la vida
                 document.getElementById('emailLogin').value = email;
                 document.getElementById('passLogin').focus();
-
             } catch (err) {
                 console.error("Error en registro:", err);
-                alert("❌ " + err.message); // Aquí mostrará el mensaje de "Acceso denegado"
+                alert("❌ " + err.message);
             } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                btn.innerHTML = originalText; btn.disabled = false;
             }
         });
 
-        // Función para dibujar la tabla (la extraemos para poder reutilizarla)
+        // TABLA DE CLIENTES
         function renderizarTablaClientes(arreglo) {
             const tabla = document.getElementById('tablaCuerpo');
             if (arreglo.length === 0) {
-                tabla.innerHTML = `<tr><td colspan="3" class="px-6 py-10 text-center text-gray-400 italic">No se encontraron clientes que coincidan...</td></tr>`;
+                tabla.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="px-6 py-12 text-center text-gray-300 text-sm italic">
+                            No se encontraron clientes que coincidan...
+                        </td>
+                    </tr>`;
                 return;
             }
-
             tabla.innerHTML = arreglo.map(c => `
-                <tr class="hover:bg-gray-50 transition border-b border-gray-50">
-                    <td class="px-6 py-4 font-medium text-gray-900">${c.nombre_completo}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500">
-                        <div class="flex flex-col">
-                            <span class="flex items-center gap-1">📞 ${c.telefono}</span>
-                            <span class="flex items-center gap-1 text-indigo-400">✉️ ${c.email}</span>
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 font-semibold text-sm text-gray-900">${c.nombre_completo}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">
+                        <div class="flex flex-col gap-0.5">
+                            <span>📞 ${c.telefono}</span>
+                            <span class="text-indigo-400">✉️ ${c.email}</span>
                         </div>
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}')" 
-                                class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-bold">📱 QR</button>
+                        <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}')"
+                            class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition">
+                            📱 QR
+                        </button>
                     </td>
                 </tr>`).join('');
         }
 
-        // La función que activa el buscador
         function filtrarClientes() {
             const texto = document.getElementById('inputBuscarCliente').value.toLowerCase();
-            
-            const filtrados = listaClientesOriginal.filter(c => 
-                c.nombre_completo.toLowerCase().includes(texto) || 
+            const filtrados = listaClientesOriginal.filter(c =>
+                c.nombre_completo.toLowerCase().includes(texto) ||
                 c.email.toLowerCase().includes(texto)
             );
-            
             renderizarTablaClientes(filtrados);
         }
 
-        // --- REGISTRO DE NUEVO SUSCRIPTOR (RESTAURADO + VALIDACIÓN SAAS) ---
+        // REGISTRO NUEVO SUSCRIPTOR
         document.getElementById('formSuscriptor').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // 1. VALIDACIÓN SAAS: ¿Superó el límite de su plan?
             if (totalClientesActual >= limiteClientesActual) {
-                
                 prepararYAbrirModalUpgrade(); return;
             }
-            // -----------------------------
 
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
-            btn.innerHTML = 'Guardando...';
-            btn.disabled = true;
+            btn.innerHTML = 'Guardando...'; btn.disabled = true;
 
             try {
                 let fotoUrl = null;
-                // Si tienes el input de foto activo, lo procesamos
                 const inputFoto = document.getElementById('fotoInput');
                 if (inputFoto && inputFoto.files[0]) {
                     const fotoFile = inputFoto.files[0];
@@ -747,63 +899,48 @@
                     foto_url: fotoUrl
                 };
 
-                // Enviamos los datos a tu API en Cloudflare Workers
                 const res = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${tokenActual}` 
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokenActual}` },
                     body: JSON.stringify(nuevoCliente)
                 });
-
                 if (!res.ok) throw new Error("Error al guardar el cliente en el servidor.");
 
-                // Limpiamos el formulario y recargamos los datos
                 e.target.reset();
-                await cargarDatosYDashboard(); // Esto actualizará la barra SaaS automáticamente
-
+                await cargarDatosYDashboard();
             } catch (err) {
                 console.error("Error al registrar suscriptor:", err);
                 alert("❌ Error: " + err.message);
             } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                btn.innerHTML = originalText; btn.disabled = false;
             }
         });
 
-        // Función global para configurar y abrir el modal
+        // MODAL UPGRADE
         function prepararYAbrirModalUpgrade() {
             const titulo = document.getElementById('tituloPlanUpsell');
             const lista = document.getElementById('listaFeaturesUpsell');
             const btn = document.getElementById('btnPagarUpgrade');
 
             if (planSaasActual.toLowerCase() === 'starter') {
-                titulo.innerText = 'Plan Pro - $69/mes';
+                titulo.innerText = 'Plan Pro — $69/mes';
                 lista.innerHTML = `
-                    <li class="flex items-center gap-2">✅ <span class="font-medium">Hasta 500 clientes activos</span></li>
+                    <li class="flex items-center gap-2">✅ <span class="font-semibold">Hasta 500 clientes activos</span></li>
                     <li class="flex items-center gap-2">✅ Usuarios de Staff ilimitados</li>
-                    <li class="flex items-center gap-2">✅ Recordatorios automáticos por WhatsApp</li>
-                `;
+                    <li class="flex items-center gap-2">✅ Recordatorios automáticos por WhatsApp</li>`;
                 btn.innerHTML = 'Mejorar a Plan Pro <span>💳</span>';
-                
             } else if (planSaasActual.toLowerCase() === 'pro') {
-                titulo.innerText = 'Plan Elite - $149/mes';
+                titulo.innerText = 'Plan Elite — $149/mes';
                 lista.innerHTML = `
-                    <li class="flex items-center gap-2">✅ <span class="font-medium">Clientes y Staff Ilimitados</span></li>
+                    <li class="flex items-center gap-2">✅ <span class="font-semibold">Clientes y Staff Ilimitados</span></li>
                     <li class="flex items-center gap-2">✅ Reportes avanzados de retención</li>
-                    <li class="flex items-center gap-2">✅ Soporte Prioritario 24/7</li>
-                `;
+                    <li class="flex items-center gap-2">✅ Soporte Prioritario 24/7</li>`;
                 btn.innerHTML = 'Mejorar a Plan Elite <span>💳</span>';
-                
             } else {
                 titulo.innerText = 'Ampliación de Capacidad';
-                lista.innerHTML = `
-                    <li class="flex items-center gap-2">✅ <span class="font-medium">Aumenta tu límite actual de servidor</span></li>
-                `;
+                lista.innerHTML = `<li class="flex items-center gap-2">✅ <span class="font-semibold">Aumenta tu límite actual de servidor</span></li>`;
                 btn.innerHTML = 'Contactar a Soporte <span>🎧</span>';
             }
-
             document.getElementById('modalUpgrade').classList.remove('hidden');
         }
     </script>
