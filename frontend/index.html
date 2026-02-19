@@ -36,6 +36,12 @@
                         ¿Olvidaste tu contraseña?
                     </button>
                 </div>
+                <div class="border-t border-gray-200 mt-4 pt-4 text-center">
+                    <p class="text-xs text-gray-500 mb-2">¿Eres personal nuevo?</p>
+                    <button type="button" onclick="abrirRegistro()" class="text-sm text-indigo-600 hover:text-indigo-800 font-bold transition">
+                        Crear mi cuenta de acceso
+                    </button>
+                </div>
                 <p id="errorLogin" class="text-red-500 text-sm text-center hidden font-medium"></p>
             </form>
         </div>
@@ -172,6 +178,10 @@
             <form id="formNuevoStaff" class="flex flex-col gap-4">
                 <div><label class="block text-sm font-medium text-gray-700">Nombre</label><input type="text" id="nombreStaff" required class="w-full border border-gray-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"></div>
                 <div><label class="block text-sm font-medium text-gray-700">Email</label><input type="email" id="emailStaff" required class="w-full border border-gray-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono (WhatsApp)</label>
+                    <input type="text" id="telefonoStaff" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="+593...">
+                </div>
                 <div><label class="block text-sm font-medium text-gray-700">Rol</label><select id="rolStaff" class="w-full border border-gray-300 p-2.5 rounded-xl"><option value="recepcionista">Recepcionista</option><option value="admin">Administrador</option></select></div>
                 <div class="flex gap-3 mt-4">
                     <button type="submit" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 shadow-lg">Registrar</button>
@@ -200,6 +210,30 @@
         <div class="bg-white p-6 rounded-2xl w-full max-w-md text-center">
             <div id="reader"></div>
             <button onclick="cerrarEscanner()" class="w-full mt-4 p-2 bg-gray-100 rounded font-bold">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="modalRegistro" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center border border-gray-100">
+            <h2 class="text-xl font-bold mb-2 text-gray-800">📝 Activar Cuenta</h2>
+            <p class="text-xs text-gray-500 mb-6">Usa exactamente el correo con el que el administrador te registró.</p>
+            
+            <form id="formRegistro" class="flex flex-col gap-4 text-left">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                    <input type="email" id="emailRegistro" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="tu_correo@gym.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Crea una Contraseña</label>
+                    <input type="password" id="passRegistro" required minlength="6" class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Mínimo 6 caracteres">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition shadow-md mt-2">
+                    Crear Cuenta
+                </button>
+                <button type="button" onclick="cerrarRegistro()" class="text-gray-500 text-sm mt-1 hover:text-gray-700">
+                    Cancelar y volver al Login
+                </button>
+            </form>
         </div>
     </div>
 
@@ -315,22 +349,52 @@
         document.getElementById('formNuevoStaff').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            
             btn.innerHTML = 'Guardando...';
+            btn.disabled = true;
 
-            const payload = {
-                tenant_id: miTenantId,
-                nombre: document.getElementById('nombreStaff').value,
-                email: document.getElementById('emailStaff').value,
-                rol: document.getElementById('rolStaff').value
-            };
+            const nombre = document.getElementById('nombreStaff').value;
+            const email = document.getElementById('emailStaff').value;
+            const telefono = document.getElementById('telefonoStaff').value; // Capturamos el teléfono
+            const rol = document.getElementById('rolStaff').value;
 
-            const { error } = await miSupabase.from('perfiles_staff').insert([payload]);
-            if (!error) {
-                alert("✅ Registrado. El usuario debe crear su cuenta con este correo.");
+            try {
+                // 1. Guardamos el perfil en la base de datos (ahora con teléfono)
+                const { error: dbError } = await miSupabase
+                    .from('perfiles_staff')
+                    .insert([{ 
+                        tenant_id: miTenantId, 
+                        nombre: nombre, 
+                        email: email, 
+                        telefono: telefono, // Guardamos el dato
+                        rol: rol 
+                    }]);
+
+                if (dbError) throw dbError;
+
+                // 2. Limpiamos la URL actual (por si tiene tokens raros al final)
+                const urlRegistro = window.location.href.split('#')[0]; 
+                const mensaje = `Hola ${nombre}, te he agregado al equipo de JS MemberLy. \n\nPor favor, ingresa a ${urlRegistro} y haz clic en "Crear mi cuenta de acceso" usando exactamente este correo: ${email}`;
+                
+                // 3. Limpiamos el número para WhatsApp (elimina espacios, guiones, etc.)
+                const numeroWA = telefono.replace(/\D/g, ''); 
+
+                // 4. Mostramos alerta y abrimos WhatsApp directamente en el chat del usuario
+                alert("✅ Perfil creado. Se abrirá WhatsApp para enviar las instrucciones.");
+                window.open(`https://wa.me/${numeroWA}?text=${encodeURIComponent(mensaje)}`, '_blank');
+
+                // Limpiamos el modal y recargamos la tabla
                 document.getElementById('modalNuevoStaff').classList.add('hidden');
-                e.target.reset(); cargarStaff();
-            } else { alert("Error: " + error.message); }
-            btn.innerHTML = 'Registrar';
+                e.target.reset();
+                cargarStaff();
+
+            } catch (err) {
+                alert("❌ Error: " + err.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         });
 
         // PLANES & DASHBOARD
@@ -436,11 +500,14 @@
             else alert("Error: " + error.message);
         });
 
-        miSupabase.auth.onAuthStateChange((event) => {
+        miSupabase.auth.onAuthStateChange((event, session) => {
             if (event === "PASSWORD_RECOVERY") {
                 modoRecuperacion = true;
+                // Ocultamos el login por si acaso está visible
                 document.getElementById('pantallaLogin').classList.add('hidden');
+                // Mostramos el modal de contraseña que ya tienes creado
                 document.getElementById('modalPassword').classList.remove('hidden');
+                alert("👋 ¡Bienvenido al equipo! Por favor, crea tu nueva contraseña para activar tu cuenta.");
             }
         });
 
@@ -452,6 +519,72 @@
             if (!error) alert("📩 Enlace enviado.");
         }
         function cerrarSesion() { miSupabase.auth.signOut(); location.reload(); }
+
+        // --- FUNCIONES PARA REGISTRO DE STAFF NUEVO ---
+        function abrirRegistro() {
+            document.getElementById('modalRegistro').classList.remove('hidden');
+            document.getElementById('pantallaLogin').classList.add('hidden'); // Ocultamos el login de fondo
+        }
+
+        function cerrarRegistro() {
+            document.getElementById('modalRegistro').classList.add('hidden');
+            document.getElementById('pantallaLogin').classList.remove('hidden'); // Mostramos el login
+        }
+
+        document.getElementById('formRegistro').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = 'Verificando...';
+            btn.disabled = true;
+
+            const email = document.getElementById('emailRegistro').value;
+            const password = document.getElementById('passRegistro').value;
+
+            try {
+                // 1. Preguntamos a la base de datos si el correo está pre-registrado
+                const { data: estaAutorizado, error: rpcError } = await miSupabase.rpc('verificar_invitacion', { correo: email });
+                
+                if (rpcError) throw new Error("Error al consultar el directorio de invitaciones.");
+                
+                // 2. Si la base de datos dice que NO, bloqueamos el registro
+                if (!estaAutorizado) {
+                    throw new Error("Acceso denegado: Un administrador debe registrar este correo en el sistema primero.");
+                }
+
+                // 3. Si la base de datos dice que SÍ, creamos la cuenta en Auth
+                btn.innerHTML = 'Creando cuenta...';
+                // Busca este bloque y reemplázalo:
+                const { data, error } = await miSupabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        // Esto obliga a Supabase a regresar exactamente a la URL donde estás ahora
+                        emailRedirectTo: window.location.href 
+                    }
+                });
+
+                if (error) throw error;
+
+                alert("✅ ¡Cuenta creada con éxito! Revisa tu bandeja de entrada/spam y confirma tu correo.");
+                
+                // Limpiamos y cerramos
+                e.target.reset();
+                cerrarRegistro();
+                
+                // Autocompletamos el login para facilitarle la vida
+                document.getElementById('emailLogin').value = email;
+                document.getElementById('passLogin').focus();
+
+            } catch (err) {
+                console.error("Error en registro:", err);
+                alert("❌ " + err.message); // Aquí mostrará el mensaje de "Acceso denegado"
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
