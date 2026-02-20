@@ -4,6 +4,7 @@ export interface Env {
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
   SUPABASE_SERVICE_KEY: string;
+  GROQ_API_KEY: string;
 }
 
 const corsHeaders = {
@@ -35,6 +36,100 @@ export default {
     if (url.pathname === '/suscriptores' && request.method === 'GET') {
       const { data } = await supabase.from('suscriptores').select('*');
       return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // --- CHATBOT DE VENTAS CON IA (GROQ / LLAMA 3) ---
+    if (url.pathname === '/chat' && request.method === 'POST') {
+      try {
+        if (!env.GROQ_API_KEY) {
+            throw new Error("Falta la variable GROQ_API_KEY en .dev.vars o en Cloudflare.");
+        }
+
+        const body = await request.json() as any;
+        const mensajeUsuario = body.mensaje || "Hola";
+
+        // ==============================================================
+        // NUEVO: DETECCIÓN Y CAPTURA DE PROSPECTOS (LEADS) VÍA REGEX
+        // ==============================================================
+        // 1. Definimos los patrones matemáticos para atrapar datos
+        const regexEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+        // Atrapa teléfonos de al menos 8 dígitos, con o sin el "+" (Ideal para +593 o locales)
+        const regexTelefono = /(\+?\d[\d\s-]{7,14}\d)/; 
+
+        // 2. Buscamos coincidencias en el mensaje del usuario
+        const posibleEmail = mensajeUsuario.match(regexEmail);
+        const posibleTelefono = mensajeUsuario.match(regexTelefono);
+        
+        // 3. Si encuentra algo, lo asignamos a una variable
+        const datoContacto = (posibleEmail ? posibleEmail[0] : null) || (posibleTelefono ? posibleTelefono[0] : null);
+
+        // 4. Si atrapamos un dato, lo guardamos silenciosamente en Supabase
+        if (datoContacto) {
+            console.log("🚀 ¡Nuevo prospecto capturado! ->", datoContacto);
+            
+            const { error: dbError } = await supabase.from('prospectos_chat').insert([{
+                dato_contacto: datoContacto,
+                mensaje_original: mensajeUsuario
+            }]);
+            
+            if (dbError) console.error("Error guardando prospecto:", dbError.message);
+        }
+        // ==============================================================
+
+        // 1. Usamos la API de Groq (Compatible con el estándar de OpenAI)
+        const groqUrl = "https://api.groq.com/openai/v1/chat/completions";
+
+        // 2. Preparamos el payload con el modelo ultrarrápido Llama 3
+        const payload = {
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { 
+              role: "system", 
+              content: `Eres el asistente virtual de ventas de 'JS MemberLy', un software SaaS moderno para gestionar gimnasios. Tu objetivo es ser muy amable, profesional y convencer a los dueños de gimnasios de usar nuestro sistema. 
+
+              Planes y características principales:
+              - Starter ($29/mes, $290/anual): Hasta 100 clientes activos, pases de acceso con código QR, staff ilimitado y dashboard de métricas básicas.
+              - Pro ($69/mes, $690/anual): Hasta 500 clientes activos, todo lo del plan Starter + envío de recordatorios automáticos de pago a clientes por WhatsApp.
+              - Elite ($149/mes, $1490/anual): Clientes ilimitados sin restricciones, todo lo de Pro + reportes financieros avanzados (Ingreso Recurrente MRR, Flujo de Caja, Tasa de Abandono) y soporte prioritario 24/7.
+              (Aclara que el plan anual incluye dos meses gratis pagando el año completo).
+
+              REGLAS ESTRICTAS:
+              1. Responde en español, muy conciso (máximo 3 oraciones) y usa emojis.
+              2. Si el usuario pide hablar con un humano, asesor, soporte, o dice que quiere contratar, dile EXACTAMENTE: "¡Claro que sí! 🤝 Un asesor humano puede ayudarte a resolver esto de inmediato. Por favor, déjame tu número de WhatsApp o correo electrónico y te contactaremos hoy mismo."
+              3. Si detectas que el usuario te acaba de dar su número de teléfono o correo electrónico, responde EXACTAMENTE: "¡Perfecto! 📝 He guardado tus datos. Un experto de JS MemberLy se pondrá en contacto contigo muy pronto para asesorarte."`
+            },
+            { 
+              role: "user", 
+              content: mensajeUsuario 
+            }
+          ],
+          temperature: 0.3
+        };
+
+        const aiResponse = await fetch(groqUrl, {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!aiResponse.ok) {
+            const errorGroq = await aiResponse.text();
+            console.error("❌ Rechazo de Groq API:", errorGroq);
+            throw new Error("Error en la comunicación con la Inteligencia Artificial.");
+        }
+
+        const data = await aiResponse.json() as any;
+        const textoRespuesta = data.choices[0].message.content;
+
+        return new Response(JSON.stringify({ respuesta: textoRespuesta }), { status: 200, headers: corsHeaders });
+
+      } catch (e: any) {
+        console.error("❌ Error 500 en /chat:", e.message);
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      }
     }
 
     // --- REGISTRO DE SOCIO CON FOTO ---

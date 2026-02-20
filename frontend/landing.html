@@ -164,6 +164,66 @@
         </div>
     </div>
 
+    <section id="contacto" class="py-20 bg-white border-t border-gray-100">
+        <div class="max-w-3xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-4">¿Tienes dudas adicionales?</h2>
+                <p class="text-gray-500">Déjanos tus datos y un asesor se pondrá en contacto contigo a la brevedad.</p>
+            </div>
+            
+            <form id="formContactoLanding" class="bg-gray-50 p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-5 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre Completo</label>
+                        <input type="text" id="contactoNombre" required class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition" placeholder="Tu nombre">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Teléfono / WhatsApp</label>
+                        <input type="text" id="contactoTelefono" class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition" placeholder="+593...">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Correo Electrónico</label>
+                    <input type="email" id="contactoEmail" required class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition" placeholder="tu@correo.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">¿En qué podemos ayudarte?</label>
+                    <textarea id="contactoMensaje" required rows="4" class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition resize-none" placeholder="Escribe tu mensaje aquí..."></textarea>
+                </div>
+                
+                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 mt-2 flex justify-center items-center gap-2">
+                    Enviar Mensaje <span>🚀</span>
+                </button>
+                <p id="contactoAlerta" class="text-center text-sm font-bold mt-2 hidden transition-all"></p>
+            </form>
+        </div>
+    </section>
+
+    <button onclick="document.getElementById('chatIaPanel').classList.toggle('hidden')" class="fixed bottom-6 right-6 w-14 h-14 bg-emerald-600 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl hover:bg-emerald-700 transition z-50">
+        👩🏻‍💻
+    </button>
+
+    <div id="chatIaPanel" class="fixed bottom-24 right-6 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 hidden flex-col z-50 overflow-hidden">
+        <div class="bg-emerald-600 p-4 text-white flex justify-between items-center">
+            <div>
+                <h4 class="font-bold">Asistente JS MemberLy</h4>
+                <p class="text-xs text-emerald-100">En línea (IA)</p>
+            </div>
+            <button onclick="document.getElementById('chatIaPanel').classList.add('hidden')" class="text-white hover:text-gray-200 text-xl">×</button>
+        </div>
+        <div id="cuerpoChat" class="h-64 bg-gray-50 p-4 overflow-y-auto flex flex-col gap-3 text-sm">
+            <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm border border-gray-100 text-gray-700 self-start max-w-[85%]">
+                ¡Hola! 👋 Soy el asistente de inteligencia artificial de JS MemberLy. ¿Tienes dudas sobre nuestros planes para tu gimnasio?
+            </div>
+        </div>
+        <form id="formChatIa" class="p-3 bg-white border-t border-gray-100 flex gap-2">
+            <input type="text" id="inputMensajeIa" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-emerald-500 text-sm" placeholder="Escribe tu duda..." required>
+            <button type="submit" class="bg-emerald-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-700">➤</button>
+        </form>
+    </div>
+
     <script>
         // 1. Inicializa tu conexión a Supabase (Usa tus llaves reales aquí)
         const supabaseUrl = 'https://kfqdefzuwejwmupgvelg.supabase.co';
@@ -243,7 +303,15 @@
                 btn.innerHTML = 'Configurando tu cuenta... 👤';
                 const { data: authData, error: authError } = await miSupabase.auth.signUp({
                     email: emailAdmin,
-                    password: passAdmin
+                    password: passAdmin,
+
+                    options: {
+                        emailRedirectTo: window.location.href,
+                        data: {
+                            nombre_usuario: document.getElementById('regNombreAdmin').value, // El input de nombre
+                            nombre_gimnasio: document.getElementById('regNombreGym').value   // El input del gimnasio
+                        }
+                    }
                 });
 
                 if (authError) throw authError;
@@ -319,6 +387,133 @@
                 document.getElementById('btnElegirPro').setAttribute('onclick', "abrirModalRegistro('Pro Mensual', 69)");
                 document.getElementById('btnElegirElite').setAttribute('onclick', "abrirModalRegistro('Elite Mensual', 149)");
             }
+        }
+
+        // --- LÓGICA DEL CHAT IA ---
+        document.getElementById('formChatIa').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const input = document.getElementById('inputMensajeIa');
+            const mensaje = input.value.trim();
+
+            if (!mensaje) return;
+
+            const cuerpoChat = document.getElementById('cuerpoChat');
+
+            // 1. Mostrar el mensaje del usuario (Burbuja verde a la derecha)
+            cuerpoChat.innerHTML += `
+                <div class="bg-emerald-600 text-white p-3 rounded-lg rounded-tr-none shadow-sm self-end max-w-[85%] text-sm">
+                    ${mensaje}
+                </div>
+            `;
+            input.value = ''; // Limpiar la caja de texto
+            
+            // 2. Mostrar indicador de "escribiendo..."
+            const idTemp = 'mensaje-' + Date.now();
+            cuerpoChat.innerHTML += `
+                <div id="${idTemp}" class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm border border-gray-100 text-gray-400 self-start max-w-[85%] text-sm italic">
+                    Escribiendo... ⏳
+                </div>
+            `;
+            cuerpoChat.scrollTop = cuerpoChat.scrollHeight; // Auto-scroll hacia abajo
+
+            // 3. Consultar a tu Cloudflare Worker
+            try {
+                // ⚠️ ATENCIÓN: Cambia esta URL por la URL real de tu Cloudflare Worker (ej. https://tu-worker.tu-cuenta.workers.dev/chat)
+                // Si estás probando en local, usa: http://localhost:8787/chat
+                const API_CHAT_URL = 'http://localhost:8787/chat'; 
+                
+                const res = await fetch(API_CHAT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mensaje: mensaje })
+                });
+
+                const data = await res.json();
+                
+                if (!res.ok) throw new Error(data.error);
+
+                // 4. Reemplazar "escribiendo..." con la respuesta real de Gemini
+                const burbujaRespuesta = document.getElementById(idTemp);
+                // Reemplazamos los saltos de línea por etiquetas <br> de HTML
+                burbujaRespuesta.innerHTML = data.respuesta.replace(/\n/g, '<br>'); 
+                burbujaRespuesta.classList.remove('text-gray-400', 'italic');
+                burbujaRespuesta.classList.add('text-gray-700');
+
+            } catch (error) {
+                document.getElementById(idTemp).innerHTML = "❌ Ocurrió un error. Por favor intenta más tarde.";
+                document.getElementById(idTemp).classList.remove('italic');
+            }
+
+            cuerpoChat.scrollTop = cuerpoChat.scrollHeight; // Auto-scroll final
+        });
+
+
+        // --- LÓGICA DEL FORMULARIO DE CONTACTO ---
+        const formContacto = document.getElementById('formContactoLanding');
+        
+        if (formContacto) {
+            formContacto.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const btn = e.target.querySelector('button[type="submit"]');
+                const alerta = document.getElementById('contactoAlerta');
+                const originalText = btn.innerHTML;
+                
+                // UX: Bloqueamos el botón y mostramos estado de carga
+                btn.innerHTML = 'Enviando... ⏳';
+                btn.disabled = true;
+                alerta.classList.add('hidden');
+
+                const payload = {
+                    nombre: document.getElementById('contactoNombre').value,
+                    email: document.getElementById('contactoEmail').value,
+                    telefono: document.getElementById('contactoTelefono').value,
+                    mensaje: document.getElementById('contactoMensaje').value
+                };
+
+                try {
+                    // ATENCIÓN: Reemplaza "TU_CODIGO_AQUI" por las letras que te dio Formspree
+                    const res = await fetch('https://formspree.io/f/xzdaaoww', {
+                        method: 'POST',
+                        headers: { 
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json' 
+                        },
+                        body: JSON.stringify({
+                            // Formspree leerá estas llaves para armar tu correo
+                            Nombre: payload.nombre,
+                            Email: payload.email,
+                            Telefono: payload.telefono,
+                            Mensaje: payload.mensaje
+                        })
+                    });
+
+                    if (!res.ok) throw new Error("Error al enviar a Formspree");
+
+                    // UX: Éxito
+                    alerta.innerText = "✅ ¡Mensaje enviado con éxito! Te contactaremos pronto.";
+                    alerta.className = "text-center text-sm font-bold mt-2 text-emerald-600 block";
+                    formContacto.reset(); // Limpia las cajas de texto
+
+                } catch (error) {
+                    // UX: Error
+                    console.error(error);
+                    alerta.innerText = "❌ Ocurrió un error. Intenta nuevamente.";
+                    alerta.className = "text-center text-sm font-bold mt-2 text-red-500 block";
+                } finally {
+                    // Restauramos el botón a la normalidad
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    
+                    // Borramos el mensaje de éxito después de 5 segundos para mantenerlo limpio
+                    setTimeout(() => {
+                        if (alerta.classList.contains('text-emerald-600')) {
+                            alerta.classList.add('hidden');
+                        }
+                    }, 5000);
+                }
+            });
         }
     </script>
 

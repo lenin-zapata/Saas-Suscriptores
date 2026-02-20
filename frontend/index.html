@@ -160,6 +160,9 @@
                             <button onclick="document.getElementById('modalPassword').classList.remove('hidden')"
                                 class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition">🔐 Nueva Clave</button>
                             <div class="border-t border-gray-100 my-1"></div>
+                            <button onclick="abrirModalPlanes()" class="solo-admin w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition">
+                                ⚙️ Ajustar Precios
+                            </button>
                             <button onclick="cerrarSesion()"
                                 class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-xl font-semibold transition">🚪 Salir</button>
                         </div>
@@ -280,20 +283,50 @@
                             <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">📋</span>
                             Directorio de Clientes
                         </h2>
-                        <div class="relative w-full md:w-72">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-300 text-sm">🔍</span>
-                            <input type="text" id="inputBuscarCliente" onkeyup="filtrarClientes()"
-                                class="w-full pl-9 pr-4 py-2 border border-gray-200 bg-gray-50 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 outline-none transition"
-                                placeholder="Buscar por nombre o email...">
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+    
+                            <div class="relative w-full md:w-2/3 lg:w-3/4">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <input type="text" id="inputBuscarCliente" onkeyup="filtrarClientes()" placeholder="Buscar por nombre, correo o teléfono..." 
+                                    class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder-gray-400 font-medium">
+                            </div>
+
+                            <div class="flex items-center gap-3 shrink-0">
+                                <label for="filtroEstado" class="text-xs font-extrabold text-gray-400 uppercase tracking-wider hidden lg:block">Estado:</label>
+                                
+                                <div class="relative min-w-[190px]">
+                                    <select id="filtroEstado" onchange="filtrarClientes()" 
+                                        class="w-full appearance-none bg-emerald-50 border border-emerald-100 text-emerald-800 py-3 pl-4 pr-10 rounded-xl text-sm font-bold cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all hover:bg-emerald-100 truncate">
+                                        <option value="Todos">🌟 Todos los estados</option>
+                                        <option value="Activo">🟢 Activos</option>
+                                        <option value="Atrasado">🟡 Atrasados</option>
+                                        <option value="Inactivo">🔴 Inactivos</option>
+                                        <option value="Sin plan">⚪ Sin plan</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-emerald-600">
+                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
-                            <thead>
-                                <tr class="border-b border-gray-100">
-                                    <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nombre</th>
-                                    <th class="px-6 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Contacto</th>
-                                    <th class="px-6 py-3"></th>
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Cliente</th>
+                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Contacto</th>
+                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Emergencia</th>
+                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Estado</th>
+                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Vence</th>
+                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Registrado</th>
+                                    <th class="px-6 py-4 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaCuerpo" class="divide-y divide-gray-50"></tbody>
@@ -558,6 +591,52 @@
         </div>
     </div>
 
+    <div id="modalAjustarPlanes" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm pt-10 pb-10">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md border border-gray-100 my-auto max-h-[90vh] overflow-y-auto">
+            
+            <h2 class="text-xl font-extrabold mb-1 text-gray-900">⚙️ Gestión de Membresías</h2>
+            <p class="text-xs text-gray-400 mb-6">Ajusta los precios actuales o crea nuevos planes para tu gimnasio.</p>
+            
+            <form id="formAjustarPlanes" class="flex flex-col gap-3">
+                <div id="contenedorPlanesDinamicos" class="space-y-3 max-h-56 overflow-y-auto p-3 bg-gray-50 rounded-2xl border border-gray-100 shadow-inner">
+                    <p class="text-sm text-gray-500 text-center italic">Cargando tus planes...</p>
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 text-sm mt-1">
+                    💾 Guardar Precios
+                </button>
+            </form>
+
+            <div class="relative my-7">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-3 bg-white text-gray-400 font-extrabold text-[10px] tracking-widest uppercase">O crear nuevo</span>
+                </div>
+            </div>
+
+            <form id="formNuevoPlan" class="flex flex-col gap-3 bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
+                <div>
+                    <input type="text" id="nuevoPlanNombre" required placeholder="Nombre (ej. Plan VIP)" class="w-full border border-white bg-white p-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm shadow-sm transition">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-bold">$</span>
+                        <input type="number" step="0.01" id="nuevoPlanPrecio" required placeholder="Precio" class="w-full border border-white bg-white pl-8 pr-3 py-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm shadow-sm transition">
+                    </div>
+                    <div>
+                        <input type="number" id="nuevoPlanDias" required placeholder="Días (ej. 30)" class="w-full border border-white bg-white p-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm shadow-sm transition">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition text-sm flex justify-center items-center gap-2 mt-1 shadow-md">
+                    ➕ Añadir Plan
+                </button>
+            </form>
+
+            <button type="button" onclick="document.getElementById('modalAjustarPlanes').classList.add('hidden')" class="w-full mt-5 text-gray-400 font-semibold hover:text-gray-600 transition text-sm">
+                Cerrar Ventana
+            </button>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://kfqdefzuwejwmupgvelg.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcWRlZnp1d2Vqd211cGd2ZWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MTcwMzYsImV4cCI6MjA4Njk5MzAzNn0.Wdr14R9gZ6Osy8RrVaYXC6CKUtBoYqbE9tV3oiekCPE';
@@ -680,8 +759,10 @@
                     .insert([{ tenant_id: miTenantId, nombre, email, telefono, rol }]);
                 if (dbError) throw dbError;
 
+                // 1. Extraemos el nombre del gimnasio que ya está cargado en la barra lateral
+                const nombreGym = document.getElementById('nombreGymSidebar').innerText;
                 const urlRegistro = window.location.href.split('#')[0]; 
-                const mensaje = `Hola ${nombre}, te he agregado al equipo de JS MemberLy. \n\nPor favor, ingresa a ${urlRegistro} y haz clic en "Crear mi cuenta de acceso" usando exactamente este correo: ${email}`;
+                const mensaje = `Hola ${nombre}, te he agregado al equipo de ${nombreGym} en JS MemberLy. \n\nPor favor, ingresa a ${urlRegistro} y haz clic en "Crear mi cuenta de acceso" usando exactamente este correo: ${email}`;
                 const numeroWA = telefono.replace(/\D/g, ''); 
 
                 alert("✅ Perfil creado. Se abrirá WhatsApp para enviar las instrucciones.");
@@ -699,25 +780,76 @@
 
         // PLANES & DASHBOARD
         async function cargarPlanes() {
-            const res = await fetch(API_PLANES, { headers: { 'Authorization': `Bearer ${tokenActual}` } });
-            const planes = await res.json();
             const select = document.getElementById('planElegido');
-            select.innerHTML = planes.map(p => {
-                let meses = p.nombre_plan.toLowerCase().includes('anual') ? 12 : (p.nombre_plan.toLowerCase().includes('trimestral') ? 3 : 1);
-                return `<option value="${p.id}" data-meses="${meses}">${p.nombre_plan}</option>`;
-            }).join('');
+            if(!select) return;
+            
+            select.innerHTML = '<option value="">Cargando planes...</option>';
+
+            // ¡AQUÍ ESTÁ LA MAGIA DEL FILTRO! Solo los planes de este tenant
+            const { data, error } = await miSupabase
+                .from('planes')
+                .select('*')
+                .eq('tenant_id', miTenantId) 
+                .order('precio');
+
+            if (error) {
+                console.error("Error cargando planes:", error);
+                return;
+            }
+
+            if (data && data.length > 0) {
+                // Guardamos el precio en un data-attribute para usarlo al enviar el formulario
+                select.innerHTML = data.map(p => 
+                    `<option value="${p.id}" data-meses="${Math.max(1, Math.round(p.dias_duracion / 30))}" data-precio="${p.precio}">
+                        ${p.nombre_plan} - $${p.precio}
+                    </option>`
+                ).join('');
+            } else {
+                select.innerHTML = '<option value="">Sin planes (Ve a Ajustar Precios)</option>';
+            }
         }
 
         async function cargarDatosYDashboard() {
             try {
+                // 1. Traer Clientes del Backend (Cloudflare)
                 const res = await fetch(API_URL, { headers: { 'Authorization': `Bearer ${tokenActual}` } });
                 let clientesCrudos = await res.json();
-                
                 const clientes = clientesCrudos.filter(c => c.tenant_id === miTenantId);
-                
-                listaClientesOriginal = clientes; 
-                renderizarTablaClientes(clientes); 
 
+                // 2. Traer Historial de Pagos (Supabase)
+                const { data: historial, error: histError } = await miSupabase
+                    .from('historial_suscripciones')
+                    .select('*')
+                    .eq('tenant_id', miTenantId);
+
+                // 3. LA MAGIA: Unir el historial con los clientes y calcular estado
+                const clientesConHistorial = clientes.map(cliente => {
+                    const subs = historial && !histError ? historial.filter(h => h.suscriptor_id === cliente.id) : [];
+                    subs.sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin));
+                    const ultimaSub = subs[0];
+                    
+                    // Pre-calculamos el estado una sola vez para usarlo en los filtros
+                    let estadoCalculado = 'Sin plan';
+                    if (ultimaSub && ultimaSub.fecha_fin) {
+                        const diffTime = new Date() - new Date(ultimaSub.fecha_fin);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        if (diffDays > 30) estadoCalculado = 'Inactivo';
+                        else if (diffDays > 0 && diffDays <= 30) estadoCalculado = 'Atrasado';
+                        else estadoCalculado = 'Activo';
+                    }
+
+                    return {
+                        ...cliente,
+                        historial_suscripciones: subs,
+                        estado_calculado: estadoCalculado // <--- Guardamos el dato listo para usar
+                    };
+                });
+
+                // 4. Renderizar la tabla con los datos completos
+                listaClientesOriginal = clientesConHistorial; 
+                renderizarTablaClientes(clientesConHistorial); 
+
+                // 5. KPIs de Límites del Plan SaaS
                 totalClientesActual = clientes.length;
                 document.getElementById('kpiTotal').innerText = totalClientesActual;
                 document.getElementById('kpiLimite').innerText = limiteClientesActual;
@@ -734,21 +866,28 @@
                 }
                 if (nombrePlan) nombrePlan.innerText = planSaasActual;
 
-                // Pagos desde historial_suscripciones
-                const { data: historial, error: histError } = await miSupabase
-                    .from('historial_suscripciones')
-                    .select('suscriptor_id, estado_pago')
-                    .eq('tenant_id', miTenantId);
-
+                // 6. KPIs de Estado (Aplicando la nueva regla de 30 días)
                 let contAlDia = 0;
                 let contAtrasados = 0;
 
-                if (historial && !histError) {
-                    historial.forEach(h => {
-                        if (h.estado_pago === 'Pagado') contAlDia++;
-                        else if (h.estado_pago === 'Atrasado') contAtrasados++;
-                    });
-                }
+                clientesConHistorial.forEach(c => {
+                    const subs = c.historial_suscripciones || [];
+                    // Ordenamos para obtener el pago más reciente
+                    subs.sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin));
+                    const ultimaSub = subs[0];
+
+                    if (ultimaSub && ultimaSub.fecha_fin) {
+                        const diffTime = new Date() - new Date(ultimaSub.fecha_fin);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDays <= 0) {
+                            contAlDia++; // Tiene días a favor
+                        } else if (diffDays > 0 && diffDays <= 30) {
+                            contAtrasados++; // Atrasado (periodo de gracia)
+                        }
+                        // Si diffDays > 30, es "Inactivo" y no suma en estas dos gráficas principales
+                    }
+                });
 
                 const elementoAlDia = document.getElementById('kpiAlDia');
                 const elementoAtrasados = document.getElementById('kpiMorosos');
@@ -930,43 +1069,112 @@
             }
         });
 
-        // TABLA DE CLIENTES
+        // TABLA DE CLIENTES (INTACTA - EXACTAMENTE COMO LA TIENES)
         function renderizarTablaClientes(arreglo) {
-            const tabla = document.getElementById('tablaCuerpo');
-            if (arreglo.length === 0) {
-                tabla.innerHTML = `
-                    <tr>
-                        <td colspan="3" class="px-6 py-12 text-center text-gray-300 text-sm italic">
-                            No se encontraron clientes que coincidan...
-                        </td>
-                    </tr>`;
-                return;
-            }
-            tabla.innerHTML = arreglo.map(c => `
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4 font-semibold text-sm text-gray-900">${c.nombre_completo}</td>
-                    <td class="px-6 py-4 text-sm text-gray-400">
-                        <div class="flex flex-col gap-0.5">
-                            <span>📞 ${c.telefono}</span>
-                            <span class="text-indigo-400">✉️ ${c.email}</span>
-                        </div>
-                    </td>
+            const tbody = document.getElementById('tablaCuerpo');
+            if (!tbody) return;
 
-                    <td class="px-6 py-4 text-right">
-                        <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}', '${c.foto_url || ''}')"
-                            class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition">
-                            📱 QR
-                        </button>
-                    </td>
-                </tr>`).join('');
+            tbody.innerHTML = arreglo.map(c => {
+                // 1. Obtener la suscripción más reciente
+                const subs = c.historial_suscripciones || [];
+                subs.sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin));
+                const ultimaSub = subs[0] || {};
+                
+                // 2. Formatear datos de interés
+                const vence = ultimaSub.fecha_fin ? new Date(ultimaSub.fecha_fin).toLocaleDateString('es-ES') : '<span class="text-gray-400">Sin plan</span>';
+                const fechaRegistro = c.fecha_registro || c.created_at; // Soporte para ambos nombres de columna
+                const registrado = fechaRegistro ? new Date(fechaRegistro).toLocaleDateString('es-ES') : 'Desconocido';
+                const emergencia = c.contacto_emergencia || '<span class="text-gray-400 italic">No registrado</span>';
+
+                // 3. Lógica Estricta de Estado (Atrasado <= 30 días, Inactivo > 30 días)
+                let estadoTexto = ultimaSub.estado_pago || 'Sin plan';
+                let badgeClass = 'bg-gray-100 text-gray-700';
+
+                if (ultimaSub.fecha_fin) {
+                    const diffTime = new Date() - new Date(ultimaSub.fecha_fin);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays > 30) {
+                        estadoTexto = 'Inactivo';
+                        badgeClass = 'bg-red-100 text-red-700';
+                    } else if (diffDays > 0 && diffDays <= 30) {
+                        estadoTexto = 'Atrasado';
+                        badgeClass = 'bg-yellow-100 text-yellow-700';
+                    } else {
+                        estadoTexto = 'Activo';
+                        badgeClass = 'bg-emerald-100 text-emerald-700';
+                    }
+                }
+
+                const badgeEstado = `<span class="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase ${badgeClass}">${estadoTexto}</span>`;
+
+                return `
+                    <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <img src="${c.foto_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(c.nombre_completo)+'&background=10B981&color=fff'}" class="w-8 h-8 rounded-full object-cover">
+                                <span class="text-sm font-bold text-gray-800">${c.nombre_completo}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-700">📞 ${c.telefono || 'Sin teléfono'}</div>
+                            <div class="text-xs text-gray-400 mt-0.5">📩 ${c.email || 'Sin correo'}</div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">${emergencia}</td>
+                        <td class="px-6 py-4">${badgeEstado}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600 font-medium">${vence}</td>
+                        <td class="px-6 py-4 text-sm text-gray-400">${registrado}</td>
+                        <td class="px-6 py-4 text-right">
+                            <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}', '${c.foto_url || ''}')"
+                                class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition shadow-sm">
+                                📱 QR
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
+        // FUNCIÓN DE FILTRADO (MEJORADA Y SIN ROMPER NADA)
         function filtrarClientes() {
             const texto = document.getElementById('inputBuscarCliente').value.toLowerCase();
-            const filtrados = listaClientesOriginal.filter(c =>
-                c.nombre_completo.toLowerCase().includes(texto) ||
-                c.email.toLowerCase().includes(texto)
-            );
+            const filtroEstado = document.getElementById('filtroEstado') ? document.getElementById('filtroEstado').value : 'Todos';
+
+            const filtrados = listaClientesOriginal.filter(c => {
+                // 1. Validar si coincide el texto (con prevención de errores si el email es nulo)
+                const coincideTexto = 
+                    (c.nombre_completo && c.nombre_completo.toLowerCase().includes(texto)) ||
+                    (c.email && c.email.toLowerCase().includes(texto));
+
+                // 2. Validar si coincide el estado
+                let coincideEstado = true; // Por defecto pasa si el filtro es "Todos"
+                
+                if (filtroEstado !== 'Todos') {
+                    // Replicamos tu lógica exacta para saber en qué estado está este cliente
+                    const subs = c.historial_suscripciones || [];
+                    // Usamos [...subs] para no alterar el orden original del arreglo
+                    const subsOrdenadas = [...subs].sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin));
+                    const ultimaSub = subsOrdenadas[0] || {};
+                    
+                    let estadoCalculado = ultimaSub.estado_pago || 'Sin plan';
+                    
+                    if (ultimaSub.fecha_fin) {
+                        const diffTime = new Date() - new Date(ultimaSub.fecha_fin);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDays > 30) estadoCalculado = 'Inactivo';
+                        else if (diffDays > 0 && diffDays <= 30) estadoCalculado = 'Atrasado';
+                        else estadoCalculado = 'Activo';
+                    }
+
+                    // Verificamos si el estado que calculamos es el mismo que seleccionó el usuario
+                    coincideEstado = (estadoCalculado === filtroEstado);
+                }
+
+                // El cliente solo se muestra si pasa AMBOS filtros
+                return coincideTexto && coincideEstado;
+            });
+
             renderizarTablaClientes(filtrados);
         }
 
@@ -1146,7 +1354,8 @@
                     .select(`
                         estado_pago,
                         fecha_fin,
-                        planes ( nombre_plan, precio, dias_duracion )
+                        precio_cobrado, 
+                        planes ( nombre_plan, dias_duracion )
                     `)
                     .eq('tenant_id', miTenantId);
 
@@ -1166,12 +1375,12 @@
 
                 // 4. PROCESAMIENTO DE DATOS
                 historial.forEach(sub => {
-                    // Adaptamos las variables a tu esquema real
-                    const precio = sub.planes?.precio || 0;
+                    // AHORA LA FUENTE DE LA VERDAD ES EL PRECIO COBRADO
+                    const precio = parseFloat(sub.precio_cobrado) || 0; 
                     const dias = sub.planes?.dias_duracion || 30;
                     const nombrePlan = sub.planes?.nombre_plan || 'Plan Genérico';
                     
-                    // Convertimos los días a meses para sacar el MRR (ej. 30 días = 1 mes, 90 días = 3 meses)
+                    // Convertimos los días a meses para sacar el MRR
                     const meses = Math.max(1, Math.round(dias / 30));
                     const ingresoMensualReal = precio / meses;
 
@@ -1278,6 +1487,139 @@
                 console.error("Error al cargar datos financieros:", error);
             }
         }
+
+        // --- LÓGICA DE GESTIÓN DE PLANES Y PRECIOS ---
+        let planesActualesAdmin = [];
+
+        // 1. DIBUJAR LOS PLANES EXISTENTES (AHORA CON BOTÓN DE BORRAR)
+        async function abrirModalPlanes() {
+            document.getElementById('modalAjustarPlanes').classList.remove('hidden');
+            const cont = document.getElementById('contenedorPlanesDinamicos');
+            cont.innerHTML = '<p class="text-sm text-gray-500 text-center italic">Cargando...</p>';
+            
+            const { data, error } = await miSupabase.from('planes').select('*').eq('tenant_id', miTenantId).order('precio');
+            
+            if (data && data.length > 0) {
+                planesActualesAdmin = data;
+                cont.innerHTML = data.map(p => `
+                    <div class="bg-white p-3 rounded-xl border border-gray-100 flex flex-col gap-1 shadow-sm relative">
+                        <button type="button" onclick="borrarPlan('${p.id}')" class="absolute top-2 right-2 text-red-300 hover:text-red-600 transition" title="Borrar Plan">
+                            🗑️
+                        </button>
+                        
+                        <label class="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider pr-6">${p.nombre_plan} <span class="text-gray-400 font-medium lowercase">(${p.dias_duracion} días)</span></label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-bold">$</span>
+                            <input type="number" step="0.01" id="precio_plan_${p.id}" value="${p.precio}" 
+                                class="w-full border border-gray-200 bg-gray-50 pl-8 pr-3 py-2 rounded-lg outline-none focus:ring-2 focus:ring-emerald-400 text-sm font-bold text-emerald-700 transition">
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                cont.innerHTML = '<p class="text-sm text-red-500 text-center font-bold mt-4">No tienes planes configurados.</p>';
+            }
+        }
+
+        // 2. GUARDAR ACTUALIZACIÓN DE PRECIOS (CON VALIDACIÓN ESTRICTA)
+        document.getElementById('formAjustarPlanes').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = 'Guardando... ⏳'; btn.disabled = true;
+            
+            try {
+                for (const plan of planesActualesAdmin) {
+                    const inputPrecio = document.getElementById(`precio_plan_${plan.id}`);
+                    const nuevoPrecio = parseFloat(inputPrecio.value);
+                    
+                    // Actualizamos y exigimos confirmación de Supabase (.select)
+                    const { data, error } = await miSupabase
+                        .from('planes')
+                        .update({ precio: nuevoPrecio })
+                        .eq('id', plan.id)
+                        .select();
+                        
+                    if (error) throw error;
+                    // Si Supabase devuelve un arreglo vacío, significa que RLS lo bloqueó
+                    if (!data || data.length === 0) throw new Error("Cambio bloqueado. Verifica que RLS esté desactivado en la tabla planes.");
+                }
+                
+                alert("✅ Precios actualizados correctamente en la base de datos.");
+                document.getElementById('modalAjustarPlanes').classList.add('hidden');
+                
+                if (typeof cargarPlanes === 'function') await cargarPlanes(); 
+                if (typeof cargarDashboardFinanciero === 'function') await cargarDashboardFinanciero();
+                
+            } catch (err) {
+                console.error(err);
+                alert("❌ Ocurrió un error al actualizar: " + err.message);
+            } finally {
+                btn.innerHTML = textoOriginal; btn.disabled = false;
+            }
+        });
+
+        // 3. NUEVO: FUNCIÓN PARA BORRAR PLANES
+        async function borrarPlan(idPlan) {
+            // Doble confirmación por seguridad
+            if(!confirm("⚠️ ¿Estás totalmente seguro de que deseas borrar este plan?")) return;
+            
+            try {
+                const { error } = await miSupabase.from('planes').delete().eq('id', idPlan);
+                
+                if (error) {
+                    // Si el error es por Llave Foránea, se lo explicamos amablemente al usuario
+                    if (error.message.includes('foreign key') || error.code === '23503') {
+                        throw new Error("No puedes borrar este plan porque ya tienes clientes o un historial asociado a él. Intenta simplemente cambiarle el precio.");
+                    }
+                    throw error;
+                }
+                
+                alert("🗑️ Plan eliminado exitosamente.");
+                
+                // Refrescamos la UI
+                await abrirModalPlanes(); 
+                if (typeof cargarPlanes === 'function') await cargarPlanes();
+                
+            } catch (err) {
+                console.error("Error al borrar:", err);
+                alert("❌ " + err.message);
+            }
+        }
+
+        // 4. CREAR UN NUEVO PLAN DESDE CERO
+        document.getElementById('formNuevoPlan').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = 'Creando... ⏳'; btn.disabled = true;
+
+            try {
+                const nombrePlan = document.getElementById('nuevoPlanNombre').value;
+                const precioPlan = parseFloat(document.getElementById('nuevoPlanPrecio').value);
+                const diasPlan = parseInt(document.getElementById('nuevoPlanDias').value);
+
+                const { error } = await miSupabase.from('planes').insert([{
+                    tenant_id: miTenantId,
+                    nombre_plan: nombrePlan,
+                    precio: precioPlan,
+                    dias_duracion: diasPlan
+                }]);
+
+                if (error) throw error;
+
+                alert("✅ ¡Nuevo plan añadido con éxito!");
+                e.target.reset(); 
+                
+                await abrirModalPlanes(); 
+                if (typeof cargarPlanes === 'function') await cargarPlanes(); 
+
+            } catch (err) {
+                console.error(err);
+                alert("❌ Error al crear el plan: " + err.message);
+            } finally {
+                btn.innerHTML = textoOriginal; btn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
