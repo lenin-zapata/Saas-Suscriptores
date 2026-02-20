@@ -47,6 +47,7 @@ export default {
             telefono: body.telefono,
             email: body.email,
             foto_url: body.foto_url,
+            contacto_emergencia: body.contacto_emergencia,
             estado: 'Activo'
         }]).select().single();
 

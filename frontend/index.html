@@ -223,25 +223,38 @@
                         <form id="formSuscriptor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre</label>
-                                <input type="text" id="nombre" required
+                                <input type="text" id="nombre" required placeholder="Nombre y Apellido"
                                     class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">WhatsApp</label>
-                                <input type="text" id="telefono" required
+                                <input type="text" id="telefono" required placeholder="+593..."
+                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
+                                <input type="email" id="email" required placeholder="test@example.com"
                                     class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
-                                <input type="email" id="email" required
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Contacto de Emergencia</label>
+                                <input type="text" id="contactoEmergencia" required placeholder="Teléfono de contacto"
                                     class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
                             </div>
+
                             <div>
                                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Plan</label>
                                 <select id="planElegido" required
                                     class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition"></select>
                             </div>
-                            <div class="md:col-span-2 mt-1">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Foto del Cliente</label>
+                                <input type="file" id="fotoInput" accept="image/*" required
+                                    class="w-full border border-gray-200 bg-gray-50 p-1.5 rounded-xl text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 transition cursor-pointer">
+                            </div>
+                            
+                            <div class="md:col-span-2 mt-2">
                                 <button type="submit"
                                     class="px-8 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 text-sm">
                                     Guardar Cliente
@@ -347,7 +360,7 @@
                     </div>
                     <button onclick="document.getElementById('modalNuevoStaff').classList.remove('hidden')"
                         class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition text-sm">
-                        + Nuevo Recepcionista
+                        + Nuevo Miembro
                     </button>
                 </div>
                 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
@@ -435,7 +448,9 @@
             <div class="bg-emerald-700 p-6 text-center relative">
                 <button onclick="document.getElementById('modalQR').classList.add('hidden')"
                     class="absolute top-4 right-4 text-emerald-200 hover:text-white text-lg transition">✕</button>
-                <div class="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">🎫</div>
+                
+                <img id="fotoClienteQR" src="" alt="Foto Cliente" class="w-20 h-20 rounded-full mx-auto mb-3 object-cover border-4 border-emerald-500 shadow-md bg-white">
+                
                 <h2 class="text-lg font-extrabold text-white">Pase de Acceso</h2>
                 <p id="nombreClienteQR" class="text-emerald-200 text-sm mt-1"></p>
             </div>
@@ -446,6 +461,27 @@
                     📲 Enviar por WhatsApp
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div id="modalExitoCliente" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md border border-emerald-100 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-emerald-500"></div>
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 shadow-inner">🎉</div>
+            <h2 class="text-2xl font-extrabold text-gray-900 mb-2">¡Cliente Registrado!</h2>
+            <p class="text-gray-500 text-sm mb-6">El suscriptor ha sido guardado exitosamente.</p>
+            
+            <div class="bg-gray-50 rounded-2xl p-5 mb-6 text-left border border-gray-100 space-y-3">
+                <p class="text-sm"><span class="font-bold text-gray-700">Nombre:</span> <span id="resNombre" class="text-gray-600"></span></p>
+                <p class="text-sm"><span class="font-bold text-gray-700">WhatsApp:</span> <span id="resTelefono" class="text-gray-600"></span></p>
+                <p class="text-sm"><span class="font-bold text-gray-700">Email:</span> <span id="resEmail" class="text-gray-600"></span></p>
+                <p class="text-sm"><span class="font-bold text-gray-700">Emergencia:</span> <span id="resEmergencia" class="text-gray-600"></span></p>
+                <p class="text-sm"><span class="font-bold text-gray-700">Plan:</span> <span id="resPlan" class="text-gray-600 font-bold text-emerald-600"></span></p>
+            </div>
+
+            <button onclick="document.getElementById('modalExitoCliente').classList.add('hidden')" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 text-sm">
+                Genial, continuar 👍
+            </button>
         </div>
     </div>
 
@@ -735,7 +771,16 @@
         }
 
         async function subirLogo(input) {
-            const archivo = input.files[0]; if (!archivo) return;
+            const archivo = input.files[0];
+            if (!archivo) return;
+
+            // --- NUEVA VALIDACIÓN DE TAMAÑO (1 MB) ---
+            if (archivo.size > 1048576) {
+                alert("⚠️ El archivo es demasiado grande. Por favor, sube un logo que pese menos de 1 MB.");
+                input.value = ''; // Limpiamos el input para que pueda intentar de nuevo
+                return;
+            }
+
             const imgElement = document.getElementById('logoGymImg');
             imgElement.src = "https://via.placeholder.com/150?text=Subiendo...";
             try {
@@ -754,13 +799,24 @@
             }
         }
 
-        function mostrarPaseQR(id, nombre, tel) {
+        function mostrarPaseQR(id, nombre, tel, fotoUrl) {
             document.getElementById('modalQR').classList.remove('hidden');
             document.getElementById('nombreClienteQR').innerText = nombre;
-            const cont = document.getElementById('contenedorQR'); cont.innerHTML = '';
+            
+            // Lógica de la Foto: Si no tiene, creamos un avatar con sus iniciales automáticamente
+            const imgEl = document.getElementById('fotoClienteQR');
+            if (fotoUrl && fotoUrl !== 'null' && fotoUrl !== '') {
+                imgEl.src = fotoUrl;
+            } else {
+                imgEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=10B981&color=fff&size=150`;
+            }
+
+            const cont = document.getElementById('contenedorQR'); 
+            cont.innerHTML = '';
             new QRCode(cont, { text: `https://wide-waves-shave.loca.lt/checkin/${id}`, width: 220, height: 220 });
+            
             document.getElementById('btnEnviarWA').onclick = () =>
-                window.open(`https://wa.me/${tel.replace(/\D/g,'')}?text=Hola ${nombre}, aquí tienes tu pase QR.`, '_blank');
+                window.open(`https://wa.me/${tel.replace(/\D/g,'')}?text=Hola ${nombre}, aquí tienes tu pase QR de acceso al gimnasio.`, '_blank');
         }
 
         let html5QrCode;
@@ -868,8 +924,9 @@
                             <span class="text-indigo-400">✉️ ${c.email}</span>
                         </div>
                     </td>
+
                     <td class="px-6 py-4 text-right">
-                        <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}')"
+                        <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}', '${c.foto_url || ''}')"
                             class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition">
                             📱 QR
                         </button>
@@ -894,6 +951,18 @@
                 prepararYAbrirModalUpgrade(); return;
             }
 
+            // --- NUEVA VALIDACIÓN: TAMAÑO DE LA FOTO (MÁXIMO 1 MB) ---
+            const inputFoto = document.getElementById('fotoInput');
+            if (inputFoto && inputFoto.files[0]) {
+                const tamañoBytes = inputFoto.files[0].size;
+                if (tamañoBytes > 1048576) { // 1048576 bytes = 1 MB
+                    alert("⚠️ La foto del cliente es demasiado grande. Por favor, asegúrate de que pese menos de 1 MB.");
+                    inputFoto.value = ''; // Limpiamos el input para que pueda elegir otra sin recargar
+                    return; // Detenemos la ejecución aquí mismo
+                }
+            }
+            // ---------------------------------------------------------
+
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
             btn.innerHTML = 'Guardando...'; btn.disabled = true;
@@ -901,6 +970,7 @@
             try {
                 let fotoUrl = null;
                 const inputFoto = document.getElementById('fotoInput');
+                
                 if (inputFoto && inputFoto.files[0]) {
                     const fotoFile = inputFoto.files[0];
                     const fileName = `${miTenantId}/${Date.now()}_socio.png`;
@@ -916,7 +986,8 @@
                     email: document.getElementById('email').value,
                     plan_id: sel.value,
                     meses_duracion: sel.options[sel.selectedIndex].getAttribute('data-meses'),
-                    foto_url: fotoUrl
+                    foto_url: fotoUrl,
+                    contacto_emergencia: document.getElementById('contactoEmergencia').value
                 };
 
                 const res = await fetch(API_URL, {
@@ -926,7 +997,18 @@
                 });
                 if (!res.ok) throw new Error("Error al guardar el cliente en el servidor.");
 
+                // --- NUEVO: LLENAMOS Y MOSTRAMOS EL MODAL DE ÉXITO ---
+                const nombrePlanTexto = sel.options[sel.selectedIndex].text;
+                document.getElementById('resNombre').innerText = nuevoCliente.nombre_completo;
+                document.getElementById('resTelefono').innerText = nuevoCliente.telefono;
+                document.getElementById('resEmail').innerText = nuevoCliente.email;
+                document.getElementById('resEmergencia').innerText = nuevoCliente.contacto_emergencia || 'No registrado';
+                document.getElementById('resPlan').innerText = nombrePlanTexto;
+                
+                document.getElementById('modalExitoCliente').classList.remove('hidden');
+
                 e.target.reset();
+                if(document.getElementById('fotoInput')) document.getElementById('fotoInput').value = '';
                 await cargarDatosYDashboard();
             } catch (err) {
                 console.error("Error al registrar suscriptor:", err);
