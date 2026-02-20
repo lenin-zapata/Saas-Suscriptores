@@ -290,8 +290,8 @@
 
             </div>
             
-            <div id="vistaFinanzas" class="hidden p-8 relative min-h-[600px] max-w-5xl mx-auto w-full">
-                <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center md:text-left">Reportes Financieros Avanzados</h2>
+            <div id="vistaFinanzas" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center md:text-left">Reportes Financieros Avanzados</h2>
 
                 <div id="paywallFinanzas" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
                     <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
@@ -964,34 +964,54 @@
             document.getElementById('modalUpgrade').classList.remove('hidden');
         }
 
-        // --- SISTEMA DE NAVEGACIÓN COMPLETO (CORREGIDO) ---
+        // --- SISTEMA DE NAVEGACIÓN COMPLETO (ACTUALIZADO) ---
         function cambiarVista(vistaDestino) {
-            // 1. Mapeamos todas tus pantallas principales por su ID
+            // 1. Mapear pantallas
             const vistas = {
                 'resumen': document.getElementById('vistaResumen'),
                 'finanzas': document.getElementById('vistaFinanzas'),
-                'staff': document.getElementById('vistaStaff'), // ID para la sección "Gestionar Personal"
-                'escanear': document.getElementById('vistaEscanear') // ID para la sección "Escanear Pase"
+                'staff': document.getElementById('vistaStaff'),
+                'escanear': document.getElementById('vistaEscanear')
             };
 
-            // 2. Apagamos TODAS las pantallas (añadimos 'hidden')
+            // 2. Apagar todas las pantallas
             Object.values(vistas).forEach(pantalla => {
-                if (pantalla) {
-                    pantalla.classList.add('hidden');
-                }
+                if (pantalla) pantalla.classList.add('hidden');
             });
 
-            // 3. Encendemos SOLO la pantalla que el usuario pidió
-            if (vistas[vistaDestino]) {
-                vistas[vistaDestino].classList.remove('hidden');
+            // 3. Encender la pantalla solicitada
+            if (vistas[vistaDestino]) vistas[vistaDestino].classList.remove('hidden');
+
+            // --- NUEVO: ACTUALIZAR ESTADO DEL MENÚ LATERAL ---
+            // A) Apagamos todos los botones (quitamos 'active', ponemos texto opaco)
+            document.querySelectorAll('.nav-link').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-white/70');
+            });
+
+            // B) Encendemos solo el botón correcto
+            const mapaBotones = {
+                'resumen': 'btnNavDashboard',
+                'staff': 'btnNavStaff',
+                'finanzas': 'btnMenuFinanzas'
+            };
+            
+            const btnActivo = document.getElementById(mapaBotones[vistaDestino]);
+            if (btnActivo) {
+                btnActivo.classList.add('active');
+                btnActivo.classList.remove('text-white/70');
+            } else if (vistaDestino === 'escanear') {
+                // En caso de que el botón de escanear no tenga ID
+                const btnEsc = document.querySelector('a[onclick="cambiarVista(\'escanear\')"]');
+                if (btnEsc) {
+                    btnEsc.classList.add('active');
+                    btnEsc.classList.remove('text-white/70');
+                }
             }
 
-            // 4. Ejecutamos cálculos adicionales solo si es necesario
-            if (vistaDestino === 'finanzas') {
-                cargarDashboardFinanciero();
-            } else if (vistaDestino === 'staff') {
-                cargarStaff(); // Descomentado para que dibuje la tabla de personal al entrar
-            }
+            // 4. Ejecutar lógicas adicionales
+            if (vistaDestino === 'finanzas') cargarDashboardFinanciero();
+            else if (vistaDestino === 'staff') cargarStaff();
         }
 
         // Variables globales para evitar duplicar gráficos al hacer clics múltiples
@@ -1086,7 +1106,15 @@
                 document.getElementById('kpiChurn').innerText = churn;
 
                 // 7. PREPARAR DATOS PARA GRÁFICOS
-                const etiquetasDias = Array.from({length: 15}, (_, i) => `Día ${i+1}`);
+                // Generamos fechas reales en lugar de "Día 1, Día 2"
+                const etiquetasDias = Array.from({length: 15}, (_, i) => {
+                    if (i === 0) return 'Hoy';
+                    if (i === 1) return 'Mañana';
+                    let d = new Date();
+                    d.setDate(d.getDate() + i);
+                    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }); 
+                });
+                
                 const etiquetasPlanes = Object.keys(ingresosPorPlan);
                 const datosPlanes = Object.values(ingresosPorPlan);
 
