@@ -355,9 +355,9 @@
                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center h-full">
                         <p class="text-sm text-gray-500 font-medium mb-2 uppercase tracking-wider">Ingreso Recurrente Mensual (MRR)</p>
                         <h3 class="text-5xl font-extrabold text-emerald-600 mb-3 tracking-tight">$<span id="kpiMRR">0.00</span></h3>
-                        <p class="text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full font-bold inline-flex items-center gap-1">
-                            <span>📈</span> +12% vs mes anterior
-                        </p>
+                        <span id="kpiCrecimiento" class="text-xs font-bold px-3 py-1.5 rounded-md text-emerald-600 bg-emerald-50 mt-1 inline-block transition-all">
+                            Calculando...
+                        </span>
                     </div>
 
                     <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center h-full">
@@ -1336,6 +1336,7 @@
         let chartPlanes = null;
 
         // --- LÓGICA DEL DASHBOARD FINANCIERO ---
+        // --- LÓGICA DEL DASHBOARD FINANCIERO ---
         async function cargarDashboardFinanciero() {
             const paywall = document.getElementById('paywallFinanzas');
             
@@ -1348,11 +1349,14 @@
             }
 
             try {
-                // 2. EXTRAER DATOS REALES DE SUPABASE (¡Nombres de columnas corregidos!)
+                // 2. EXTRAER DATOS REALES DE SUPABASE
+                // IMPORTANTE: Añadí suscriptor_id y fecha_inicio para poder calcular el MRR pasado y los clientes únicos
                 const { data: historial, error } = await miSupabase
                     .from('historial_suscripciones')
                     .select(`
+                        suscriptor_id,
                         estado_pago,
+                        fecha_inicio,
                         fecha_fin,
                         precio_cobrado, 
                         planes ( nombre_plan, dias_duracion )
@@ -1361,70 +1365,119 @@
 
                 if (error) throw error;
 
-                // 3. VARIABLES PARA MATEMÁTICAS
-                let mrr = 0;
-                let activos = 0;
-                let atrasados = 0;
+                // 3. VARIABLES PARA MATEMÁTICAS AVANZADAS
+                let mrrActual = 0;
+                let mrrPasado = 0;
                 
                 let ingresosPorPlan = {}; 
                 let cashFlow15Dias = Array(15).fill(0); 
                 
+                // Definición estricta de tiempos
                 const hoy = new Date();
+                const anioActual = hoy.getFullYear();
+                const mesActual = hoy.getMonth();
+                
+                const inicioMesActual = new Date(anioActual, mesActual, 1);
+                const finMesActual = new Date(anioActual, mesActual + 1, 0);
+
+                const inicioMesPasado = new Date(mesActual === 0 ? anioActual - 1 : anioActual, mesActual === 0 ? 11 : mesActual - 1, 1);
+                const finMesPasado = new Date(mesActual === 0 ? anioActual - 1 : anioActual, mesActual === 0 ? 12 : mesActual, 0);
+
                 const limite15Dias = new Date();
                 limite15Dias.setDate(hoy.getDate() + 15);
 
+                const subsPorCliente = {}; // Para agrupar usuarios únicos y calcular Churn
+
                 // 4. PROCESAMIENTO DE DATOS
                 historial.forEach(sub => {
-                    // AHORA LA FUENTE DE LA VERDAD ES EL PRECIO COBRADO
+                    const fInicio = new Date(sub.fecha_inicio);
+                    const fFin = new Date(sub.fecha_fin);
                     const precio = parseFloat(sub.precio_cobrado) || 0; 
                     const dias = sub.planes?.dias_duracion || 30;
                     const nombrePlan = sub.planes?.nombre_plan || 'Plan Genérico';
                     
-                    // Convertimos los días a meses para sacar el MRR
                     const meses = Math.max(1, Math.round(dias / 30));
                     const ingresoMensualReal = precio / meses;
 
-                    if (sub.estado_pago === 'Pagado') {
-                        activos++;
-                        mrr += ingresoMensualReal;
-
+                    // A. MRR MES ACTUAL (Solo dinero de suscripciones activas durante este mes exacto)
+                    if (fInicio <= finMesActual && fFin >= inicioMesActual) {
+                        mrrActual += ingresoMensualReal;
                         if (!ingresosPorPlan[nombrePlan]) ingresosPorPlan[nombrePlan] = 0;
                         ingresosPorPlan[nombrePlan] += ingresoMensualReal;
-                    } else if (sub.estado_pago === 'Atrasado') {
-                        atrasados++;
                     }
 
-                    // Cálculo de Flujo de Caja
-                    if (sub.fecha_fin) {
-                        const fechaVence = new Date(sub.fecha_fin);
-                        // Si vence hoy o en los próximos 15 días, no cuenta los que vencieron en el pasado
-                        if (fechaVence >= hoy && fechaVence <= limite15Dias) {
-                            const diffTime = Math.abs(fechaVence - hoy);
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            
-                            if (diffDays >= 0 && diffDays < 15) {
-                                cashFlow15Dias[diffDays] += precio; 
-                            }
+                    // B. MRR MES ANTERIOR (Para comparar)
+                    if (fInicio <= finMesPasado && fFin >= inicioMesPasado) {
+                        mrrPasado += ingresoMensualReal;
+                    }
+
+                    // C. FLUJO DE CAJA A 15 DÍAS
+                    if (fFin >= hoy && fFin <= limite15Dias) {
+                        const diffTime = Math.abs(fFin - hoy);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        if (diffDays >= 0 && diffDays < 15) {
+                            cashFlow15Dias[diffDays] += precio; 
+                        }
+                    }
+
+                    // Agrupamos la última fecha de cada cliente para el Churn
+                    if (!subsPorCliente[sub.suscriptor_id] || new Date(subsPorCliente[sub.suscriptor_id].fecha_fin) < fFin) {
+                        subsPorCliente[sub.suscriptor_id] = sub;
+                    }
+                });
+
+                // 5. CÁLCULO DE CHURN Y RETENCIÓN (Solo vencimientos del año actual, >30 días)
+                let retenidosAnio = 0;
+                let churnedAnio = 0;
+
+                Object.values(subsPorCliente).forEach(ultimaSub => {
+                    const fFin = new Date(ultimaSub.fecha_fin);
+                    if (fFin.getFullYear() === anioActual) {
+                        const diffTime = hoy - fFin;
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDays > 30) {
+                            churnedAnio++; // Inactivo oficialmente
+                        } else {
+                            retenidosAnio++; // Activo o Atrasado (retenible)
                         }
                     }
                 });
 
-                // 5. CÁLCULO DE CHURN Y RETENCIÓN
-                const totalHistorico = activos + atrasados;
+                const totalAnio = retenidosAnio + churnedAnio;
                 let churn = 0;
                 let retencion = 100;
-                if (totalHistorico > 0) {
-                    churn = Math.round((atrasados / totalHistorico) * 100);
+                if (totalAnio > 0) {
+                    churn = Math.round((churnedAnio / totalAnio) * 100);
                     retencion = 100 - churn;
                 }
 
                 // 6. ACTUALIZAR HTML (KPIs)
-                document.getElementById('kpiMRR').innerText = mrr.toFixed(2);
+                document.getElementById('kpiMRR').innerText = mrrActual.toFixed(2);
                 document.getElementById('kpiRetencion').innerText = retencion;
                 document.getElementById('kpiChurn').innerText = churn;
 
-                // 7. PREPARAR DATOS PARA GRÁFICOS
-                // Generamos fechas reales en lugar de "Día 1, Día 2"
+                // CÁLCULO DINÁMICO DE CRECIMIENTO MRR (%)
+                let crecimiento = 0;
+                if (mrrPasado > 0) {
+                    crecimiento = ((mrrActual - mrrPasado) / mrrPasado) * 100;
+                } else if (mrrActual > 0) {
+                    crecimiento = 100;
+                }
+
+                // NUEVO: APUNTAMOS DIRECTAMENTE AL ID EXACTO
+                const spanCrecimiento = document.getElementById('kpiCrecimiento');
+                if (spanCrecimiento) {
+                    const esPositivo = crecimiento >= 0;
+                    spanCrecimiento.innerText = esPositivo ? `+${crecimiento.toFixed(1)}% vs mes anterior` : `${crecimiento.toFixed(1)}% vs mes anterior`;
+                    
+                    // Colores dinámicos: Verde si sube o se mantiene, Rojo si cae
+                    spanCrecimiento.className = esPositivo 
+                        ? 'text-xs font-bold px-2 py-1 rounded-md text-emerald-600 bg-emerald-50 mt-2 inline-block transition-all' 
+                        : 'text-xs font-bold px-2 py-1 rounded-md text-red-600 bg-red-50 mt-2 inline-block transition-all';
+                }
+
+                // 7. PREPARAR DATOS PARA GRÁFICOS (Tu código intacto)
                 const etiquetasDias = Array.from({length: 15}, (_, i) => {
                     if (i === 0) return 'Hoy';
                     if (i === 1) return 'Mañana';
@@ -1436,11 +1489,11 @@
                 const etiquetasPlanes = Object.keys(ingresosPorPlan);
                 const datosPlanes = Object.values(ingresosPorPlan);
 
-                // 8. RENDERIZAR GRÁFICO DE FLUJO DE CAJA
+                // 8. RENDERIZAR GRÁFICO DE FLUJO DE CAJA (Tu código intacto)
                 const ctxFlujo = document.getElementById('graficoFlujoCaja').getContext('2d');
-                if (chartFlujo) chartFlujo.destroy();
+                if (window.chartFlujo) window.chartFlujo.destroy(); // Ajuste menor preventivo
                 
-                chartFlujo = new Chart(ctxFlujo, {
+                window.chartFlujo = new Chart(ctxFlujo, {
                     type: 'bar',
                     data: {
                         labels: etiquetasDias,
@@ -1458,13 +1511,13 @@
                     }
                 });
 
-                // 9. RENDERIZAR GRÁFICO DE ANILLO
+                // 9. RENDERIZAR GRÁFICO DE ANILLO (Tu código intacto)
                 const ctxPlanes = document.getElementById('graficoPlanes').getContext('2d');
-                if (chartPlanes) chartPlanes.destroy();
+                if (window.chartPlanes) window.chartPlanes.destroy(); // Ajuste menor preventivo
                 
                 const colores = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
-                chartPlanes = new Chart(ctxPlanes, {
+                window.chartPlanes = new Chart(ctxPlanes, {
                     type: 'doughnut',
                     data: {
                         labels: etiquetasPlanes.length > 0 ? etiquetasPlanes : ['Sin datos'],
