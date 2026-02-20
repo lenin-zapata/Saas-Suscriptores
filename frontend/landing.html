@@ -32,8 +32,18 @@
     <section id="precios" class="bg-white py-20 border-t border-gray-100">
         <div class="container mx-auto px-6 max-w-6xl">
             <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">Planes transparentes que crecen contigo</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Planes que se adaptan y crecen contigo</h2>
                 <p class="text-gray-500">Paga usando tarjetas de crédito o débito a través de PlaceToPay.</p>
+            </div>
+
+            <div class="text-center mb-12">
+                <div class="inline-flex items-center gap-4 bg-white p-2 rounded-full border border-gray-200 shadow-sm">
+                    <span id="labelMensual" class="font-bold text-emerald-700 px-4">Mensual</span>
+                    <button id="toggleFacturacion" onclick="cambiarFacturacion()" class="w-14 h-7 bg-emerald-600 rounded-full relative transition-colors duration-300 focus:outline-none">
+                        <div id="toggleBoton" class="w-5 h-5 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300"></div>
+                    </button>
+                    <span id="labelAnual" class="text-gray-500 font-medium px-4">Anual <span class="text-[10px] bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full ml-1 font-bold uppercase tracking-wider -translate-y-2 absolute">2 Meses Gratis</span></span>
+                </div>
             </div>
 
             <div class="grid md:grid-cols-3 gap-8">
@@ -41,7 +51,7 @@
                 <div class="bg-gray-50 rounded-3xl p-8 border border-gray-200 hover:border-emerald-300 transition-all hover:shadow-xl flex flex-col">
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Starter</h3>
                     <p class="text-gray-500 text-sm mb-6">Para estudios pequeños y entrenadores independientes.</p>
-                    <div class="text-4xl font-extrabold text-gray-900 mb-8">$29<span class="text-lg text-gray-500 font-normal">/mes</span></div>
+                    <div id="precioStarter" class="text-4xl font-extrabold text-gray-900 mb-8">$29<span class="text-lg text-gray-500 font-normal">/mes</span></div>
                     
                     <ul class="space-y-4 mb-8 flex-1 text-gray-600">
                         <li class="flex items-center gap-3">✅ <span>Hasta <strong>100 clientes</strong> activos</span></li>
@@ -56,7 +66,7 @@
                     <div class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-3xl uppercase tracking-wider">Más Popular</div>
                     <h3 class="text-xl font-bold mb-2">Pro</h3>
                     <p class="text-emerald-100 text-sm mb-6">Para gimnasios establecidos en fase de crecimiento.</p>
-                    <div class="text-4xl font-extrabold mb-8">$69<span class="text-lg text-emerald-200 font-normal">/mes</span></div>
+                    <div id="precioPro" class="text-4xl font-extrabold mb-8">$69<span class="text-lg text-emerald-200 font-normal">/mes</span></div>
                     
                     <ul class="space-y-4 mb-8 flex-1 text-emerald-50">
                         <li class="flex items-center gap-3">✨ <span>Hasta <strong>500 clientes</strong> activos</span></li>
@@ -70,7 +80,7 @@
                 <div class="bg-gray-50 rounded-3xl p-8 border border-gray-200 hover:border-emerald-300 transition-all hover:shadow-xl flex flex-col">
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Elite</h3>
                     <p class="text-gray-500 text-sm mb-6">Para franquicias y negocios sin límites.</p>
-                    <div class="text-4xl font-extrabold text-gray-900 mb-8">$149<span class="text-lg text-gray-500 font-normal">/mes</span></div>
+                    <div id="precioElite" class="text-4xl font-extrabold text-gray-900 mb-8">$149<span class="text-lg text-gray-500 font-normal">/mes</span></div>
                     
                     <ul class="space-y-4 mb-8 flex-1 text-gray-600">
                         <li class="flex items-center gap-3">🔥 <span>Clientes <strong>Ilimitados</strong></span></li>
@@ -263,6 +273,53 @@
                 btn.disabled = false;
             }
         });
+
+        let facturacionAnual = false;
+
+        function cambiarFacturacion() {
+            facturacionAnual = !facturacionAnual;
+            
+            // Animación del botón
+            const toggleBtn = document.getElementById('toggleBoton');
+            const bgToggle = document.getElementById('toggleFacturacion');
+            const labelMensual = document.getElementById('labelMensual');
+            const labelAnual = document.getElementById('labelAnual');
+
+            if (facturacionAnual) {
+                toggleBtn.classList.add('translate-x-7');
+                labelAnual.classList.replace('text-gray-500', 'text-emerald-700');
+                labelAnual.classList.add('font-bold');
+                labelMensual.classList.replace('text-emerald-700', 'text-gray-500');
+                labelMensual.classList.remove('font-bold');
+                
+                // Cambiar textos a precios anuales
+                document.getElementById('precioStarter').innerHTML = '$290<span class="text-lg text-gray-500 font-normal">/año</span>';
+                document.getElementById('precioPro').innerHTML = '$690<span class="text-lg text-emerald-200 font-normal">/año</span>';
+                document.getElementById('precioElite').innerHTML = '$1490<span class="text-lg text-gray-500 font-normal">/año</span>';
+
+                // Actualizar los botones para que pasen el precio anual al modal
+                document.getElementById('btnElegirStarter').setAttribute('onclick', "abrirModalRegistro('Starter Anual', 290)");
+                document.getElementById('btnElegirPro').setAttribute('onclick', "abrirModalRegistro('Pro Anual', 690)");
+                document.getElementById('btnElegirElite').setAttribute('onclick', "abrirModalRegistro('Elite Anual', 1490)");
+                
+            } else {
+                toggleBtn.classList.remove('translate-x-7');
+                labelMensual.classList.replace('text-gray-500', 'text-emerald-700');
+                labelMensual.classList.add('font-bold');
+                labelAnual.classList.replace('text-emerald-700', 'text-gray-500');
+                labelAnual.classList.remove('font-bold');
+                
+                // Regresar a precios mensuales
+                document.getElementById('precioStarter').innerHTML = '$29<span class="text-lg text-gray-500 font-normal">/mes</span>';
+                document.getElementById('precioPro').innerHTML = '$69<span class="text-lg text-emerald-200 font-normal">/mes</span>';
+                document.getElementById('precioElite').innerHTML = '$149<span class="text-lg text-gray-500 font-normal">/mes</span>';
+
+                // Regresar botones a mensual
+                document.getElementById('btnElegirStarter').setAttribute('onclick', "abrirModalRegistro('Starter Mensual', 29)");
+                document.getElementById('btnElegirPro').setAttribute('onclick', "abrirModalRegistro('Pro Mensual', 69)");
+                document.getElementById('btnElegirElite').setAttribute('onclick', "abrirModalRegistro('Elite Mensual', 149)");
+            }
+        }
     </script>
 
 </body>
