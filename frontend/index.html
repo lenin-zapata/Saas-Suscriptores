@@ -1833,13 +1833,22 @@
                     // REGLAS 3 Y 4: NO TIENE RENOVACIÓN AUTOMÁTICA -> Avisar 3 días ANTES
                     // =========================================================================
                     if (!renovacionAuto && diffDays === 3 && !recordatorioEnviado) {
-                        const linkPago = `https://checkout.placetopay.com/simulacion/${sub.id.substring(0,8)}`; 
                         
-                        const mensajeAviso = `Hola ${nombreCliente} 👋,\n\nEsperamos que estés disfrutando tu entrenamiento. Te recordamos que tu *${plan}* vence en 3 días.\n\nComo no tienes renovación automática, puedes renovar tu acceso de forma rápida y segura desde este enlace: \n🔗 ${linkPago}\n\n¡Te esperamos en el gym! 🏋️‍♂️`;
+                        // 1. SOLICITAMOS EL LINK REAL AL BANCO 🏦
+                        let linkPago = await obtenerLinkPlaceToPay(nombreCliente, sub.precio_cobrado);
                         
-                        // DISPARADOR REAL DE WHATSAPP
+                        // Fallback de seguridad por si el banco está caído
+                        if (!linkPago) {
+                            linkPago = "https://tudominio.com/error-pago (Intenta más tarde)";
+                        }
+
+                        // 2. ARMAMOS EL MENSAJE
+                        const mensajeAviso = `Hola ${nombreCliente} 👋,\n\nEsperamos que estés disfrutando tu entrenamiento. Te recordamos que tu mensualidad vence en 3 días.\n\nPuedes renovar tu acceso de forma rápida y segura con tarjeta de crédito/débito desde este enlace oficial: \n🔗 ${linkPago}\n\n¡Te esperamos en el gym! 🏋️‍♂️`;
+                        
+                        // 3. DISPARADOR REAL DE WHATSAPP 📱
                         await enviarNotificacionWhatsApp(telefono, mensajeAviso);
 
+                        // 4. MARCAMOS COMO ENVIADO EN BD
                         await miSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
                         resumenWA_Aviso++;
                     }
@@ -2063,6 +2072,36 @@
                 btn.innerHTML = textoOriginal; btn.disabled = false;
             }
         });
+
+        // --- CONEXIÓN AL BACKEND PARA GENERAR LINK DE PAGO (PLACETOPAY) ---
+        async function obtenerLinkPlaceToPay(nombreCliente, precio) {
+            // ⚠️ Asegúrate de que el puerto coincida con el que muestra tu terminal de VS Code (usualmente 8787)
+            const urlBackend = 'http://127.0.0.1:8787/api/pagos/generar-link'; 
+
+            try {
+                const respuesta = await fetch(urlBackend, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombre_cliente: nombreCliente,
+                        precio_cobrado: precio
+                    })
+                });
+
+                const data = await respuesta.json();
+                
+                if (data.exito) {
+                    console.log("✅ Link de PlaceToPay generado:", data.url_pago);
+                    return data.url_pago;
+                } else {
+                    console.error("❌ Error del banco:", data.mensaje);
+                    return null;
+                }
+            } catch (error) {
+                console.error("❌ Error de red conectando al backend:", error);
+                return null;
+            }
+        }
 
     </script>
 </body>
