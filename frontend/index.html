@@ -1739,19 +1739,65 @@
             }
         });
 
-        // --- MOTOR AUTOMATIZADO DE COBROS Y RECORDATORIOS (REGLAS ESTRICTAS) ---
+        // --- CONEXIÓN REAL A LA API DE WHATSAPP (META) ---
+        async function enviarNotificacionWhatsApp(telefonoDestino, mensajeTexto) {
+            // 1. Limpiamos el teléfono (quitamos el '+' y espacios)
+            // Ejemplo: "+593 99 123 4567" se convierte en "593991234567"
+            const telLimpio = telefonoDestino.replace(/\D/g, '');
+
+            // 2. Tus credenciales de acceso
+            const PHONE_NUMBER_ID = '931796950027979';
+            const TOKEN = 'EAFvKWCZBmLA0BQ0ZAkCLrTPErZBd1J4MumZCXk1LDbGsZAtX3lbKxiKEU9blznGNvnLvZA6vox7DMImqNfoqkHFffY9A6BOdY0ZC7MyeqaRjnmf6ZCNXXWiiUFpgZBZA8zqESquT5ZB0JElfMqGLO8DgJincMRAgFULYZCWJf2K6eDB4oPLYjYoROBuiwbSpAGNL9btUAywTFnStrOdWwVnV6Spou1TOBJZAxLUWkZCn43ujIoq7qJiNt4U8UFdeNFqqKid5MlzZC7K2teHZAtFC41hbigasZCQZDZD';
+            
+            const url = `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`;
+
+            // 3. Estructura que exige Meta
+            const payload = {
+                messaging_product: "whatsapp",
+                to: telLimpio,
+                type: "text",
+                text: { 
+                    body: mensajeTexto 
+                }
+            };
+
+            try {
+                const respuesta = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await respuesta.json();
+                
+                if (data.error) {
+                    console.error("❌ Error de Meta WA:", data.error.message);
+                    return false;
+                } else {
+                    console.log("✅ ¡WhatsApp enviado con éxito a", telLimpio, "!");
+                    return true;
+                }
+            } catch (error) {
+                console.error("❌ Error de red al enviar WhatsApp:", error);
+                return false;
+            }
+        }
+
+        // --- MOTOR AUTOMATIZADO DE COBROS Y RECORDATORIOS (CON WHATSAPP REAL) ---
         async function simularMotorCobros() {
             const btn = window.event ? window.event.currentTarget : document.querySelector('button');
             const textoOriginal = btn ? btn.innerHTML : 'Ejecutar';
-            if(btn) { btn.innerHTML = 'Procesando... ⏳'; btn.disabled = true; }
+            if(btn) { btn.innerHTML = 'Enviando WA... 🚀'; btn.disabled = true; }
 
             try {
                 console.log("==================================================");
-                console.log("🚀 INICIANDO MOTOR DE FACTURACIÓN...");
+                console.log("🚀 INICIANDO MOTOR DE FACTURACIÓN Y WHATSAPP...");
                 
                 const hoy = new Date();
                 hoy.setHours(0, 0, 0, 0); 
-                console.log(`📅 Sistema corriendo para el día: ${hoy.toLocaleDateString()}`);
 
                 let resumenWA_Cobro = 0;
                 let resumenWA_Aviso = 0;
@@ -1773,26 +1819,27 @@
                     fechaFin.setHours(0, 0, 0, 0);
                     
                     const diffTime = fechaFin - hoy;
-                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)); // Positivo = Faltan días | Negativo = Ya pasó
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
 
                     const nombreCliente = sub.suscriptores?.nombre_completo || 'Cliente';
+                    // IMPORTANTE: Este teléfono en la BD debe ser tu número real para la prueba
                     const telefono = sub.suscriptores?.telefono || 'Sin número';
                     const plan = sub.planes?.nombre_plan || 'Plan';
                     
-                    // Preferencias del usuario
                     const renovacionAuto = sub.renovacion_automatica === true; 
                     const recordatorioEnviado = sub.recordatorio_enviado === true; 
 
                     // =========================================================================
-                    // REGLAS 3 Y 4: NO TIENE RENOVACIÓN AUTOMÁTICA -> Avisar 3 días ANTES (Una vez)
+                    // REGLAS 3 Y 4: NO TIENE RENOVACIÓN AUTOMÁTICA -> Avisar 3 días ANTES
                     // =========================================================================
                     if (!renovacionAuto && diffDays === 3 && !recordatorioEnviado) {
                         const linkPago = `https://checkout.placetopay.com/simulacion/${sub.id.substring(0,8)}`; 
                         
-                        console.log(`▶️ [REGLA 3 y 4] Evaluando a: ${nombreCliente} (Vence en 3 días)`);
-                        console.log(`   💬 WHATSAPP ENVIADO AL ${telefono}: Hola ${nombreCliente}, tu ${plan} vence en 3 días. Como no tienes renovación automática, aquí tienes tu link para renovar tu acceso: ${linkPago}`);
+                        const mensajeAviso = `Hola ${nombreCliente} 👋,\n\nEsperamos que estés disfrutando tu entrenamiento. Te recordamos que tu *${plan}* vence en 3 días.\n\nComo no tienes renovación automática, puedes renovar tu acceso de forma rápida y segura desde este enlace: \n🔗 ${linkPago}\n\n¡Te esperamos en el gym! 🏋️‍♂️`;
+                        
+                        // DISPARADOR REAL DE WHATSAPP
+                        await enviarNotificacionWhatsApp(telefono, mensajeAviso);
 
-                        // Marcamos para no volver a enviarlo mañana
                         await miSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
                         resumenWA_Aviso++;
                     }
@@ -1800,18 +1847,20 @@
                     // =========================================================================
                     // REGLA 2: SÍ TIENE RENOVACIÓN AUTOMÁTICA -> Cobrar 1 día DESPUÉS
                     // =========================================================================
-                    // Si diffDays es -1, significa que la fecha_fin fue ayer (pasó 1 día)
                     if (renovacionAuto && diffDays === -1 && sub.estado_pago !== 'Renovado') {
-                        console.log(`▶️ [REGLA 2] Evaluando a: ${nombreCliente} (Venció ayer - Procesando cobro)`);
-                        console.log(`   💳 [PLACETOPAY] Ejecutando cargo de $${sub.precio_cobrado} a tarjeta guardada...`);
-                        
-                        const transaccionExitosa = true; // Simulación
+                        const transaccionExitosa = true; // Simulación de PlaceToPay
                         
                         if (transaccionExitosa) {
                             const nuevaFechaFin = new Date(hoy);
                             nuevaFechaFin.setDate(nuevaFechaFin.getDate() + (sub.planes?.dias_duracion || 30));
 
-                            // 2.A: Insertamos el nuevo mes pagado
+                            // 1. PRIMERO: Apagamos todo el historial viejo del cliente (¡Solo en ESTE gimnasio!)
+                            await miSupabase.from('historial_suscripciones')
+                                .update({ estado_pago: 'Inactivo' })
+                                .eq('suscriptor_id', sub.suscriptor_id)
+                                .eq('tenant_id', miTenantId); // 🛡️ CANDADO MULTI-TENANT
+
+                            // 2. SEGUNDO: Insertamos el mes nuevo limpio y 'Pagado'
                             await miSupabase.from('historial_suscripciones').insert([{
                                 tenant_id: miTenantId,
                                 suscriptor_id: sub.suscriptor_id,
@@ -1820,32 +1869,25 @@
                                 fecha_inicio: hoy.toISOString().split('T')[0],
                                 fecha_fin: nuevaFechaFin.toISOString().split('T')[0],
                                 estado_pago: 'Pagado',
-                                renovacion_automatica: true // Mantiene su preferencia
+                                renovacion_automatica: true 
                             }]);
-
-                            // 2.B: Archivamos TODO el historial viejo del cliente
-                            await miSupabase.from('historial_suscripciones')
-                                .update({ estado_pago: 'Inactivo' })
-                                .eq('suscriptor_id', sub.suscriptor_id);
                             
-                            // 2.C: WhatsApp automático de recibo
-                            console.log(`   ✅ ¡Cobro exitoso!`);
-                            console.log(`   💬 WHATSAPP ENVIADO AL ${telefono}: ¡Gracias ${nombreCliente}! Hemos procesado exitosamente la renovación de tu ${plan}. Tienes acceso garantizado hasta el ${nuevaFechaFin.toLocaleDateString('es-ES')}.`);
+                            const mensajeRecibo = `¡Gracias ${nombreCliente}! 🎉\n\nHemos procesado exitosamente la renovación automática de tu *${plan}* por el valor de $${sub.precio_cobrado}.\n\nTienes acceso garantizado hasta el ${nuevaFechaFin.toLocaleDateString('es-ES')}.\n\n¡A darle con todo! 💪`;
+
+                            await enviarNotificacionWhatsApp(telefono, mensajeRecibo);
                             
                             resumenCobros++;
                             resumenWA_Cobro++;
                         }
                     }
                 }
-
-                console.log("==================================================");
                 
                 if (resumenCobros > 0 || resumenWA_Aviso > 0) {
                     if(typeof cargarDatosYDashboard === 'function') await cargarDatosYDashboard();
                     if(typeof cargarDashboardFinanciero === 'function') await cargarDashboardFinanciero();
                 }
 
-                alert(`📊 REPORTE DEL MOTOR:\n\n🔔 Avisos manuales enviados (Faltan 3 días): ${resumenWA_Aviso}\n💳 Renovaciones automáticas cobradas (+1 día): ${resumenCobros}\n🧾 Recibos WA enviados: ${resumenWA_Cobro}\n\n(Revisa la consola F12 para leer los mensajes simulados)`);
+                alert(`📊 REPORTE DEL MOTOR:\n\n🔔 Avisos enviados: ${resumenWA_Aviso}\n🧾 Recibos WA enviados: ${resumenWA_Cobro}\n\n¡Revisa tu celular! 📱`);
 
             } catch (err) {
                 console.error("❌ Error en el motor:", err);
@@ -1980,13 +2022,14 @@
 
                 const nuevaFechaFin = new Date(fechaInicioCalculada);
                 nuevaFechaFin.setDate(nuevaFechaFin.getDate() + diasDuracion);
-
-                // PASO 2: "Apagar" todo el historial anterior marcándolo como Inactivo
+                    
+                // PASO 2: "Apagar" todo el historial anterior marcándolo como Inactivo (¡Solo en ESTE gimnasio!)
                 const { error: errUpdate } = await miSupabase
                     .from('historial_suscripciones')
                     .update({ estado_pago: 'Inactivo' })
-                    .eq('suscriptor_id', suscriptorId);
-                    
+                    .eq('suscriptor_id', suscriptorId)
+                    .eq('tenant_id', miTenantId); // 🛡️ CANDADO MULTI-TENANT
+
                 if (errUpdate) throw errUpdate;
 
                 // PASO 3: Insertar la nueva suscripción con las fechas perfectas
