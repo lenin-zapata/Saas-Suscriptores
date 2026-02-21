@@ -257,6 +257,17 @@
                                     class="w-full border border-gray-200 bg-gray-50 p-1.5 rounded-xl text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 transition cursor-pointer">
                             </div>
                             
+                            <div class="mt-5 mb-6 flex items-center justify-between bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                                <div>
+                                    <label class="text-sm font-bold text-emerald-900 block">🔄 Renovación Automática</label>
+                                    <p class="text-[11px] text-emerald-700 mt-0.5 leading-tight">Cobro automático 1 día después del vencimiento. Si se desactiva, se enviará link de pago 3 días antes.</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="renovacionAutoCliente" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                </label>
+                            </div>
+
                             <div class="md:col-span-2 mt-2">
                                 <button type="submit"
                                     class="px-8 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 text-sm">
@@ -301,6 +312,7 @@
                                 <div class="relative min-w-[190px]">
                                     <select id="filtroEstado" onchange="filtrarClientes()" 
                                         class="w-full appearance-none bg-emerald-50 border border-emerald-100 text-emerald-800 py-3 pl-4 pr-10 rounded-xl text-sm font-bold cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all hover:bg-emerald-100 truncate">
+                                        <option value="Activos y Atrasados" selected>🟢🟡 Activos y Atrasados</option>
                                         <option value="Todos">🌟 Todos los estados</option>
                                         <option value="Activo">🟢 Activos</option>
                                         <option value="Atrasado">🟡 Atrasados</option>
@@ -337,7 +349,14 @@
             </div>
             
             <div id="vistaFinanzas" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center md:text-left">Reportes Financieros Avanzados</h2>
+
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-2xl font-bold text-gray-800 text-center md:text-left">Reportes Financieros Avanzados</h2>
+                    
+                    <button onclick="simularMotorCobros()" class="bg-indigo-600 text-white font-bold py-2.5 px-5 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 flex items-center gap-2 text-sm">
+                        🤖 Ejecutar Motor de Cobros (Simulador)
+                    </button>
+                </div>
 
                 <div id="paywallFinanzas" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
                     <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
@@ -637,6 +656,42 @@
         </div>
     </div>
 
+    <div id="modalRenovarPlan" class="hidden fixed inset-0 z-[100] flex justify-center items-center bg-gray-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up border border-emerald-100">
+            <div class="bg-emerald-600 px-6 py-4 flex justify-between items-center">
+                <h3 class="text-white font-bold text-lg flex items-center gap-2"><span>🔄</span> Renovar o Cambiar Plan</h3>
+                <button type="button" onclick="cerrarModalRenovar()" class="text-emerald-100 hover:text-white transition text-3xl leading-none">&times;</button>
+            </div>
+            <form id="formRenovarPlan" class="p-6">
+                <input type="hidden" id="renovarClienteId">
+                <p class="text-sm text-gray-500 mb-5">Socio seleccionado: <br><span id="renovarClienteNombre" class="font-extrabold text-gray-800 text-lg"></span></p>
+
+                <div class="mb-5">
+                    <label class="block text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-2">Seleccionar Nuevo Plan</label>
+                    <select id="renovarPlanElegido" required class="w-full border border-gray-200 bg-gray-50 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-bold text-emerald-800 transition cursor-pointer">
+                        <option value="">Cargando planes...</option>
+                    </select>
+                </div>
+
+                <div class="mb-8 flex items-center justify-between bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
+                    <div>
+                        <label class="text-sm font-bold text-emerald-900 block">Renovación Automática</label>
+                        <p class="text-[11px] text-emerald-600 mt-1 leading-tight">Activar cobros automáticos al finalizar el plan.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="renovarAutoSwitch" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="cerrarModalRenovar()" class="w-1/2 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-200 transition">Cancelar</button>
+                    <button type="submit" class="w-1/2 bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-200">Guardar Renovación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://kfqdefzuwejwmupgvelg.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcWRlZnp1d2Vqd211cGd2ZWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MTcwMzYsImV4cCI6MjA4Njk5MzAzNn0.Wdr14R9gZ6Osy8RrVaYXC6CKUtBoYqbE9tV3oiekCPE';
@@ -847,7 +902,8 @@
 
                 // 4. Renderizar la tabla con los datos completos
                 listaClientesOriginal = clientesConHistorial; 
-                renderizarTablaClientes(clientesConHistorial); 
+                //renderizarTablaClientes(clientesConHistorial);
+                filtrarClientes(); 
 
                 // 5. KPIs de Límites del Plan SaaS
                 totalClientesActual = clientes.length;
@@ -1125,34 +1181,37 @@
                         <td class="px-6 py-4 text-sm text-gray-600 font-medium">${vence}</td>
                         <td class="px-6 py-4 text-sm text-gray-400">${registrado}</td>
                         <td class="px-6 py-4 text-right">
-                            <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}', '${c.foto_url || ''}')"
-                                class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition shadow-sm">
-                                📱 QR
-                            </button>
+                            <div class="flex justify-end items-center gap-2">
+                                <button onclick="abrirModalRenovar('${c.id}', '${c.nombre_completo}')"
+                                    class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-100 transition shadow-sm" title="Renovar o Cambiar Plan">
+                                    🔄 Renovar
+                                </button>
+                                
+                                <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}', '${c.foto_url || ''}')"
+                                    class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition shadow-sm">
+                                    📱 QR
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
-        // FUNCIÓN DE FILTRADO (MEJORADA Y SIN ROMPER NADA)
+        // FUNCIÓN DE FILTRADO (AHORA SOPORTA FILTRO DOBLE POR DEFECTO)
         function filtrarClientes() {
             const texto = document.getElementById('inputBuscarCliente').value.toLowerCase();
-            const filtroEstado = document.getElementById('filtroEstado') ? document.getElementById('filtroEstado').value : 'Todos';
+            const filtroEstado = document.getElementById('filtroEstado') ? document.getElementById('filtroEstado').value : 'Activos y Atrasados';
 
             const filtrados = listaClientesOriginal.filter(c => {
-                // 1. Validar si coincide el texto (con prevención de errores si el email es nulo)
                 const coincideTexto = 
                     (c.nombre_completo && c.nombre_completo.toLowerCase().includes(texto)) ||
                     (c.email && c.email.toLowerCase().includes(texto));
 
-                // 2. Validar si coincide el estado
-                let coincideEstado = true; // Por defecto pasa si el filtro es "Todos"
+                let coincideEstado = true; 
                 
                 if (filtroEstado !== 'Todos') {
-                    // Replicamos tu lógica exacta para saber en qué estado está este cliente
                     const subs = c.historial_suscripciones || [];
-                    // Usamos [...subs] para no alterar el orden original del arreglo
                     const subsOrdenadas = [...subs].sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin));
                     const ultimaSub = subsOrdenadas[0] || {};
                     
@@ -1167,11 +1226,14 @@
                         else estadoCalculado = 'Activo';
                     }
 
-                    // Verificamos si el estado que calculamos es el mismo que seleccionó el usuario
-                    coincideEstado = (estadoCalculado === filtroEstado);
+                    // APLICAMOS LA NUEVA REGLA (Permitir Activos OR Atrasados)
+                    if (filtroEstado === 'Activos y Atrasados') {
+                        coincideEstado = (estadoCalculado === 'Activo' || estadoCalculado === 'Atrasado');
+                    } else {
+                        coincideEstado = (estadoCalculado === filtroEstado);
+                    }
                 }
 
-                // El cliente solo se muestra si pasa AMBOS filtros
                 return coincideTexto && coincideEstado;
             });
 
@@ -1222,7 +1284,10 @@
                     plan_id: sel.value,
                     meses_duracion: sel.options[sel.selectedIndex].getAttribute('data-meses'),
                     foto_url: fotoUrl,
-                    contacto_emergencia: document.getElementById('contactoEmergencia').value
+                    contacto_emergencia: document.getElementById('contactoEmergencia').value,
+
+                    // NUEVO: Capturamos si el switch está encendido (true/false)
+                    renovacion_automatica: document.getElementById('renovacionAutoCliente').checked
                 };
 
                 const res = await fetch(API_URL, {
@@ -1673,6 +1738,289 @@
                 btn.innerHTML = textoOriginal; btn.disabled = false;
             }
         });
+
+        // --- MOTOR AUTOMATIZADO DE COBROS Y RECORDATORIOS (REGLAS ESTRICTAS) ---
+        async function simularMotorCobros() {
+            const btn = window.event ? window.event.currentTarget : document.querySelector('button');
+            const textoOriginal = btn ? btn.innerHTML : 'Ejecutar';
+            if(btn) { btn.innerHTML = 'Procesando... ⏳'; btn.disabled = true; }
+
+            try {
+                console.log("==================================================");
+                console.log("🚀 INICIANDO MOTOR DE FACTURACIÓN...");
+                
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0); 
+                console.log(`📅 Sistema corriendo para el día: ${hoy.toLocaleDateString()}`);
+
+                let resumenWA_Cobro = 0;
+                let resumenWA_Aviso = 0;
+                let resumenCobros = 0;
+
+                const { data: suscripciones, error } = await miSupabase
+                    .from('historial_suscripciones')
+                    .select(`*, planes(nombre_plan, dias_duracion), suscriptores(nombre_completo, telefono)`)
+                    .eq('tenant_id', miTenantId)
+                    .order('fecha_fin', { ascending: false });
+
+                if (error) throw error;
+
+                for (const sub of suscripciones) {
+                    if (!sub.fecha_fin) continue;
+
+                    const partesFecha = sub.fecha_fin.split('T')[0].split('-'); 
+                    const fechaFin = new Date(partesFecha[0], partesFecha[1] - 1, partesFecha[2]);
+                    fechaFin.setHours(0, 0, 0, 0);
+                    
+                    const diffTime = fechaFin - hoy;
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)); // Positivo = Faltan días | Negativo = Ya pasó
+
+                    const nombreCliente = sub.suscriptores?.nombre_completo || 'Cliente';
+                    const telefono = sub.suscriptores?.telefono || 'Sin número';
+                    const plan = sub.planes?.nombre_plan || 'Plan';
+                    
+                    // Preferencias del usuario
+                    const renovacionAuto = sub.renovacion_automatica === true; 
+                    const recordatorioEnviado = sub.recordatorio_enviado === true; 
+
+                    // =========================================================================
+                    // REGLAS 3 Y 4: NO TIENE RENOVACIÓN AUTOMÁTICA -> Avisar 3 días ANTES (Una vez)
+                    // =========================================================================
+                    if (!renovacionAuto && diffDays === 3 && !recordatorioEnviado) {
+                        const linkPago = `https://checkout.placetopay.com/simulacion/${sub.id.substring(0,8)}`; 
+                        
+                        console.log(`▶️ [REGLA 3 y 4] Evaluando a: ${nombreCliente} (Vence en 3 días)`);
+                        console.log(`   💬 WHATSAPP ENVIADO AL ${telefono}: Hola ${nombreCliente}, tu ${plan} vence en 3 días. Como no tienes renovación automática, aquí tienes tu link para renovar tu acceso: ${linkPago}`);
+
+                        // Marcamos para no volver a enviarlo mañana
+                        await miSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
+                        resumenWA_Aviso++;
+                    }
+
+                    // =========================================================================
+                    // REGLA 2: SÍ TIENE RENOVACIÓN AUTOMÁTICA -> Cobrar 1 día DESPUÉS
+                    // =========================================================================
+                    // Si diffDays es -1, significa que la fecha_fin fue ayer (pasó 1 día)
+                    if (renovacionAuto && diffDays === -1 && sub.estado_pago !== 'Renovado') {
+                        console.log(`▶️ [REGLA 2] Evaluando a: ${nombreCliente} (Venció ayer - Procesando cobro)`);
+                        console.log(`   💳 [PLACETOPAY] Ejecutando cargo de $${sub.precio_cobrado} a tarjeta guardada...`);
+                        
+                        const transaccionExitosa = true; // Simulación
+                        
+                        if (transaccionExitosa) {
+                            const nuevaFechaFin = new Date(hoy);
+                            nuevaFechaFin.setDate(nuevaFechaFin.getDate() + (sub.planes?.dias_duracion || 30));
+
+                            // 2.A: Insertamos el nuevo mes pagado
+                            await miSupabase.from('historial_suscripciones').insert([{
+                                tenant_id: miTenantId,
+                                suscriptor_id: sub.suscriptor_id,
+                                plan_id: sub.plan_id,
+                                precio_cobrado: sub.precio_cobrado,
+                                fecha_inicio: hoy.toISOString().split('T')[0],
+                                fecha_fin: nuevaFechaFin.toISOString().split('T')[0],
+                                estado_pago: 'Pagado',
+                                renovacion_automatica: true // Mantiene su preferencia
+                            }]);
+
+                            // 2.B: Archivamos TODO el historial viejo del cliente
+                            await miSupabase.from('historial_suscripciones')
+                                .update({ estado_pago: 'Inactivo' })
+                                .eq('suscriptor_id', sub.suscriptor_id);
+                            
+                            // 2.C: WhatsApp automático de recibo
+                            console.log(`   ✅ ¡Cobro exitoso!`);
+                            console.log(`   💬 WHATSAPP ENVIADO AL ${telefono}: ¡Gracias ${nombreCliente}! Hemos procesado exitosamente la renovación de tu ${plan}. Tienes acceso garantizado hasta el ${nuevaFechaFin.toLocaleDateString('es-ES')}.`);
+                            
+                            resumenCobros++;
+                            resumenWA_Cobro++;
+                        }
+                    }
+                }
+
+                console.log("==================================================");
+                
+                if (resumenCobros > 0 || resumenWA_Aviso > 0) {
+                    if(typeof cargarDatosYDashboard === 'function') await cargarDatosYDashboard();
+                    if(typeof cargarDashboardFinanciero === 'function') await cargarDashboardFinanciero();
+                }
+
+                alert(`📊 REPORTE DEL MOTOR:\n\n🔔 Avisos manuales enviados (Faltan 3 días): ${resumenWA_Aviso}\n💳 Renovaciones automáticas cobradas (+1 día): ${resumenCobros}\n🧾 Recibos WA enviados: ${resumenWA_Cobro}\n\n(Revisa la consola F12 para leer los mensajes simulados)`);
+
+            } catch (err) {
+                console.error("❌ Error en el motor:", err);
+                alert("❌ Ocurrió un error al ejecutar el motor: " + err.message);
+            } finally {
+                if(btn) { btn.innerHTML = textoOriginal; btn.disabled = false; }
+            }
+        }
+        
+        // --- FUNCIÓN PARA RENOVAR O CAMBIAR PLAN DE UN CLIENTE ---
+        async function renovarSuscripcionCliente(suscriptorId, nuevoPlanId, precioCobrado, diasDuracion, quiereRenovacionAuto) {
+            try {
+                const hoy = new Date();
+                const nuevaFechaFin = new Date(hoy);
+                nuevaFechaFin.setDate(nuevaFechaFin.getDate() + diasDuracion);
+
+                // 1. REGLA DE ORO: Marcar todo el historial anterior como 'Inactivo'
+                // Al no filtrar por ID de suscripción, sino por ID de cliente, apagamos TODAS sus suscripciones pasadas
+                const { error: errUpdate } = await miSupabase
+                    .from('historial_suscripciones')
+                    .update({ estado_pago: 'Inactivo' })
+                    .eq('suscriptor_id', suscriptorId)
+                    .eq('tenant_id', miTenantId);
+
+                if (errUpdate) throw errUpdate;
+
+                // 2. Insertar la nueva fila fresca como 'Pagado' (Activa)
+                const { error: errInsert } = await miSupabase
+                    .from('historial_suscripciones')
+                    .insert([{
+                        tenant_id: miTenantId,
+                        suscriptor_id: suscriptorId,
+                        plan_id: nuevoPlanId,
+                        precio_cobrado: precioCobrado,
+                        fecha_inicio: hoy.toISOString().split('T')[0],
+                        fecha_fin: nuevaFechaFin.toISOString().split('T')[0],
+                        estado_pago: 'Pagado', // En nuestro sistema esto significa "Activo"
+                        renovacion_automatica: quiereRenovacionAuto,
+                        recordatorio_enviado: false // Reseteamos el aviso de WhatsApp
+                    }]);
+
+                if (errInsert) throw errInsert;
+
+                console.log("✅ Renovación guardada. Historial anterior archivado correctamente.");
+                
+                // Refrescamos la tabla para que el cliente pase de Rojo/Amarillo a Verde al instante
+                if (typeof cargarDatosYDashboard === 'function') await cargarDatosYDashboard();
+                
+                alert("🎉 ¡Suscripción renovada con éxito!");
+
+            } catch (error) {
+                console.error("Error al renovar:", error);
+                alert("❌ Error al renovar la suscripción: " + error.message);
+            }
+        }
+
+        // --- LÓGICA DE RENOVACIÓN DE PLANES (SCD Tipo 2) ---
+        async function abrirModalRenovar(clienteId, nombre) {
+            // 1. Llenamos los datos visuales
+            document.getElementById('renovarClienteId').value = clienteId;
+            document.getElementById('renovarClienteNombre').innerText = nombre;
+            document.getElementById('modalRenovarPlan').classList.remove('hidden');
+            
+            // 2. Cargamos los planes fresquitos de tu gimnasio
+            const select = document.getElementById('renovarPlanElegido');
+            select.innerHTML = '<option value="">Cargando planes...</option>';
+
+            const { data: planes, error } = await miSupabase
+                .from('planes')
+                .select('*')
+                .eq('tenant_id', miTenantId)
+                .order('precio');
+
+            if (planes && !error) {
+                select.innerHTML = planes.map(p => 
+                    `<option value="${p.id}" data-dias="${p.dias_duracion}" data-precio="${p.precio}">
+                        ${p.nombre_plan} - $${p.precio}
+                    </option>`
+                ).join('');
+            } else {
+                select.innerHTML = '<option value="">Error al cargar planes</option>';
+            }
+        }
+
+        function cerrarModalRenovar() {
+            document.getElementById('modalRenovarPlan').classList.add('hidden');
+            document.getElementById('formRenovarPlan').reset();
+        }
+
+        // 3. EVENTO DE GUARDADO (Calcula fechas dinámicas, archiva y renueva)
+        document.getElementById('formRenovarPlan').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = 'Guardando... ⏳'; btn.disabled = true;
+
+            try {
+                const suscriptorId = document.getElementById('renovarClienteId').value;
+                const selectPlan = document.getElementById('renovarPlanElegido');
+                const opcionSeleccionada = selectPlan.options[selectPlan.selectedIndex];
+                
+                const planId = selectPlan.value;
+                const precioCobrado = parseFloat(opcionSeleccionada.getAttribute('data-precio'));
+                const diasDuracion = parseInt(opcionSeleccionada.getAttribute('data-dias'));
+                const renovacionAuto = document.getElementById('renovarAutoSwitch').checked;
+
+                // PASO 1: Calcular fechas dinámicas para no robarle días al cliente
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                let fechaInicioCalculada = new Date(hoy); // Por defecto arranca hoy
+
+                // Extraemos la última suscripción para ver cuándo vence realmente
+                const { data: subVieja } = await miSupabase
+                    .from('historial_suscripciones')
+                    .select('fecha_fin')
+                    .eq('suscriptor_id', suscriptorId)
+                    .order('fecha_fin', { ascending: false })
+                    .limit(1);
+
+                if (subVieja && subVieja.length > 0 && subVieja[0].fecha_fin) {
+                    const partesFecha = subVieja[0].fecha_fin.split('T')[0].split('-');
+                    const fechaFinAnterior = new Date(partesFecha[0], partesFecha[1] - 1, partesFecha[2]);
+                    fechaFinAnterior.setHours(0, 0, 0, 0);
+
+                    // Si el plan todavía está vigente (vence hoy o en el futuro)
+                    if (fechaFinAnterior >= hoy) {
+                        // Arrancamos el nuevo plan exactamente al día siguiente de que caduque el actual
+                        fechaInicioCalculada = new Date(fechaFinAnterior);
+                        fechaInicioCalculada.setDate(fechaInicioCalculada.getDate() + 1);
+                    }
+                }
+
+                const nuevaFechaFin = new Date(fechaInicioCalculada);
+                nuevaFechaFin.setDate(nuevaFechaFin.getDate() + diasDuracion);
+
+                // PASO 2: "Apagar" todo el historial anterior marcándolo como Inactivo
+                const { error: errUpdate } = await miSupabase
+                    .from('historial_suscripciones')
+                    .update({ estado_pago: 'Inactivo' })
+                    .eq('suscriptor_id', suscriptorId);
+                    
+                if (errUpdate) throw errUpdate;
+
+                // PASO 3: Insertar la nueva suscripción con las fechas perfectas
+                const { error: errInsert } = await miSupabase
+                    .from('historial_suscripciones')
+                    .insert([{
+                        tenant_id: miTenantId,
+                        suscriptor_id: suscriptorId,
+                        plan_id: planId,
+                        precio_cobrado: precioCobrado,
+                        fecha_inicio: fechaInicioCalculada.toISOString().split('T')[0],
+                        fecha_fin: nuevaFechaFin.toISOString().split('T')[0],
+                        estado_pago: 'Pagado',
+                        renovacion_automatica: renovacionAuto,
+                        recordatorio_enviado: false
+                    }]);
+
+                if (errInsert) throw errInsert;
+
+                alert(`🎉 ¡Suscripción renovada!\nInicia: ${fechaInicioCalculada.toLocaleDateString('es-ES')}\nVence: ${nuevaFechaFin.toLocaleDateString('es-ES')}`);
+                cerrarModalRenovar();
+                
+                // Refrescar la pantalla
+                if (typeof cargarDatosYDashboard === 'function') await cargarDatosYDashboard();
+                if (typeof cargarDashboardFinanciero === 'function') await cargarDashboardFinanciero();
+
+            } catch (err) {
+                console.error("Error renovando:", err);
+                alert("❌ Ocurrió un error al guardar: " + err.message);
+            } finally {
+                btn.innerHTML = textoOriginal; btn.disabled = false;
+            }
+        });
+
     </script>
 </body>
 </html>

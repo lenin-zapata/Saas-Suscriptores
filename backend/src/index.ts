@@ -157,7 +157,9 @@ export default {
             plan_id: body.plan_id,
             fecha_inicio: new Date().toISOString().split('T')[0],
             fecha_fin: fechaFin.toISOString().split('T')[0],
-            estado_pago: 'Pagado'
+            estado_pago: 'Pagado',
+            // NUEVO: Guardamos la preferencia del cliente
+            renovacion_automatica: body.renovacion_automatica
         }]);
 
         return new Response(JSON.stringify({ ok: true }), { status: 201, headers: corsHeaders });
