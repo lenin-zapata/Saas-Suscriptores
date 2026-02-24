@@ -1902,6 +1902,7 @@
             }
         });
 
+        /*
         // --- CONEXIÓN REAL A LA API DE WHATSAPP (META) ---
         async function enviarNotificacionWhatsApp(telefonoDestino, mensajeTexto) {
             // 1. Limpiamos el teléfono (quitamos el '+' y espacios)
@@ -1941,6 +1942,67 @@
                     return false;
                 } else {
                     console.log("✅ ¡WhatsApp enviado con éxito a", telLimpio, "!");
+                    return true;
+                }
+            } catch (error) {
+                console.error("❌ Error de red al enviar WhatsApp:", error);
+                return false;
+            }
+        }
+        */
+
+        // --- CONEXIÓN REAL A LA API DE WHATSAPP (MODO PLANTILLAS LIVE) ---
+        async function enviarPlantillaWhatsApp(telefonoDestino, nombrePlantilla, parametrosFormatoTexto) {
+            const telLimpio = telefonoDestino.replace(/\D/g, '');
+
+            // RECUERDA PONER AQUÍ TU ID DE TELÉFONO Y TU NUEVO TOKEN PERMANENTE
+            const PHONE_NUMBER_ID = '931796950027979'; 
+            const TOKEN = 'EAFvKWCZBmLA0BQ75nZCd8Y0GfZCqOMaksyzAjQ45A0OzYbDXDQTvDnYRhvoTGAfkh34ZBpZCVZB9Me4yxs8kAvmoGRfHj9qk8ZCfZAlqCZCti6U0JEC6ZBQY4g9cX5OdqGrkMl176ZAmO4hKLemSh0TCTriKT0sDNYDd3sw69WrZBUyfyzbdCyrPDegwUVAPU9tdTAZDZD'; 
+            
+            const url = `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`;
+
+            // Construimos los parámetros dinámicos para Meta (Los {{1}}, {{2}}...)
+            const parametersArray = parametrosFormatoTexto.map(param => ({
+                type: "text",
+                text: param
+            }));
+
+            // Estructura oficial de Meta para Plantillas
+            const payload = {
+                messaging_product: "whatsapp",
+                to: telLimpio,
+                type: "template",
+                template: {
+                    name: nombrePlantilla,
+                    language: {
+                        code: "es_EC"
+                    },
+                    components: [
+                        {
+                            type: "body",
+                            parameters: parametersArray
+                        }
+                    ]
+                }
+            };
+
+            try {
+                const respuesta = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await respuesta.json();
+                
+                if (data.error) {
+                    console.error("❌ Error de Meta WA:", data.error.message);
+                    return false;
+                } else {
+                    console.log(`✅ ¡Plantilla '${nombrePlantilla}' enviada con éxito a ${telLimpio}!`);
                     return true;
                 }
             } catch (error) {
@@ -2004,11 +2066,13 @@
                             linkPago = "https://tudominio.com/error-pago (Intenta más tarde)";
                         }
 
-                        // 2. ARMAMOS EL MENSAJE
-                        const mensajeAviso = `Hola ${nombreCliente} 👋,\n\nEsperamos que estés disfrutando tu entrenamiento. Te recordamos que tu mensualidad vence en 3 días.\n\nPuedes renovar tu acceso de forma rápida y segura con tarjeta de crédito/débito desde este enlace oficial: \n🔗 ${linkPago}\n\n¡Te esperamos en el gym! 🏋️‍♂️`;
-                        
-                        // 3. DISPARADOR REAL DE WHATSAPP 📱
-                        await enviarNotificacionWhatsApp(telefono, mensajeAviso);
+                        // Obtenemos el nombre del gimnasio para la variable {{2}}
+                        const nombreGym = document.getElementById('nombreGymSidebar').innerText;
+
+                        // 2. DISPARADOR DE LA PLANTILLA DE AVISO (Pasamos las variables en orden)
+                        // Variables: [ {{1}} Cliente, {{2}} Gimnasio, {{3}} Link ]
+                        const parametrosAviso = [nombreCliente, nombreGym, linkPago];
+                        await enviarPlantillaWhatsApp(telefono, 'recordatorio_pago_gym', parametrosAviso);
 
                         // 4. MARCAMOS COMO ENVIADO EN BD
                         await miSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
@@ -2043,9 +2107,16 @@
                                 renovacion_automatica: true 
                             }]);
                             
-                            const mensajeRecibo = `¡Gracias ${nombreCliente}! 🎉\n\nHemos procesado exitosamente la renovación automática de tu *${plan}* por el valor de $${sub.precio_cobrado}.\n\nTienes acceso garantizado hasta el ${nuevaFechaFin.toLocaleDateString('es-ES')}.\n\n¡A darle con todo! 💪`;
-
-                            await enviarNotificacionWhatsApp(telefono, mensajeRecibo);
+                            // 2. DISPARADOR DE LA PLANTILLA DE RECIBO
+                            // Variables: [ {{1}} Cliente, {{2}} Gimnasio, {{3}} Precio, {{4}} Nueva Fecha Fin ]
+                            const nombreGym = document.getElementById('nombreGymSidebar').innerText;
+                            const parametrosRecibo = [
+                                nombreCliente, 
+                                nombreGym, 
+                                sub.precio_cobrado.toString(), 
+                                nuevaFechaFin.toLocaleDateString('es-ES')
+                            ];
+                            await enviarPlantillaWhatsApp(telefono, 'recibo_pago_gym', parametrosRecibo);
                             
                             resumenCobros++;
                             resumenWA_Cobro++;

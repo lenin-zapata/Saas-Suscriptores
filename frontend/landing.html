@@ -551,10 +551,7 @@
                 `);
 
                 try {
-                    // =========================================================================
-                    // AQUÍ PEGAMOS TU CÓDIGO ORIGINAL INTACTO PARA CREAR LA BD
-                    // =========================================================================
-                    
+                                    
                     // PASO A: Crear el Gimnasio
                     const { data: tenantData, error: tenantError } = await miSupabase
                         .from('tenants')
@@ -567,9 +564,13 @@
                             estado_suscripcion: 'activa'
                         }])
                         .select().single();
+
                     if (tenantError) throw tenantError;
 
-                    // PASO B: Registrar Auth
+                    // Capturamos el ID real que la base de datos acaba de generar
+                    const nuevoTenantId = tenantData.id;
+
+                    // PASO B: Registrar al Administrador en Auth
                     const { data: authData, error: authError } = await miSupabase.auth.signUp({
                         email: datos.emailAdmin,
                         password: datos.passAdmin,
@@ -580,19 +581,28 @@
                             }
                         }
                     });
+                    
                     if (authError) throw authError;
 
-                    // PASO C: Vincular Staff
+                    // 🛡️ EL NUEVO ESCUDO DE SEGURIDAD 🛡️
+                    if (!authData || !authData.user) {
+                        // Borramos el tenant que acabamos de crear para no dejar basura
+                        await miSupabase.from('tenants').delete().eq('id', nuevoTenantId);
+                        throw new Error("El correo electrónico ingresado ya está registrado en nuestro sistema. Por favor, usa un correo diferente.");
+                    }
+
+                    // PASO C: Vincular Staff usando el nuevoTenantId
                     const { error: staffError } = await miSupabase
                         .from('perfiles_staff')
                         .insert([{ 
                             id: authData.user.id, 
-                            tenant_id: tenantData.id, 
+                            tenant_id: nuevoTenantId, 
                             nombre: datos.nombreAdmin, 
                             email: datos.emailAdmin, 
                             telefono: datos.telefonoAdmin,
                             rol: 'admin' 
                         }]);
+                        
                     if (staffError) throw staffError;
 
                     // LIMPIEZA Y ÉXITO
