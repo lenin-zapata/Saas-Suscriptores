@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS MemberLy - Admin</title>
+    <title>JS MemberLy - Panel</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -130,6 +130,10 @@
                     <span class="text-base">💳</span> <span class="font-medium">Integración de Pagos</span>
                 </a>
                 
+                <a href="#" id="btnMenuFacturacion" onclick="cambiarVista('facturacion')" class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
+                    <span class="text-base">🧾</span> <span class="font-medium">Exportar Facturación</span>
+                </a>
+
                 <a onclick="cambiarVista('escanear')"
                     class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70 cursor-pointer">
                     <span class="text-base">📷</span> Escanear Pase
@@ -248,6 +252,18 @@
                             <div>
                                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Contacto de Emergencia</label>
                                 <input type="text" id="contactoEmergencia" required placeholder="Teléfono de contacto"
+                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Cédula / ID Nacional</label>
+                                <input type="text" id="identificacionSocio" required placeholder="Ej: 1712345678"
+                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Dirección Física / Código Postal</label>
+                                <input type="text" id="direccionSocio" required placeholder="Ej: Av. Principal y Secundaria"
                                     class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
                             </div>
 
@@ -434,7 +450,18 @@
                 </div>
             </div>
 
-            <div id="vistaPagos" class="hidden p-8 w-full max-w-6xl mx-auto">
+            <div id="vistaPagos" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full"">
+                <div id="paywallPagos" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
+                    <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
+                        <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🔒</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Exclusivo del Plan Pro / Elite</h3>
+                        <p class="text-gray-500 text-sm mb-6 leading-relaxed">Desbloquea integración y automatización de pagos, proyecciones de flujo de caja, análisis de retención y métricas de ingresos recurrentes para escalar tu negocio.</p>
+                        <button onclick="prepararYAbrirModalUpgrade()" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-md flex justify-center items-center gap-2">
+                            Desbloquear Pagos 🚀
+                        </button>
+                    </div>
+                </div>
+
                 <div class="mb-6">
                     <h2 class="text-3xl font-bold text-gray-800">Integración de Pagos</h2>
                     <p class="text-gray-500">Configura tu pasarela para recibir los pagos directamente en tu cuenta.</p>
@@ -491,6 +518,57 @@
                     <button onclick="abrirEscanner()" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100">
                         Activar Cámara y Escanear
                     </button>
+                </div>
+            </div>
+
+            <div id="vistaFacturacion" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full"">
+                <div id="paywallReporteFact" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
+                    <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
+                        <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🔒</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Exclusivo del Plan Pro / Elite</h3>
+                        <p class="text-gray-500 text-sm mb-6 leading-relaxed">Desbloquea integración y automatización de pagos, reportes para facturación, proyecciones de flujo de caja, análisis de retención y métricas de ingresos recurrentes para escalar tu negocio.</p>
+                        <button onclick="prepararYAbrirModalUpgrade()" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-md flex justify-center items-center gap-2">
+                            Desbloquear Reportes Facturación 🚀
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">Reporte para Facturación</h2>
+                        <p class="text-gray-500 text-sm mt-1">Descarga los pagos recibidos para enviarlos a tu contador o sistema del SRI.</p>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <select id="mesFiltroFacturacion" onchange="cargarReporteFacturacion()" class="border border-gray-200 bg-white px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold text-gray-700 shadow-sm cursor-pointer">
+                            <option value="este_mes">📅 Este Mes</option>
+                            <option value="mes_pasado">📅 Mes Pasado</option>
+                            <option value="todos">📅 Todo el historial</option>
+                        </select>
+
+                        <button onclick="descargarExcelFacturacion()" class="bg-[#107c41] text-white font-bold py-2.5 px-5 rounded-xl hover:bg-[#0c5e31] transition shadow-lg shadow-green-100 flex items-center gap-2 text-sm">
+                            Descargar Excel <span>📊</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Fecha Pago</th>
+                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Cliente</th>
+                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Cédula / RUC</th>
+                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Dirección</th>
+                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Detalle</th>
+                                    <th class="px-6 py-4 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaFacturacion" class="divide-y divide-gray-50">
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -1330,6 +1408,8 @@
                 const nuevoCliente = {
                     tenant_id: miTenantId,
                     nombre_completo: document.getElementById('nombre').value,
+                    identificacion: document.getElementById('identificacionSocio').value,
+                    direccion: document.getElementById('direccionSocio').value,
                     telefono: document.getElementById('telefono').value,
                     email: document.getElementById('email').value,
                     plan_id: sel.value,
@@ -1404,8 +1484,9 @@
                 'resumen': document.getElementById('vistaResumen'),
                 'finanzas': document.getElementById('vistaFinanzas'),
                 'staff': document.getElementById('vistaStaff'),
-                'pagos': document.getElementById('vistaPagos'), // Debe coincidir con el ID del HTML
-                'escanear': document.getElementById('vistaEscanear')
+                'pagos': document.getElementById('vistaPagos'), 
+                'escanear': document.getElementById('vistaEscanear'),
+                'facturacion': document.getElementById('vistaFacturacion')
             };
 
             // 2. Apagar todas las pantallas
@@ -1428,7 +1509,8 @@
                 'resumen': 'btnNavDashboard',
                 'staff': 'btnNavStaff',
                 'finanzas': 'btnMenuFinanzas',
-                'pagos': 'btnMenuPagos' // <--- LÍNEA NUEVA PARA EL BOTÓN DE PAGOS
+                'pagos': 'btnMenuPagos',
+                'facturacion': 'btnMenuFacturacion'
             };
             
             const btnActivo = document.getElementById(mapaBotones[vistaDestino]);
@@ -1444,9 +1526,38 @@
                 }
             }
 
-            // 4. Ejecutar lógicas adicionales
-            if (vistaDestino === 'finanzas') cargarDashboardFinanciero();
-            else if (vistaDestino === 'staff') cargarStaff();
+            // 4. Ejecutar lógicas adicionales (CORREGIDO)
+            if (vistaDestino === 'finanzas') {
+                cargarDashboardFinanciero();
+            } 
+            else if (vistaDestino === 'staff') {
+                cargarStaff();
+            } 
+
+            else if (vistaDestino === 'facturacion') {
+                cargarReporteFacturacion();
+            }
+
+            else if (vistaDestino === 'pagos') {
+                // Al usar varias líneas, las llaves {} son obligatorias
+                const paywall = document.getElementById('paywallPagos');
+                const premiumPlans = ['elite', 'pro']; // Solo Pro y Elite tienen acceso
+
+                // Validamos si existe el elemento en el HTML para evitar errores
+                if (paywall) {
+                    if (!premiumPlans.includes(planSaasActual.toLowerCase())) {
+                        paywall.classList.remove('hidden'); // Mostramos el bloqueo
+                        return; // Detenemos la ejecución para que no cargue los datos
+                    } else {
+                        paywall.classList.add('hidden'); // Ocultamos el bloqueo
+                    }
+                }
+                
+                // Si pasó el Paywall (o si es Pro/Elite), cargamos los datos
+                if (typeof cargarReporteFacturacion === 'function') {
+                    cargarReporteFacturacion(); 
+                }
+            }
         }
 
         // Variables globales para evitar duplicar gráficos al hacer clics múltiples
@@ -2190,6 +2301,118 @@
                 btn.innerHTML = textoOriginal;
                 btn.disabled = false;
             }
+        }
+
+        // --- LÓGICA DE REPORTE DE FACTURACIÓN ---
+        let datosFacturacionActuales = [];
+
+        async function cargarReporteFacturacion() {
+            const paywall = document.getElementById('paywallReporteFact');
+            const premiumPlans = ['elite', 'pro'];
+
+            if (!premiumPlans.includes(planSaasActual.toLowerCase())) {
+                paywall.classList.remove('hidden');
+                return; 
+            } else {
+                paywall.classList.add('hidden');
+            }
+
+            const tbody = document.getElementById('tablaFacturacion');
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Cargando pagos... ⏳</td></tr>';
+
+            const filtro = document.getElementById('mesFiltroFacturacion').value;
+            const hoy = new Date();
+            let mesFiltro = hoy.getMonth();
+            let anioFiltro = hoy.getFullYear();
+
+            if (filtro === 'mes_pasado') {
+                mesFiltro = mesFiltro === 0 ? 11 : mesFiltro - 1;
+                anioFiltro = mesFiltro === 11 ? anioFiltro - 1 : anioFiltro;
+            }
+
+            try {
+                // Traemos los pagos, uniendo con los datos del suscriptor y el plan
+                const { data, error } = await miSupabase
+                    .from('historial_suscripciones')
+                    .select(`
+                        id,
+                        fecha_inicio,
+                        precio_cobrado,
+                        estado_pago,
+                        suscriptores ( nombre_completo, identificacion, direccion ),
+                        planes ( nombre_plan )
+                    `)
+                    .eq('tenant_id', miTenantId)
+                    .eq('estado_pago', 'Pagado') // Solo mostramos lo que realmente se ha pagado
+                    .order('fecha_inicio', { ascending: false });
+
+                if (error) throw error;
+
+                // Filtramos por fecha según lo seleccionado
+                let datosFiltrados = data;
+                if (filtro !== 'todos') {
+                    datosFiltrados = data.filter(item => {
+                        const fPago = new Date(item.fecha_inicio);
+                        return fPago.getMonth() === mesFiltro && fPago.getFullYear() === anioFiltro;
+                    });
+                }
+
+                datosFacturacionActuales = datosFiltrados; // Guardamos para exportar
+
+                if (datosFiltrados.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 font-bold text-gray-500">No hay pagos registrados en este periodo.</td></tr>';
+                    return;
+                }
+
+                // Renderizamos la tabla
+                tbody.innerHTML = datosFiltrados.map(item => `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 text-sm font-medium text-gray-600">${new Date(item.fecha_inicio).toLocaleDateString('es-ES')}</td>
+                        <td class="px-6 py-4 text-sm font-bold text-gray-800">${item.suscriptores?.nombre_completo || 'Desconocido'}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">${item.suscriptores?.identificacion || '<span class="text-red-400 text-xs italic">Falta ID</span>'}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600 truncate max-w-[150px]">${item.suscriptores?.direccion || 'Sin dirección'}</td>
+                        <td class="px-6 py-4 text-xs text-gray-500 uppercase tracking-wide">Suscripción ${item.planes?.nombre_plan || ''}</td>
+                        <td class="px-6 py-4 text-right text-sm font-extrabold text-emerald-600">$${parseFloat(item.precio_cobrado).toFixed(2)}</td>
+                    </tr>
+                `).join('');
+
+            } catch (err) {
+                console.error("Error al cargar facturación:", err);
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">Error: ${err.message}</td></tr>`;
+            }
+        }
+
+        // GENERADOR DE ARCHIVO EXCEL (CSV)
+        function descargarExcelFacturacion() {
+
+            if (datosFacturacionActuales.length === 0) return alert("No hay datos para exportar.");
+
+            // 1. Cabeceras del Excel
+            let csvContent = "Fecha de Pago,Cliente,Cedula_RUC,Direccion,Detalle,Total_USD\n";
+
+            // 2. Llenar filas
+            datosFacturacionActuales.forEach(item => {
+                const fecha = item.fecha_inicio;
+                const cliente = `"${item.suscriptores?.nombre_completo || ''}"`; // Comillas para evitar problemas con comas en nombres
+                const id = `"${item.suscriptores?.identificacion || ''}"`;
+                const direccion = `"${item.suscriptores?.direccion || ''}"`;
+                const detalle = `"Suscripcion ${item.planes?.nombre_plan || ''}"`;
+                const total = parseFloat(item.precio_cobrado).toFixed(2);
+
+                csvContent += `${fecha},${cliente},${id},${direccion},${detalle},${total}\n`;
+            });
+
+            // 3. Crear el archivo descargable
+            const blob = new Blob(["\ufeff", csvContent], { type: 'text/csv;charset=utf-8;' }); // \ufeff asegura que las tildes/ñ se vean bien
+            const url = URL.createObjectURL(blob);
+            
+            // 4. Forzar la descarga
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Reporte_Facturacion_Gym_${new Date().getTime()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>

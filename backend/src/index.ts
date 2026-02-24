@@ -139,6 +139,8 @@ export default {
         const { data: cliente, error: errC } = await supabase.from('suscriptores').insert([{
             tenant_id: body.tenant_id,
             nombre_completo: body.nombre_completo,
+            identificacion: body.identificacion,
+            direccion: body.direccion,
             telefono: body.telefono,
             email: body.email,
             foto_url: body.foto_url,
