@@ -153,11 +153,15 @@
                         </div>
                     </div>
 
-                    <div class="pt-4">
-                        <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg flex justify-center items-center gap-2">
-                            Continuar al Pago Seguro <span>🔒</span>
+                    <div class="pt-6 border-t mt-4">
+                        <button type="submit" id="btnPagarSaaS" class="w-full bg-[#0070ba] text-white font-bold py-4 rounded-xl hover:bg-[#005ea6] transition shadow-lg flex justify-center items-center gap-3">
+                            <span class="text-lg">Pagar con</span>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" class="h-5 brightness-0 invert">
                         </button>
-                        <p class="text-xs text-center text-gray-400 mt-3">Serás redirigido a la pasarela de pagos para procesar tu suscripción.</p>
+                        <div class="flex justify-center items-center gap-2 mt-4 text-xs text-gray-400">
+                            <span>🔒</span>
+                            <p>Pago 100% seguro y encriptado.</p>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -244,11 +248,11 @@
             document.body.style.overflow = 'auto';
         }
 
-        // 2. El evento de Registro (MODO PRUEBAS / COSTO CERO)
+        // 2. EVENTO DE REGISTRO (CON PASARELA REAL DE PAYPAL)
         document.getElementById('formRegistroSaaS').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // --- NUEVA VALIDACIÓN ---
+            // --- VALIDACIONES DE FORMULARIO ---
             const email = document.getElementById('regEmailAdmin').value;
             const emailConfirm = document.getElementById('regEmailAdminConfirm').value;
             const pass = document.getElementById('regPassAdmin').value;
@@ -262,82 +266,54 @@
                 alert("⚠️ Las contraseñas no coinciden.");
                 return;
             }
-            // ------------------------
-
-            const btn = e.target.querySelector('button[type="submit"]');
-            btn.innerHTML = 'Simulando Pago en PlaceToPay... 💳';
+            
+            const btn = document.getElementById('btnPagarSaaS');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = 'Conectando con PayPal... ⏳';
             btn.disabled = true;
 
             // Recopilamos datos
             const nombreGym = document.getElementById('regNombreGym').value;
             const nombreAdmin = document.getElementById('regNombreAdmin').value;
-            const emailAdmin = document.getElementById('regEmailAdmin').value;
             const telefonoAdmin = document.getElementById('regTelefonoAdmin').value;
-            const passAdmin = document.getElementById('regPassAdmin').value;
             const plan = document.getElementById('inputPlanElegido').value;
-            
-            // Asignamos límites según el plan
-            let limite = plan === 'starter' ? 100 : (plan === 'pro' ? 500 : 9999);
+            const precio = document.getElementById('inputPrecioElegido').value;
 
             try {
-                // Simulamos el tiempo de espera de la pasarela de pagos
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                btn.innerHTML = 'Pago Exitoso. Creando Gimnasio... 🏗️';
+                // --- NUEVO: 1. GUARDAR DATOS TEMPORALES ---
+                // Guardamos todo en memoria local antes de irnos a PayPal para no perderlo
+                const datosRegistroSaaS = {
+                    nombreGym, nombreAdmin, emailAdmin: email, telefonoAdmin, passAdmin: pass, plan
+                };
+                localStorage.setItem('js_memberly_registro_pendiente', JSON.stringify(datosRegistroSaaS));
 
-                // PASO A: Crear el Gimnasio (Tenant) en la base de datos
-                const { data: tenantData, error: tenantError } = await miSupabase
-                    .from('tenants')
-                    .insert([{ 
-                        nombre_negocio: nombreGym,
-                        plan_saas: plan,
-                        limite_clientes: limite,
-                        estado_suscripcion: 'activa'
-                    }])
-                    .select()
-                    .single();
-
-                if (tenantError) throw tenantError;
-                const nuevoTenantId = tenantData.id;
-
-                // PASO B: Registrar al Administrador en Auth de Supabase
-                btn.innerHTML = 'Configurando tu cuenta... 👤';
-                const { data: authData, error: authError } = await miSupabase.auth.signUp({
-                    email: emailAdmin,
-                    password: passAdmin,
-
-                    options: {
-                        emailRedirectTo: window.location.href,
-                        data: {
-                            nombre_usuario: document.getElementById('regNombreAdmin').value, // El input de nombre
-                            nombre_gimnasio: document.getElementById('regNombreGym').value   // El input del gimnasio
-                        }
-                    }
+                // --- NUEVO: 2. PEDIR EL LINK DE COBRO AL BACKEND ---
+                const urlBackend = 'http://127.0.0.1:8787/api/suscripcion-saas/generar-link'; 
+                
+                const respuesta = await fetch(urlBackend, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        gym_nombre: nombreGym,
+                        admin_nombre: nombreAdmin,
+                        plan_elegido: plan,
+                        precio_cobrar: precio
+                    })
                 });
 
-                if (authError) throw authError;
+                const data = await respuesta.json();
 
-                // PASO C: Vincular el Administrador con el Gimnasio en perfiles_staff
-                const { error: staffError } = await miSupabase
-                    .from('perfiles_staff')
-                    .insert([{ 
-                        id: authData.user.id, // ID exacto de Auth
-                        tenant_id: nuevoTenantId, 
-                        nombre: nombreAdmin, 
-                        email: emailAdmin, 
-                        telefono: telefonoAdmin,
-                        rol: 'admin' 
-                    }]);
-
-                if (staffError) throw staffError;
-
-                // ÉXITO: Redirigimos al sistema
-                alert(`✅ ¡Suscripción de prueba exitosa!\n\nTu gimnasio "${nombreGym}" ha sido creado con el plan ${plan.toUpperCase()}.\nConfirma tu correo e inicia sesión.`);
-                window.location.href = 'index.html'; // Lo mandamos al login de tu app
+                if (data.exito && data.url_pago) {
+                    // ¡Nos vamos a cobrar!
+                    window.location.href = data.url_pago; 
+                } else {
+                    throw new Error(data.mensaje || "Error conectando con la pasarela.");
+                }
 
             } catch (error) {
-                console.error(error);
-                alert("❌ Ocurrió un error en la simulación: " + error.message);
-                btn.innerHTML = 'Continuar al Pago Seguro <span>🔒</span>';
+                console.error("Error iniciando pago SaaS:", error);
+                alert("❌ Ocurrió un error: " + error.message);
+                btn.innerHTML = textoOriginal;
                 btn.disabled = false;
             }
         });
@@ -515,6 +491,98 @@
                 }
             });
         }
+
+        // 3. PROCESAR EL REGRESO DEL PAGO (Cuando PayPal nos devuelve al cliente)
+        async function verificarPagoExitoso() {
+            // Leemos la URL para ver si venimos de PayPal
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Si la URL dice ?pago_saas=cancelado
+            if (urlParams.has('pago_saas') && urlParams.get('pago_saas') === 'cancelado') {
+                alert("⚠️ Has cancelado el proceso de pago.");
+                localStorage.removeItem('js_memberly_registro_pendiente');
+                window.history.replaceState({}, document.title, window.location.pathname); // Limpiar URL
+                return;
+            }
+
+            // Si la URL tiene el token de éxito que envía PayPal (ej. ?token=...)
+            // Opcionalmente puedes usar return_url: "...?pago_saas=exitoso" en tu backend para ser más preciso.
+            if (urlParams.has('token')) {
+                
+                // Rescatamos los datos que guardamos en memoria
+                const datosGuardados = localStorage.getItem('js_memberly_registro_pendiente');
+                if (!datosGuardados) return; // No hay registro pendiente
+                
+                const datos = JSON.parse(datosGuardados);
+                let limite = datos.plan === 'starter' ? 100 : (datos.plan === 'pro' ? 500 : 9999);
+
+                // Mostramos un modal bloqueante para que no toquen nada mientras guardamos
+                document.body.insertAdjacentHTML('beforeend', `
+                    <div id="pantallaCargando" class="fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-[999] text-white">
+                        <span class="text-6xl mb-4 animate-spin">⚙️</span>
+                        <h2 class="text-2xl font-bold">Configurando tu Gimnasio...</h2>
+                        <p>Por favor no cierres esta ventana.</p>
+                    </div>
+                `);
+
+                try {
+                    // =========================================================================
+                    // AQUÍ PEGAMOS TU CÓDIGO ORIGINAL INTACTO PARA CREAR LA BD
+                    // =========================================================================
+                    
+                    // PASO A: Crear el Gimnasio
+                    const { data: tenantData, error: tenantError } = await miSupabase
+                        .from('tenants')
+                        .insert([{ 
+                            nombre_negocio: datos.nombreGym,
+                            plan_saas: datos.plan,
+                            limite_clientes: limite,
+                            estado_suscripcion: 'activa'
+                        }])
+                        .select().single();
+                    if (tenantError) throw tenantError;
+
+                    // PASO B: Registrar Auth
+                    const { data: authData, error: authError } = await miSupabase.auth.signUp({
+                        email: datos.emailAdmin,
+                        password: datos.passAdmin,
+                        options: {
+                            data: {
+                                nombre_usuario: datos.nombreAdmin,
+                                nombre_gimnasio: datos.nombreGym
+                            }
+                        }
+                    });
+                    if (authError) throw authError;
+
+                    // PASO C: Vincular Staff
+                    const { error: staffError } = await miSupabase
+                        .from('perfiles_staff')
+                        .insert([{ 
+                            id: authData.user.id, 
+                            tenant_id: tenantData.id, 
+                            nombre: datos.nombreAdmin, 
+                            email: datos.emailAdmin, 
+                            telefono: datos.telefonoAdmin,
+                            rol: 'admin' 
+                        }]);
+                    if (staffError) throw staffError;
+
+                    // LIMPIEZA Y ÉXITO
+                    localStorage.removeItem('js_memberly_registro_pendiente');
+                    alert(`🎉 ¡Pago confirmado! Tu gimnasio "${datos.nombreGym}" está listo.\n\nConfirma tu correo e inicia sesión para comenzar.`);
+                    window.location.href = 'index.html'; // Lo mandamos al login
+                    
+                } catch (error) {
+                    console.error("Error crítico configurando el tenant:", error);
+                    alert("❌ El pago fue exitoso pero hubo un error creando la cuenta. Por favor contáctanos con soporte.\nError: " + error.message);
+                    document.getElementById('pantallaCargando').remove();
+                }
+            }
+        }
+
+        // Ejecutar automáticamente al cargar la página
+        verificarPagoExitoso();
     </script>
 
 </body>

@@ -230,16 +230,30 @@ export default {
         </html>`, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
     }
 
-    // --- INTEGRACIÓN PAYPAL (API REST V2) ---
+    // --- INTEGRACIÓN PAYPAL (DINÁMICA POR GIMNASIO) ---
     if (url.pathname === '/api/pagos/generar-link' && request.method === 'POST') {
         try {
             const body = await request.json() as any;
 
-            // 1. Tus credenciales de Sandbox de PayPal (las sacaremos en el siguiente paso)
-            const PAYPAL_CLIENT_ID = "ATJLOXie5U9AXqvVn1l2IS-QqSYbNyB3P-9J3ZF9tHnbcv3ZWIfVqIToK86OJ58ukM4yjUUFDAuW2-wx";
-            const PAYPAL_SECRET = "EN9sxycHCFJA7melsD-wwPw0d7YGzcXN8wA1VtuxDUDA1b9nOH5GRO3S2HgE6537za6RgziqDvz7e3ax";
+            // 1. Validamos que nos envíen el ID del gimnasio
+            if (!body.tenant_id) throw new Error("Falta el tenant_id");
 
-            // 2. Obtener el Token de Acceso (OAuth 2.0)
+            // 2. BUSCAMOS LAS LLAVES DEL GIMNASIO EN LA BASE DE DATOS 🕵️‍♂️
+            const { data: tenantInfo, error: errTenant } = await supabase
+                .from('tenants')
+                .select('paypal_client_id, paypal_secret')
+                .eq('id', body.tenant_id)
+                .single();
+
+            if (errTenant || !tenantInfo || !tenantInfo.paypal_client_id) {
+                throw new Error("El gimnasio no ha configurado su cuenta de PayPal.");
+            }
+
+            // 3. Usamos las llaves dinámicas del gimnasio
+            const PAYPAL_CLIENT_ID = tenantInfo.paypal_client_id;
+            const PAYPAL_SECRET = tenantInfo.paypal_secret;
+
+            // 4. Obtener el Token de Acceso (OAuth 2.0 de PayPal)
             const auth = btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`);
             const tokenResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
                 method: 'POST',
@@ -253,7 +267,7 @@ export default {
             const tokenData = await tokenResponse.json() as any;
             const accessToken = tokenData.access_token;
 
-            // 3. Crear la orden de cobro
+            // 5. Crear la orden de cobro
             const orderPayload = {
                 intent: "CAPTURE",
                 purchase_units: [{
@@ -261,16 +275,17 @@ export default {
                     description: `Suscripción - ${body.nombre_cliente}`,
                     amount: {
                         currency_code: "USD",
-                        value: body.precio_cobrado.toString()
+                        value: parseFloat(body.precio_cobrado).toFixed(2)
                     }
                 }],
+                // ... (El resto del payment_source y fetch de la orden se queda EXACTAMENTE IGUAL) ...
                 payment_source: {
                     paypal: {
                         experience_context: {
                             payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
                             user_action: "PAY_NOW",
-                            return_url: "https://tudominio.com/pago-exitoso",
-                            cancel_url: "https://tudominio.com/pago-cancelado"
+                            return_url: "http://127.0.0.1:5500/frontend/index.html", 
+                            cancel_url: "http://127.0.0.1:5500/frontend/index.html"
                         }
                     }
                 }
@@ -286,20 +301,93 @@ export default {
             });
 
             const orderData = await orderResponse.json() as any;
-
-            // 4. Extraer el link exacto donde el cliente debe poner su tarjeta o cuenta
             const linkPago = orderData.links.find((link: any) => link.rel === "payer-action").href;
 
-            return new Response(JSON.stringify({ exito: true, url_pago: linkPago }), { 
-                status: 200, 
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            });
+            return new Response(JSON.stringify({ exito: true, url_pago: linkPago }), { status: 200, headers: corsHeaders });
 
         } catch (error: any) {
-            console.error("❌ Error con PayPal:", error);
-            return new Response(JSON.stringify({ exito: false, mensaje: "Error conectando con pasarela" }), { 
-                status: 500, headers: corsHeaders 
+            console.error("❌ Error con PayPal Dinámico:", error);
+            return new Response(JSON.stringify({ exito: false, mensaje: error.message }), { status: 500, headers: corsHeaders });
+        }
+    }
+
+    // =========================================================================
+    // COBRO DE LA SUSCRIPCIÓN SAAS (TUS INGRESOS COMO DUEÑO DE JS MEMBERLY)
+    // =========================================================================
+    if (url.pathname === '/api/suscripcion-saas/generar-link' && request.method === 'POST') {
+        try {
+            const body = await request.json() as any;
+
+            // 1. TUS LLAVES MAESTRAS DE PAYPAL (Usa las de Sandbox para probar)
+            // Estas llaves siempre son las tuyas, porque el dinero va a tu cuenta
+            const MIS_LLAVES_SAAS_CLIENT_ID = "AVzG4UqAzzmD8NoEIl-D21knjKUYSn7iYHyftFc0OGp0Rf022YAzZLWx9CvRSI2_-jQuXT4B5_Kq8l8N"; 
+            const MIS_LLAVES_SAAS_SECRET = "EIq9CnXb4xcMDexfy8L8_9qfybwXSh1bNFrioSbIENgR0YVeEwWT0cqIukjHSMtBeU1iNNRWw-eVww-t";
+
+            // 2. Obtener Token de Acceso
+            const auth = btoa(`${MIS_LLAVES_SAAS_CLIENT_ID}:${MIS_LLAVES_SAAS_SECRET}`);
+            const tokenResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Basic ${auth}`,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'grant_type=client_credentials'
             });
+            
+            const tokenData = await tokenResponse.json() as any;
+            const accessToken = tokenData.access_token;
+
+            // 3. Crear la orden de compra del software
+            const orderPayload = {
+                intent: "CAPTURE",
+                purchase_units: [{
+                    reference_id: `SAAS-${Date.now()}`,
+                    description: `Suscripción JS MemberLy - Plan ${body.plan_elegido.toUpperCase()} (${body.gym_nombre})`,
+                    amount: {
+                        currency_code: "USD",
+                        value: parseFloat(body.precio_cobrar).toFixed(2)
+                    }
+                }],
+                payment_source: {
+                    paypal: {
+                      experience_context: {
+                        payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+                        user_action: "PAY_NOW",
+                        // 👇 CORRIGE ESTAS DOS LÍNEAS 👇
+                        return_url: "http://127.0.0.1:5500/frontend/landing.html?pago_saas=exitoso", 
+                        cancel_url: "http://127.0.0.1:5500/frontend/landing.html?pago_saas=cancelado"
+                      }
+                    }
+                }
+            };
+
+            const orderResponse = await fetch('https://api-m.sandbox.paypal.com/v2/checkout/orders', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderPayload)
+            });
+
+            const orderData = await orderResponse.json() as any;
+            
+            if (!orderData.links) {
+                console.error("Respuesta de PayPal sin links:", orderData);
+                throw new Error("Error en la configuración de PayPal Maestro.");
+            }
+
+            const linkPago = orderData.links.find((link: any) => link.rel === "payer-action").href;
+
+            // [OPCIONAL PERO RECOMENDADO] 
+            // Aquí podrías guardar los datos del body en una tabla temporal en Supabase 
+            // llamada 'prospectos_saas' para no perder sus datos si abandonan el carrito.
+
+            return new Response(JSON.stringify({ exito: true, url_pago: linkPago }), { status: 200, headers: corsHeaders });
+
+        } catch (error: any) {
+            console.error("❌ Error generando cobro SaaS:", error);
+            return new Response(JSON.stringify({ exito: false, mensaje: error.message }), { status: 500, headers: corsHeaders });
         }
     }
 
@@ -332,7 +420,7 @@ export default {
             `)
             .eq('estado_pago', 'Pagado')
             .lt('fecha_fin', hoy) 
-            .in('tenants.plan_saas', ['Pro', 'elite']);
+            .in('tenants.plan_saas', ['pro', 'elite']);
 
         if (error) throw error;
 

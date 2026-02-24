@@ -125,6 +125,11 @@
                     <span>📊</span> <span class="font-medium">Finanzas</span>
                     <span class="ml-auto text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded-full uppercase">Elite</span>
                 </a>
+                
+                <a href="#" id="btnMenuPagos" onclick="cambiarVista('pagos')" class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
+                    <span class="text-base">💳</span> <span class="font-medium">Integración de Pagos</span>
+                </a>
+                
                 <a onclick="cambiarVista('escanear')"
                     class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70 cursor-pointer">
                     <span class="text-base">📷</span> Escanear Pase
@@ -426,6 +431,52 @@
                         </thead>
                         <tbody id="tablaStaff" class="divide-y divide-gray-50"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <div id="vistaPagos" class="hidden p-8 w-full max-w-6xl mx-auto">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-gray-800">Integración de Pagos</h2>
+                    <p class="text-gray-500">Configura tu pasarela para recibir los pagos directamente en tu cuenta.</p>
+                </div>
+
+                <div class="max-w-3xl bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-5 mb-8 rounded-r-xl">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-blue-900 font-bold mb-2">Conecta tu cuenta de PayPal en 3 pasos</h4>
+                                <ol class="text-blue-800 text-sm space-y-2 list-decimal ml-4">
+                                    <li>Inicia sesión en el panel de <a href="https://developer.paypal.com" target="_blank" class="font-bold underline hover:text-blue-600">PayPal Developer</a>.</li>
+                                    <li>Haz clic en el botón <strong>"Create App"</strong> (Asegúrate de seleccionar la opción <em>Merchant</em>).</li>
+                                    <li>Copia los dos códigos que te dará PayPal y pégalos aquí abajo.</li>
+                                </ol>
+                            </div>
+                            <a href="#" onclick="alert('Tutorial en video próximamente')" class="flex flex-col items-center justify-center bg-white p-2 rounded-lg shadow-sm border border-blue-100 hover:bg-gray-50 transition min-w-[100px]">
+                                <span class="text-2xl mb-1">▶️</span>
+                                <span class="text-xs font-bold text-blue-600">Ver Tutorial</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <form id="formCredencialesPago" onsubmit="guardarCredencialesPagos(event)" class="space-y-6">
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Client ID (Identificador)</label>
+                            <input type="text" id="paypalClientId" required placeholder="Ej: AcdXyZ..." 
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition font-mono text-sm bg-gray-50">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Secret Key (Llave Secreta)</label>
+                            <input type="password" id="paypalSecret" required placeholder="Ej: EPqz..." 
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition font-mono text-sm bg-gray-50">
+                        </div>
+
+                        <button type="submit" id="btnGuardarPagos" class="w-full bg-green-600 text-white font-bold py-4 px-4 rounded-xl hover:bg-green-700 transition shadow-lg shadow-green-200 mt-4 flex justify-center items-center gap-2">
+                            <span>💾</span> Guardar y Activar Cobros
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -1353,6 +1404,7 @@
                 'resumen': document.getElementById('vistaResumen'),
                 'finanzas': document.getElementById('vistaFinanzas'),
                 'staff': document.getElementById('vistaStaff'),
+                'pagos': document.getElementById('vistaPagos'), // Debe coincidir con el ID del HTML
                 'escanear': document.getElementById('vistaEscanear')
             };
 
@@ -1375,7 +1427,8 @@
             const mapaBotones = {
                 'resumen': 'btnNavDashboard',
                 'staff': 'btnNavStaff',
-                'finanzas': 'btnMenuFinanzas'
+                'finanzas': 'btnMenuFinanzas',
+                'pagos': 'btnMenuPagos' // <--- LÍNEA NUEVA PARA EL BOTÓN DE PAGOS
             };
             
             const btnActivo = document.getElementById(mapaBotones[vistaDestino]);
@@ -1400,7 +1453,6 @@
         let chartFlujo = null;
         let chartPlanes = null;
 
-        // --- LÓGICA DEL DASHBOARD FINANCIERO ---
         // --- LÓGICA DEL DASHBOARD FINANCIERO ---
         async function cargarDashboardFinanciero() {
             const paywall = document.getElementById('paywallFinanzas');
@@ -1835,8 +1887,7 @@
                     if (!renovacionAuto && diffDays === 3 && !recordatorioEnviado) {
                         
                         // 1. SOLICITAMOS EL LINK REAL AL BANCO 🏦
-                        let linkPago = await obtenerLinkPago(nombreCliente, sub.precio_cobrado);
-
+                        let linkPago = await obtenerLinkPago(nombreCliente, sub.precio_cobrado, miTenantId);
                         // Fallback de seguridad por si el banco está caído
                         if (!linkPago) {
                             linkPago = "https://tudominio.com/error-pago (Intenta más tarde)";
@@ -2074,7 +2125,7 @@
         });
 
         // --- CONEXIÓN AL BACKEND PARA GENERAR LINK DE PAGO (PAYPAL) ---
-        async function obtenerLinkPago(nombreCliente, precio) {
+        async function obtenerLinkPago(nombreCliente, precio, tenantId) {
             // ⚠️ Asegúrate de que este puerto (8787) coincida con el que muestra tu terminal de Cloudflare
             const urlBackend = 'http://127.0.0.1:8787/api/pagos/generar-link'; 
 
@@ -2084,7 +2135,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         nombre_cliente: nombreCliente,
-                        precio_cobrado: precio
+                        precio_cobrado: precio,
+                        tenant_id: tenantId
                     })
                 });
 
@@ -2100,6 +2152,43 @@
             } catch (error) {
                 console.error("❌ Error de red conectando al backend:", error);
                 return null;
+            }
+        }
+
+        async function guardarCredencialesPagos(event) {
+            event.preventDefault(); // Evita que la página se recargue
+
+            const btn = document.getElementById('btnGuardarPagos');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = '⏳ Guardando credenciales...';
+            btn.disabled = true;
+
+            const clientId = document.getElementById('paypalClientId').value.trim();
+            const secret = document.getElementById('paypalSecret').value.trim();
+
+            try {
+                // Asumiendo que miTenantId es tu variable global con el ID del gimnasio
+                const { error } = await miSupabase
+                    .from('tenants')
+                    .update({ 
+                        paypal_client_id: clientId, 
+                        paypal_secret: secret 
+                    })
+                    .eq('id', miTenantId);
+
+                if (error) throw error;
+
+                alert('✅ ¡Credenciales guardadas con éxito! Tu pasarela de pagos está activa.');
+                
+                // Opcional: Limpiar el formulario por seguridad
+                document.getElementById('paypalSecret').value = '';
+
+            } catch (error) {
+                console.error("Error guardando credenciales:", error);
+                alert('❌ Error al guardar: ' + error.message);
+            } finally {
+                btn.innerHTML = textoOriginal;
+                btn.disabled = false;
             }
         }
     </script>
