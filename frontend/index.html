@@ -1747,7 +1747,7 @@
 
             // 2. Tus credenciales de acceso
             const PHONE_NUMBER_ID = '931796950027979';
-            const TOKEN = 'EAFvKWCZBmLA0BQ0ZAkCLrTPErZBd1J4MumZCXk1LDbGsZAtX3lbKxiKEU9blznGNvnLvZA6vox7DMImqNfoqkHFffY9A6BOdY0ZC7MyeqaRjnmf6ZCNXXWiiUFpgZBZA8zqESquT5ZB0JElfMqGLO8DgJincMRAgFULYZCWJf2K6eDB4oPLYjYoROBuiwbSpAGNL9btUAywTFnStrOdWwVnV6Spou1TOBJZAxLUWkZCn43ujIoq7qJiNt4U8UFdeNFqqKid5MlzZC7K2teHZAtFC41hbigasZCQZDZD';
+            const TOKEN = 'EAFvKWCZBmLA0BQ6B0yg3KYIZBQi9ALjWNDSCXHzYYuL0pkZAoYMPlXZCAf538QDXTk1060MAZAUoWE8tfeUfrupdRBqVAIZB2HBiTL14nj0pAGDMXZAQ70yhVjiaieEb6uHzN5kBGodnVh1qZCkL6QpqDKc4eMPbxlhi7wE5J7YeZCYe6l3yqx8Wk3ZCJP0SAKo8rvdlBcyWrpiBk6VUquM0QHGrSd9HtauJDjWbsnInTobeqQnnNCgpjxPkqEMzLmxOM3k9H0qsE48Xm64SWAWCCaXwZDZD';
             
             const url = `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`;
 
@@ -1835,8 +1835,8 @@
                     if (!renovacionAuto && diffDays === 3 && !recordatorioEnviado) {
                         
                         // 1. SOLICITAMOS EL LINK REAL AL BANCO 🏦
-                        let linkPago = await obtenerLinkPlaceToPay(nombreCliente, sub.precio_cobrado);
-                        
+                        let linkPago = await obtenerLinkPago(nombreCliente, sub.precio_cobrado);
+
                         // Fallback de seguridad por si el banco está caído
                         if (!linkPago) {
                             linkPago = "https://tudominio.com/error-pago (Intenta más tarde)";
@@ -2073,9 +2073,9 @@
             }
         });
 
-        // --- CONEXIÓN AL BACKEND PARA GENERAR LINK DE PAGO (PLACETOPAY) ---
-        async function obtenerLinkPlaceToPay(nombreCliente, precio) {
-            // ⚠️ Asegúrate de que el puerto coincida con el que muestra tu terminal de VS Code (usualmente 8787)
+        // --- CONEXIÓN AL BACKEND PARA GENERAR LINK DE PAGO (PAYPAL) ---
+        async function obtenerLinkPago(nombreCliente, precio) {
+            // ⚠️ Asegúrate de que este puerto (8787) coincida con el que muestra tu terminal de Cloudflare
             const urlBackend = 'http://127.0.0.1:8787/api/pagos/generar-link'; 
 
             try {
@@ -2091,7 +2091,7 @@
                 const data = await respuesta.json();
                 
                 if (data.exito) {
-                    console.log("✅ Link de PlaceToPay generado:", data.url_pago);
+                    console.log("✅ Link de PayPal generado:", data.url_pago);
                     return data.url_pago;
                 } else {
                     console.error("❌ Error del banco:", data.mensaje);
@@ -2102,7 +2102,6 @@
                 return null;
             }
         }
-
     </script>
 </body>
 </html>

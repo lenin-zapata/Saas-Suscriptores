@@ -1,51 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-// --- MOTOR CRIPTOGRÁFICO PARA PLACETOPAY (CORREGIDO) ---
-async function generarAuthPlaceToPay() {
-    const login = "6dd490faf9cb87a9862245da41170ff2";
-    const tranKeySecreto = "024h1IlD";
-
-    // 1. Generamos un Nonce de 16 bytes
-    const nonceArray = new Uint8Array(16);
-    crypto.getRandomValues(nonceArray);
-    
-    // Función segura para convertir Uint8Array a Base64 en Cloudflare
-    const toBase64 = (bytes: Uint8Array) => {
-        let binary = '';
-        for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        return btoa(binary);
-    };
-
-    const nonceBase64 = toBase64(nonceArray);
-
-    // 2. EL SECRETO DEL ERROR 102: Quitar los milisegundos de la fecha
-    // Forzamos el formato ISO estricto: "YYYY-MM-DDTHH:mm:ssZ"
-    const seed = new Date().toISOString().split('.')[0] + 'Z'; 
-
-    // 3. Preparamos los datos para el Hash (Nonce + Seed + TranKey)
-    const encoder = new TextEncoder();
-    const seedBytes = encoder.encode(seed);
-    const tranKeyBytes = encoder.encode(tranKeySecreto);
-
-    const dataToHash = new Uint8Array(nonceArray.length + seedBytes.length + tranKeyBytes.length);
-    dataToHash.set(nonceArray, 0);
-    dataToHash.set(seedBytes, nonceArray.length);
-    dataToHash.set(tranKeyBytes, nonceArray.length + seedBytes.length);
-
-    // 4. Hasheamos con SHA-256
-    const hashBuffer = await crypto.subtle.digest('SHA-256', dataToHash);
-    const tranKeyHashBase64 = toBase64(new Uint8Array(hashBuffer));
-
-    return {
-        login: login,
-        tranKey: tranKeyHashBase64,
-        nonce: nonceBase64,
-        seed: seed
-    };
-}
-
 export interface Env {
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
@@ -282,8 +236,8 @@ export default {
             const body = await request.json() as any;
 
             // 1. Tus credenciales de Sandbox de PayPal (las sacaremos en el siguiente paso)
-            const PAYPAL_CLIENT_ID = "TU_CLIENT_ID_AQUI";
-            const PAYPAL_SECRET = "TU_SECRET_AQUI";
+            const PAYPAL_CLIENT_ID = "ATJLOXie5U9AXqvVn1l2IS-QqSYbNyB3P-9J3ZF9tHnbcv3ZWIfVqIToK86OJ58ukM4yjUUFDAuW2-wx";
+            const PAYPAL_SECRET = "EN9sxycHCFJA7melsD-wwPw0d7YGzcXN8wA1VtuxDUDA1b9nOH5GRO3S2HgE6537za6RgziqDvz7e3ax";
 
             // 2. Obtener el Token de Acceso (OAuth 2.0)
             const auth = btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`);
