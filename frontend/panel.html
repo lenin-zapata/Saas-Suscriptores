@@ -2081,7 +2081,7 @@
         // --- CONEXIÓN SEGURA AL BACKEND PARA WHATSAPP ---
         async function enviarPlantillaWhatsApp(telefonoDestino, nombrePlantilla, parametrosFormatoTexto) {
             const telLimpio = telefonoDestino.replace(/\D/g, '');
-            const WA_ENDPOINT = `${BACKEND_URL}/api/whatsapp`; // Usamos la variable dinámica que crearemos abajo
+            const WA_ENDPOINT = `${CONFIG.BACKEND_URL}/api/whatsapp`; // Usamos la variable dinámica que crearemos abajo
 
             try {
                 const respuesta = await fetch(WA_ENDPOINT, {

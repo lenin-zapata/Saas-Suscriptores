@@ -9,13 +9,6 @@ export interface Env {
   WA_TOKEN: string;    // <-- NUEVO
 }
 
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://jsmemberly.pages.dev',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization', 
-};
-
 export default {
     
   // =========================================================================
@@ -59,13 +52,25 @@ export default {
 
     // --- ENDPOINTS DE LECTURA ---
     if (url.pathname === '/planes' && request.method === 'GET') {
-      const { data } = await supabase.from('planes').select('*');
-      return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      try {
+        const { data, error } = await supabase.from('planes').select('*');
+        if (error) throw error; // Si Supabase falla, lanzamos el error
+        return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      } catch (e: any) {
+        // Devolvemos el error con los corsHeaders para que el frontend lo pueda leer
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
     }
 
     if (url.pathname === '/suscriptores' && request.method === 'GET') {
-      const { data } = await supabase.from('suscriptores').select('*');
-      return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      try {
+        const { data, error } = await supabase.from('suscriptores').select('*');
+        if (error) throw error; // Si Supabase falla, lanzamos el error
+        return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      } catch (e: any) {
+        // Devolvemos el error con los corsHeaders para que el frontend lo pueda leer
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
     }
 
     // --- CHATBOT DE VENTAS CON IA (GROQ / LLAMA 3) ---
@@ -472,7 +477,11 @@ export default {
         }
     }
 
-    return new Response("Not Found", { status: 404 });
+    // Al final del todo, donde tienes el "Not Found", cámbialo a esto:
+    return new Response(JSON.stringify({ error: "Ruta no encontrada" }), { 
+      status: 404, 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    });
   },
 
   // =========================================================================
