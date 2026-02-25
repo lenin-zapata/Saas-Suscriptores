@@ -5,20 +5,50 @@ export interface Env {
   SUPABASE_ANON_KEY: string;
   SUPABASE_SERVICE_KEY: string;
   GROQ_API_KEY: string;
+  WA_PHONE_ID: string; // <-- NUEVO
+  WA_TOKEN: string;    // <-- NUEVO
 }
 
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://jsmemberly.pages.dev',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization', 
 };
 
 export default {
+    
   // =========================================================================
   // 1. EVENTO FETCH (Atiende las peticiones HTTP del Frontend)
   // =========================================================================
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+    //if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+
+    // 1. Definimos quiénes tienen la llave para entrar a tu API
+    const origenesPermitidos = [
+      'https://jsmemberly.pages.dev', // Producción
+      'http://127.0.0.1:5500'         // Live Server (por si acaso)
+    ];
+
+    // 2. Le preguntamos a la petición: "¿Desde qué página vienes?"
+    const origenPeticion = request.headers.get('Origin') || '';
+
+    // 3. Si vienes de un lugar permitido, te abro la puerta. Si no, uso el principal por defecto.
+    const originSeguro = origenesPermitidos.includes(origenPeticion) 
+      ? origenPeticion 
+      : 'https://jsmemberly.pages.dev';
+
+    // 4. Armamos los cabeceros dinámicamente para esta petición exacta
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': originSeguro,
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
+
+    // 5. Respondemos a la petición de verificación (Preflight) del navegador
+    if (request.method === 'OPTIONS') {
+        return new Response(null, { headers: corsHeaders });
+    }
 
     const authHeader = request.headers.get('Authorization');
     const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
@@ -286,8 +316,10 @@ export default {
                         experience_context: {
                             payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
                             user_action: "PAY_NOW",
-                            return_url: "http://127.0.0.1:5500/frontend/index.html", 
-                            cancel_url: "http://127.0.0.1:5500/frontend/index.html"
+                            //return_url: "http://127.0.0.1:5500/frontend/index.html", 
+                            //cancel_url: "http://127.0.0.1:5500/frontend/index.html"
+                            return_url: "https://jsmemberly.pages.dev/panel.html", 
+                            cancel_url: "https://jsmemberly.pages.dev/panel.html"
                         }
                     }
                 }
@@ -355,9 +387,12 @@ export default {
                       experience_context: {
                         payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
                         user_action: "PAY_NOW",
-                        // 👇 CORRIGE ESTAS DOS LÍNEAS 👇
-                        return_url: "http://127.0.0.1:5500/frontend/landing.html?pago_saas=exitoso", 
-                        cancel_url: "http://127.0.0.1:5500/frontend/landing.html?pago_saas=cancelado"
+                        //return_url: "http://127.0.0.1:5500/frontend/landing.html?pago_saas=exitoso", 
+                        //cancel_url: "http://127.0.0.1:5500/frontend/landing.html?pago_saas=cancelado"
+                        
+                        return_url: "https://jsmemberly.pages.dev/index.html?pago_saas=exitoso", 
+                        cancel_url: "https://jsmemberly.pages.dev/index.html?pago_saas=cancelado"
+
                       }
                     }
                 }
@@ -389,6 +424,50 @@ export default {
 
         } catch (error: any) {
             console.error("❌ Error generando cobro SaaS:", error);
+            return new Response(JSON.stringify({ exito: false, mensaje: error.message }), { status: 500, headers: corsHeaders });
+        }
+    }
+
+    // --- ENVÍO SEGURO DE WHATSAPP (OCULTO DEL FRONTEND) ---
+    if (url.pathname === '/api/whatsapp' && request.method === 'POST') {
+        try {
+            const body = await request.json() as any;
+            
+            // Usamos las variables protegidas del Worker
+            const PHONE_NUMBER_ID = env.WA_PHONE_ID;
+            const TOKEN = env.WA_TOKEN;
+            
+            const metaUrl = `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`;
+            
+            const payload = {
+                messaging_product: "whatsapp",
+                to: body.telefono,
+                type: "template",
+                template: {
+                    name: body.plantilla,
+                    language: { code: "es" },
+                    components: [{
+                        type: "body",
+                        parameters: body.parametros.map((param: string) => ({ type: "text", text: param }))
+                    }]
+                }
+            };
+
+            const respuesta = await fetch(metaUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${TOKEN}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await respuesta.json() as any;
+            if (data.error) throw new Error(data.error.message);
+
+            return new Response(JSON.stringify({ exito: true }), { status: 200, headers: corsHeaders });
+        } catch (error: any) {
+            console.error("Error en WA Backend:", error);
             return new Response(JSON.stringify({ exito: false, mensaje: error.message }), { status: 500, headers: corsHeaders });
         }
     }

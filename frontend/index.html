@@ -3,2488 +3,629 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS MemberLy - Panel</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>JS MemberLy - Gestión de Gimnasios</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-
-        /* Sidebar nav active / hover */
-        .nav-link { transition: all 0.2s ease; }
-        .nav-link.active  { background: rgba(255,255,255,0.15); color:#fff; }
-        .nav-link:hover:not(.active) { background: rgba(255,255,255,0.08); }
-
-        /* Subtle animated gradient on login */
-        .login-bg {
-            background: linear-gradient(135deg, #065f46 0%, #047857 40%, #059669 70%, #10b981 100%);
-            background-size: 300% 300%;
-            animation: gradientShift 8s ease infinite;
-        }
-        @keyframes gradientShift {
-            0%   { background-position: 0% 50%; }
-            50%  { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* KPI card hover lift */
-        .kpi-card { transition: transform 0.2s, box-shadow 0.2s; }
-        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-
-        /* Table row transitions */
-        tbody tr { transition: background 0.15s; }
-
-        /* Scrollbar styling */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #d1fae5; border-radius: 99px; }
-    </style>
 </head>
-<body class="bg-gray-50 text-gray-800 h-screen flex overflow-hidden">
+<body class="bg-gray-50 font-sans text-gray-800 antialiased selection:bg-emerald-200">
 
-    <div id="pantallaLogin" class="w-full h-full flex items-center justify-center login-bg fixed z-50">
-
-        <div class="absolute top-0 left-0 w-72 h-72 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-        <div class="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
-
-        <div class="relative bg-white rounded-3xl shadow-2xl w-[420px] max-w-[calc(100vw-2rem)] overflow-hidden">
-            <div class="bg-emerald-600 px-10 pt-10 pb-8 text-center">
-                <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">🏋️‍♂️</div>
-                <h1 class="text-2xl font-extrabold text-white tracking-tight">JS MemberLy</h1>
-                <p class="text-emerald-100 text-sm mt-1">Panel de Administración</p>
-            </div>
-
-            <form id="formLogin" class="px-10 py-8 flex flex-col gap-5">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Correo Electrónico</label>
-                    <input type="email" id="emailLogin" required
-                        class="w-full border border-gray-200 bg-gray-50 px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition text-sm"
-                        placeholder="admin@irongym.com">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Contraseña</label>
-                    <input type="password" id="passLogin" required
-                        class="w-full border border-gray-200 bg-gray-50 px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition text-sm"
-                        placeholder="••••••••">
-                </div>
-
-                <button type="submit"
-                    class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 mt-1 text-sm">
-                    Ingresar al Sistema
-                </button>
-
-                <div class="text-center">
-                    <button type="button" onclick="solicitarResetPassword()"
-                        class="text-xs text-emerald-600 hover:text-emerald-800 font-semibold transition underline underline-offset-4">
-                        ¿Olvidaste tu contraseña?
-                    </button>
-                </div>
-
-                <div class="border-t border-gray-100 pt-5 text-center">
-                    <p class="text-xs text-gray-400 mb-2">¿Eres personal nuevo?</p>
-                    <button type="button" onclick="abrirRegistro()"
-                        class="text-sm text-emerald-600 hover:text-emerald-800 font-bold transition">
-                        Crear mi cuenta de acceso
-                    </button>
-                </div>
-
-                <p id="errorLogin" class="text-red-500 text-xs text-center hidden font-medium bg-red-50 py-2 px-3 rounded-lg"></p>
-            </form>
+    <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <img src="favicon.png" alt="JS Logo" class="w-12 h-12 rounded-xl object-contain bg-white shadow-sm">
+            <span class="text-xl font-extrabold text-emerald-700 tracking-tight">JS MemberLy</span>
         </div>
-    </div>
+        <div>
+            <a href="panel.html" class="text-emerald-700 font-semibold hover:text-emerald-900 transition mr-6">Iniciar Sesión</a>
+            <a href="#precios" class="bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-bold shadow-md hover:bg-emerald-700 transition">Comenzar Ahora</a>
+        </div>
+    </nav>
 
-    <div id="pantallaDashboard" class="flex w-full h-full hidden">
+    <header class="container mx-auto px-6 py-20 text-center max-w-4xl">
+        <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
+            El sistema inteligente para <span class="text-emerald-600">escalar tu gimnasio</span>
+        </h1>
+        <p class="text-xl text-gray-600 mb-10 leading-relaxed">
+            Controla accesos, gestiona pagos y fideliza a tus clientes en una plataforma unificada. Deja el papeleo y enfócate en lo que mejor sabes hacer: transformar vidas.
+        </p>
+    </header>
 
-        <aside class="w-64 bg-emerald-900 text-white flex flex-col shadow-2xl z-10 shrink-0">
-
-            <div class="p-6 flex flex-col items-center border-b border-white/10 text-center">
-                <div class="relative group cursor-pointer w-20 h-20 rounded-2xl bg-white/10 flex items-center justify-center overflow-hidden mb-3 border border-white/20 shadow-inner">
-                    <img id="logoGymImg" src="https://via.placeholder.com/150?text=Logo" alt="Logo Gym" class="w-full h-full object-cover">
-                    <label for="uploadLogo" class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer text-[10px] text-white gap-1">
-                        <span class="text-lg">📷</span><span>Cambiar</span>
-                    </label>
-                    <input type="file" id="uploadLogo" class="hidden" accept="image/*" onchange="subirLogo(this)">
-                </div>
-                <h2 id="nombreGymSidebar" class="text-sm font-bold tracking-wide text-white">Cargando...</h2>
+    <section id="precios" class="bg-white py-20 border-t border-gray-100">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Planes que se adaptan y crecen contigo</h2>
+                <p class="text-gray-500">Paga usando tarjetas de crédito o débito a través de PlaceToPay.</p>
             </div>
 
-            <nav class="flex-1 p-4 flex flex-col gap-1">
-                <a href="#" onclick="cambiarVista('resumen')" id="btnNavDashboard"
-                    class="nav-link active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold">
-                    <span class="text-base">📊</span> Dashboard
-                </a>
-                <a href="#" onclick="cambiarVista('staff')" id="btnNavStaff"
-                    class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
-                    <span class="text-base">👥</span> Gestionar Staff
-                </a>
-                <a href="#" onclick="cambiarVista('finanzas')" id="btnMenuFinanzas" class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
-                    <span>📊</span> <span class="font-medium">Finanzas</span>
-                    <span class="ml-auto text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded-full uppercase">Elite</span>
-                </a>
-                
-                <a href="#" id="btnMenuPagos" onclick="cambiarVista('pagos')" class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
-                    <span class="text-base">💳</span> <span class="font-medium">Integración de Pagos</span>
-                </a>
-                
-                <a href="#" id="btnMenuFacturacion" onclick="cambiarVista('facturacion')" class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
-                    <span class="text-base">🧾</span> <span class="font-medium">Exportar Facturación</span>
-                </a>
+            <div class="text-center mb-12">
+                <div class="inline-flex items-center gap-4 bg-white p-2 rounded-full border border-gray-200 shadow-sm">
+                    <span id="labelMensual" class="font-bold text-emerald-700 px-4">Mensual</span>
+                    <button id="toggleFacturacion" onclick="cambiarFacturacion()" class="w-14 h-7 bg-emerald-600 rounded-full relative transition-colors duration-300 focus:outline-none">
+                        <div id="toggleBoton" class="w-5 h-5 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300"></div>
+                    </button>
+                    <span id="labelAnual" class="text-gray-500 font-medium px-4">Anual <span class="text-[10px] bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full ml-1 font-bold uppercase tracking-wider -translate-y-2 absolute">2 Meses Gratis</span></span>
+                </div>
+            </div>
 
-                <a onclick="cambiarVista('escanear')"
-                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70 cursor-pointer">
-                    <span class="text-base">📷</span> Escanear Pase
-                </a>
-            </nav>
+            <div class="grid md:grid-cols-3 gap-8">
+                
+                <div class="bg-gray-50 rounded-3xl p-8 border border-gray-200 hover:border-emerald-300 transition-all hover:shadow-xl flex flex-col">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Starter</h3>
+                    <p class="text-gray-500 text-sm mb-6">Para estudios pequeños y entrenadores independientes.</p>
+                    <div id="precioStarter" class="text-4xl font-extrabold text-gray-900 mb-8">$29<span class="text-lg text-gray-500 font-normal">/mes</span></div>
+                    
+                    <ul class="space-y-4 mb-8 flex-1 text-gray-600">
+                        <li class="flex items-center gap-3">✅ <span>Hasta <strong>100 clientes</strong> activos</span></li>
+                        <li class="flex items-center gap-3">✅ <span>Cuentas de personal <strong>ilimitadas</strong></span></li>
+                        <li class="flex items-center gap-3">✅ <span>Pases con Código QR</span></li>
+                        <li class="flex items-center gap-3">✅ <span>Dashboard de métricas</span></li>
+                    </ul>
+                    <button onclick="abrirModalRegistro('Starter', 29)" class="w-full py-3 px-4 bg-white border-2 border-emerald-600 text-emerald-600 font-bold rounded-xl hover:bg-emerald-50 transition">Elegir Starter</button>
+                </div>
 
-            <div class="p-4 border-t border-white/10">
-                <button onclick="cerrarSesion()"
-                    class="w-full flex items-center justify-center gap-2 text-white/50 hover:text-white px-4 py-2 rounded-xl text-sm transition font-medium">
-                    <span>🚪</span> Cerrar Sesión
+                <div class="bg-emerald-600 rounded-3xl p-8 shadow-2xl transform md:-translate-y-4 flex flex-col relative text-white">
+                    <div class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-3xl uppercase tracking-wider">Más Popular</div>
+                    <h3 class="text-xl font-bold mb-2">Pro</h3>
+                    <p class="text-emerald-100 text-sm mb-6">Para gimnasios establecidos en fase de crecimiento.</p>
+                    <div id="precioPro" class="text-4xl font-extrabold mb-8">$69<span class="text-lg text-emerald-200 font-normal">/mes</span></div>
+                    
+                    <ul class="space-y-4 mb-8 flex-1 text-emerald-50">
+                        <li class="flex items-center gap-3">✨ <span>Hasta <strong>500 clientes</strong> activos</span></li>
+                        <li class="flex items-center gap-3">✨ <span>Cuentas de personal <strong>ilimitadas</strong></span></li>
+                        <li class="flex items-center gap-3">✨ <span>Recordatorios de pago a clientes por WhatsApp</span></li>
+                        <li class="flex items-center gap-3">✨ <span>Todo lo del plan Starter</span></li>
+                    </ul>
+                    <button onclick="abrirModalRegistro('Pro', 69)" class="w-full py-3 px-4 bg-white text-emerald-700 font-bold rounded-xl hover:bg-gray-50 shadow-lg transition">Elegir Pro</button>
+                </div>
+
+                <div class="bg-gray-50 rounded-3xl p-8 border border-gray-200 hover:border-emerald-300 transition-all hover:shadow-xl flex flex-col">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Elite</h3>
+                    <p class="text-gray-500 text-sm mb-6">Para franquicias y negocios sin límites.</p>
+                    <div id="precioElite" class="text-4xl font-extrabold text-gray-900 mb-8">$149<span class="text-lg text-gray-500 font-normal">/mes</span></div>
+                    
+                    <ul class="space-y-4 mb-8 flex-1 text-gray-600">
+                        <li class="flex items-center gap-3">🔥 <span>Clientes <strong>Ilimitados</strong></span></li>
+                        <li class="flex items-center gap-3">🔥 <span>Reportes financieros avanzados</span></li>
+                        <li class="flex items-center gap-3">🔥 <span>Soporte prioritario 24/7</span></li>
+                        <li class="flex items-center gap-3">🔥 <span>Todo lo del plan Pro</span></li>
+                    </ul>
+                    <button onclick="abrirModalRegistro('Elite', 149)" class="w-full py-3 px-4 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:border-emerald-600 hover:text-emerald-600 transition">Elegir Elite</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <div id="modalRegistroSaaS" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-emerald-100 flex flex-col max-h-[90vh]">
+            
+            <div class="bg-emerald-600 p-6 text-white text-center relative shrink-0">
+                <h2 class="text-2xl font-bold">Crea tu cuenta de Gimnasio</h2>
+                <p class="text-emerald-100 text-sm mt-1">Estás a un paso de revolucionar tu negocio con el <span id="spanPlanSeleccionado" class="font-bold text-white uppercase tracking-wide">...</span></p>
+                <button type="button" onclick="cerrarModalRegistro()" class="absolute top-4 right-4 text-emerald-200 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-        </aside>
 
-        <main class="flex-1 flex flex-col overflow-y-auto bg-gray-50">
+            <div class="p-8 overflow-y-auto">
+                <form id="formRegistroSaaS" class="space-y-5">
+                    <input type="hidden" id="inputPlanElegido" value="">
+                    <input type="hidden" id="inputPrecioElegido" value="">
 
-            <header class="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-40">
-                <div>
-                    <h1 class="text-xl font-extrabold text-gray-900 tracking-tight">Resumen General</h1>
-                    <p class="text-xs text-gray-400 font-medium mt-0.5">Panel de control de tu gimnasio</p>
-                </div>
-                <div class="relative group">
-                    <button class="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-2xl transition">
-                        <div id="userInitialsCircle"
-                            class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 font-extrabold border-2 border-white shadow-sm text-sm">A</div>
-                        <div class="text-left hidden md:block">
-                            <p id="userNameDisplay" class="text-sm font-bold text-gray-800 leading-none">Usuario</p>
-                            <p class="text-[10px] text-gray-400 font-semibold uppercase mt-1">Mi Cuenta ▼</p>
-                        </div>
-                    </button>
-                    <div class="absolute right-0 w-48 mt-1 bg-white rounded-2xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                        <div class="p-2">
-                            <button onclick="document.getElementById('modalPassword').classList.remove('hidden')"
-                                class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition">🔐 Nueva Clave</button>
-                            <div class="border-t border-gray-100 my-1"></div>
-                            <button onclick="abrirModalPlanes()" class="solo-admin w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition">
-                                ⚙️ Ajustar Precios
-                            </button>
-                            <button onclick="cerrarSesion()"
-                                class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-xl font-semibold transition">🚪 Salir</button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div id="vistaResumen" class="p-8 space-y-6">
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-                    <div class="solo-admin kpi-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col gap-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-2xl shrink-0">👥</div>
-                            <div>
-                                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Clientes Activos</p>
-                                <h3 class="text-3xl font-extrabold text-gray-900 leading-none mt-1">
-                                    <span id="kpiTotal">0</span>
-                                    <span class="text-base text-gray-300 font-semibold"> / <span id="kpiLimite">100</span></span>
-                                </h3>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                                <div id="barraUsoPlan" class="bg-emerald-500 h-2 rounded-full transition-all duration-700" style="width:0%"></div>
-                            </div>
-                            <div class="flex justify-between items-center mt-2.5">
-                                <p class="text-[11px] text-gray-400 font-semibold">Plan <span id="nombrePlanSaas" class="capitalize font-extrabold text-emerald-600">Starter</span></p>
-                                <button onclick="prepararYAbrirModalUpgrade()"
-                                    class="text-[11px] bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg font-bold hover:bg-emerald-100 transition flex items-center gap-1">
-                                    🚀 Subir de Nivel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="solo-admin kpi-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-2xl shrink-0">✅</div>
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Al Día</p>
-                            <h3 id="kpiAlDia" class="text-3xl font-extrabold text-emerald-600 leading-none mt-1">0</h3>
-                        </div>
-                    </div>
-
-                    <div class="solo-admin kpi-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center text-2xl shrink-0">⚠️</div>
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Atrasados</p>
-                            <h3 id="kpiMorosos" class="text-3xl font-extrabold text-red-500 leading-none mt-1">0</h3>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-                    <div class="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-                        <h2 class="text-base font-extrabold text-gray-800 mb-5 flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">➕</span>
-                            Registrar Nuevo Suscriptor
-                        </h2>
-                        <form id="formSuscriptor" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre</label>
-                                <input type="text" id="nombre" required placeholder="Nombre y Apellido"
-                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">WhatsApp</label>
-                                <input type="text" id="telefono" required placeholder="+593..."
-                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
-                                <input type="email" id="email" required placeholder="test@example.com"
-                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Contacto de Emergencia</label>
-                                <input type="text" id="contactoEmergencia" required placeholder="Teléfono de contacto"
-                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Cédula / ID Nacional</label>
-                                <input type="text" id="identificacionSocio" required placeholder="Ej: 1712345678"
-                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Dirección Física / Código Postal</label>
-                                <input type="text" id="direccionSocio" required placeholder="Ej: Av. Principal y Secundaria"
-                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Plan</label>
-                                <select id="planElegido" required
-                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition"></select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Foto del Cliente</label>
-                                <input type="file" id="fotoInput" accept="image/*" required
-                                    class="w-full border border-gray-200 bg-gray-50 p-1.5 rounded-xl text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 transition cursor-pointer">
-                            </div>
-                            
-                            <div class="mt-5 mb-6 flex items-center justify-between bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                                <div>
-                                    <label class="text-sm font-bold text-emerald-900 block">🔄 Renovación Automática</label>
-                                    <p class="text-[11px] text-emerald-700 mt-0.5 leading-tight">Cobro automático 1 día después del vencimiento. Si se desactiva, se enviará link de pago 3 días antes.</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="renovacionAutoCliente" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                                </label>
-                            </div>
-
-                            <div class="md:col-span-2 mt-2">
-                                <button type="submit"
-                                    class="px-8 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 text-sm">
-                                    Guardar Cliente
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="solo-admin bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex flex-col">
-                        <h2 class="text-base font-extrabold text-gray-800 mb-4 flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">📊</span>
-                            Estado de Pagos
-                        </h2>
-                        <div class="flex-1 flex items-center justify-center min-h-[180px]">
-                            <canvas id="graficoPagos"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div class="px-6 py-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <h2 class="text-base font-extrabold text-gray-800 flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">📋</span>
-                            Directorio de Clientes
-                        </h2>
-                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-    
-                            <div class="relative w-full md:w-2/3 lg:w-3/4">
-                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </div>
-                                <input type="text" id="inputBuscarCliente" onkeyup="filtrarClientes()" placeholder="Buscar por nombre, correo o teléfono..." 
-                                    class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder-gray-400 font-medium">
-                            </div>
-
-                            <div class="flex items-center gap-3 shrink-0">
-                                <label for="filtroEstado" class="text-xs font-extrabold text-gray-400 uppercase tracking-wider hidden lg:block">Estado:</label>
-                                
-                                <div class="relative min-w-[190px]">
-                                    <select id="filtroEstado" onchange="filtrarClientes()" 
-                                        class="w-full appearance-none bg-emerald-50 border border-emerald-100 text-emerald-800 py-3 pl-4 pr-10 rounded-xl text-sm font-bold cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all hover:bg-emerald-100 truncate">
-                                        <option value="Activos y Atrasados" selected>🟢🟡 Activos y Atrasados</option>
-                                        <option value="Todos">🌟 Todos los estados</option>
-                                        <option value="Activo">🟢 Activos</option>
-                                        <option value="Atrasado">🟡 Atrasados</option>
-                                        <option value="Inactivo">🔴 Inactivos</option>
-                                        <option value="Sin plan">⚪ Sin plan</option>
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-emerald-600">
-                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full">
-                            <thead class="bg-gray-50 border-b border-gray-100">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Cliente</th>
-                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Contacto</th>
-                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Emergencia</th>
-                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Estado</th>
-                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Vence</th>
-                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Registrado</th>
-                                    <th class="px-6 py-4 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaCuerpo" class="divide-y divide-gray-50"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-            
-            <div id="vistaFinanzas" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full">
-
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h2 class="text-2xl font-bold text-gray-800 text-center md:text-left">Reportes Financieros Avanzados</h2>
-                    
-                    <button onclick="simularMotorCobros()" class="bg-indigo-600 text-white font-bold py-2.5 px-5 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 flex items-center gap-2 text-sm">
-                        🤖 Ejecutar Motor de Cobros (Simulador)
-                    </button>
-                </div>
-
-                <div id="paywallFinanzas" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
-                    <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
-                        <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🔒</div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Exclusivo del Plan Elite</h3>
-                        <p class="text-gray-500 text-sm mb-6 leading-relaxed">Desbloquea proyecciones de flujo de caja, análisis de retención y métricas de ingresos recurrentes para escalar tu negocio.</p>
-                        <button onclick="prepararYAbrirModalUpgrade()" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-md flex justify-center items-center gap-2">
-                            Desbloquear Finanzas 🚀
-                        </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pb-10 items-start">
-                    
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center h-full">
-                        <p class="text-sm text-gray-500 font-medium mb-2 uppercase tracking-wider">Ingreso Recurrente Mensual (MRR)</p>
-                        <h3 class="text-5xl font-extrabold text-emerald-600 mb-3 tracking-tight">$<span id="kpiMRR">0.00</span></h3>
-                        <span id="kpiCrecimiento" class="text-xs font-bold px-3 py-1.5 rounded-md text-emerald-600 bg-emerald-50 mt-1 inline-block transition-all">
-                            Calculando...
-                        </span>
-                    </div>
-
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center h-full">
-                        <p class="text-sm text-gray-500 font-medium mb-2 uppercase tracking-wider">Tasa de Retención Anual</p>
-                        <h3 class="text-5xl font-extrabold text-indigo-600 mb-3 tracking-tight"><span id="kpiRetencion">0</span>%</h3>
-                        <p class="text-xs text-red-700 bg-red-50 px-3 py-1.5 rounded-full font-bold inline-flex items-center gap-1">
-                            <span>📉</span> Tasa de abandono: <span id="kpiChurn">0</span>%
-                        </p>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-                        <h3 class="text-base font-bold text-gray-800 mb-6 text-center md:text-left">Proyección de Flujo de Caja (15 días)</h3>
-                        <div class="relative h-72 w-full">
-                            <canvas id="graficoFlujoCaja"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-                        <h3 class="text-base font-bold text-gray-800 mb-6 text-center md:text-left">Distribución de Ingresos</h3>
-                        <div class="relative h-72 w-full flex justify-center">
-                            <canvas id="graficoPlanes"></canvas>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <div id="vistaStaff" class="hidden p-8 w-full max-w-6xl mx-auto">
-                <div class="flex justify-between items-center mb-8">
                     <div>
-                        <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">Gestionar Personal</h2>
-                        <p class="text-xs text-gray-400 font-medium mt-1">Administra los accesos de tu equipo</p>
-                    </div>
-                    <button onclick="document.getElementById('modalNuevoStaff').classList.remove('hidden')"
-                        class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition text-sm">
-                        + Nuevo Miembro
-                    </button>
-                </div>
-                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table class="min-w-full">
-                        <thead>
-                            <tr class="border-b border-gray-100">
-                                <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nombre</th>
-                                <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Rol</th>
-                                <th class="px-6 py-4 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaStaff" class="divide-y divide-gray-50"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="vistaPagos" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full"">
-                <div id="paywallPagos" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
-                    <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
-                        <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🔒</div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Exclusivo del Plan Pro / Elite</h3>
-                        <p class="text-gray-500 text-sm mb-6 leading-relaxed">Desbloquea integración y automatización de pagos, proyecciones de flujo de caja, análisis de retención y métricas de ingresos recurrentes para escalar tu negocio.</p>
-                        <button onclick="prepararYAbrirModalUpgrade()" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-md flex justify-center items-center gap-2">
-                            Desbloquear Pagos 🚀
-                        </button>
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <h2 class="text-3xl font-bold text-gray-800">Integración de Pagos</h2>
-                    <p class="text-gray-500">Configura tu pasarela para recibir los pagos directamente en tu cuenta.</p>
-                </div>
-
-                <div class="max-w-3xl bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                    
-                    <div class="bg-blue-50 border-l-4 border-blue-500 p-5 mb-8 rounded-r-xl">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="text-blue-900 font-bold mb-2">Conecta tu cuenta de PayPal en 3 pasos</h4>
-                                <ol class="text-blue-800 text-sm space-y-2 list-decimal ml-4">
-                                    <li>Inicia sesión en el panel de <a href="https://developer.paypal.com" target="_blank" class="font-bold underline hover:text-blue-600">PayPal Developer</a>.</li>
-                                    <li>Haz clic en el botón <strong>"Create App"</strong> (Asegúrate de seleccionar la opción <em>Merchant</em>).</li>
-                                    <li>Copia los dos códigos que te dará PayPal y pégalos aquí abajo.</li>
-                                </ol>
-                            </div>
-                            <a href="#" onclick="alert('Tutorial en video próximamente')" class="flex flex-col items-center justify-center bg-white p-2 rounded-lg shadow-sm border border-blue-100 hover:bg-gray-50 transition min-w-[100px]">
-                                <span class="text-2xl mb-1">▶️</span>
-                                <span class="text-xs font-bold text-blue-600">Ver Tutorial</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <form id="formCredencialesPago" onsubmit="guardarCredencialesPagos(event)" class="space-y-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">Datos del Gimnasio</h3>
                         
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Client ID (Identificador)</label>
-                            <input type="text" id="paypalClientId" required placeholder="Ej: AcdXyZ..." 
-                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition font-mono text-sm bg-gray-50">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Gimnasio o Estudio</label>
+                            <input type="text" id="regNombreGym" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: Iron Gym">
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Secret Key (Llave Secreta)</label>
-                            <input type="password" id="paypalSecret" required placeholder="Ej: EPqz..." 
-                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition font-mono text-sm bg-gray-50">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">País</label>
+                                <select id="regPais" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                                    <option value="Ecuador" selected>🇪🇨 Ecuador</option>
+                                    <option value="Colombia">🇨🇴 Colombia</option>
+                                    <option value="Mexico">🇲🇽 México</option>
+                                    <option value="Peru">🇵🇪 Perú</option>
+                                    <option value="Chile">🇨🇱 Chile</option>
+                                    <option value="España">🇪🇸 España</option>
+                                    <option value="Otro">🌍 Otro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">RUC / ID Nacional</label>
+                                <input type="text" id="regIdNacional" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: 1712345678001">
+                            </div>
                         </div>
-
-                        <button type="submit" id="btnGuardarPagos" class="w-full bg-green-600 text-white font-bold py-4 px-4 rounded-xl hover:bg-green-700 transition shadow-lg shadow-green-200 mt-4 flex justify-center items-center gap-2">
-                            <span>💾</span> Guardar y Activar Cobros
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div id="vistaEscanear" class="hidden p-8 w-full max-w-6xl mx-auto">
-                <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Escanear Pase</h2>
-                <p class="text-xs text-gray-400 font-medium mb-8">Verifica el acceso de tus clientes con código QR</p>
-                
-                <div class="bg-white p-10 rounded-3xl border border-gray-100 shadow-sm text-center max-w-lg mx-auto flex flex-col items-center">
-                    <div class="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-4xl mb-6">📷</div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Lector de Accesos</h3>
-                    <p class="text-sm text-gray-500 mb-8">Usa la cámara de tu dispositivo para leer el código QR del pase del cliente.</p>
-                    <button onclick="abrirEscanner()" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100">
-                        Activar Cámara y Escanear
-                    </button>
-                </div>
-            </div>
-
-            <div id="vistaFacturacion" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full"">
-                <div id="paywallReporteFact" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
-                    <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
-                        <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🔒</div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Exclusivo del Plan Pro / Elite</h3>
-                        <p class="text-gray-500 text-sm mb-6 leading-relaxed">Desbloquea integración y automatización de pagos, reportes para facturación, proyecciones de flujo de caja, análisis de retención y métricas de ingresos recurrentes para escalar tu negocio.</p>
-                        <button onclick="prepararYAbrirModalUpgrade()" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-md flex justify-center items-center gap-2">
-                            Desbloquear Reportes Facturación 🚀
-                        </button>
                     </div>
-                </div>
 
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <div>
-                        <h2 class="text-3xl font-bold text-gray-800">Reporte para Facturación</h2>
-                        <p class="text-gray-500 text-sm mt-1">Descarga los pagos recibidos para enviarlos a tu contador o sistema del SRI.</p>
-                    </div>
-                    
-                    <div class="flex gap-3">
-                        <select id="mesFiltroFacturacion" onchange="cargarReporteFacturacion()" class="border border-gray-200 bg-white px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold text-gray-700 shadow-sm cursor-pointer">
-                            <option value="este_mes">📅 Este Mes</option>
-                            <option value="mes_pasado">📅 Mes Pasado</option>
-                            <option value="todos">📅 Todo el historial</option>
-                        </select>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2 mt-6">Datos del Administrador</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tu Nombre Completo</label>
+                                <input type="text" id="regNombreAdmin" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: Lenin Zapata">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico (Será tu usuario)</label>
+                                <input type="email" id="regEmailAdmin" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="tu@correo.com">
+                            </div>
 
-                        <button onclick="descargarExcelFacturacion()" class="bg-[#107c41] text-white font-bold py-2.5 px-5 rounded-xl hover:bg-[#0c5e31] transition shadow-lg shadow-green-100 flex items-center gap-2 text-sm">
-                            Descargar Excel <span>📊</span>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Confirma tu Correo</label>
+                                <input type="email" id="regEmailAdminConfirm" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Repite tu correo">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono / WhatsApp</label>
+                                <input type="text" id="regTelefonoAdmin" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="+593...">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Crea una Contraseña</label>
+                                <input type="password" id="regPassAdmin" required minlength="6" class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Mínimo 6 caracteres">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Confirma tu Contraseña</label>
+                                <input type="password" id="regPassAdminConfirm" required minlength="6" class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Repite tu contraseña">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-gray-100 mt-2">
+                        <button type="submit" id="btnPagarSaaS" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md flex justify-center items-center gap-2.5 border border-gray-800">
+                            <span class="text-sm tracking-wide">Completar pago seguro con</span>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" class="h-4 brightness-0 invert opacity-90">
                         </button>
+                        <div class="flex justify-center items-center gap-2 mt-4 text-xs text-gray-400">
+                            <span>🔒</span>
+                            <p>Pago 100% seguro y encriptado.</p>
+                        </div>
                     </div>
-                </div>
-
-                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full">
-                            <thead class="bg-gray-50 border-b border-gray-100">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Fecha Pago</th>
-                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Cliente</th>
-                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Cédula / RUC</th>
-                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Dirección</th>
-                                    <th class="px-6 py-4 text-left text-xs font-extrabold text-gray-500 uppercase tracking-wider">Detalle</th>
-                                    <th class="px-6 py-4 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaFacturacion" class="divide-y divide-gray-50">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <div id="modalPassword" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm border border-gray-100">
-            <h2 class="text-lg font-extrabold mb-1 text-gray-900">🔒 Actualizar Contraseña</h2>
-            <p class="text-xs text-gray-400 mb-6">Mínimo 6 caracteres.</p>
-            <form id="formUpdatePassword" class="flex flex-col gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nueva Clave</label>
-                    <input type="password" id="newPassword" required minlength="6"
-                        class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
-                </div>
-                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition text-sm">Guardar Cambios</button>
-                <button type="button" onclick="cancelarReset()" class="text-gray-400 text-xs text-center hover:text-gray-600 transition">Cancelar</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalNuevoStaff" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md border border-gray-100">
-            <h2 class="text-lg font-extrabold mb-1 text-gray-900">➕ Agregar Personal</h2>
-            <p class="text-xs text-gray-400 mb-6">Se enviará una invitación por WhatsApp.</p>
-            <form id="formNuevoStaff" class="flex flex-col gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre</label>
-                    <input type="text" id="nombreStaff" required class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
-                    <input type="email" id="emailStaff" required class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Teléfono (WhatsApp)</label>
-                    <input type="text" id="telefonoStaff" required class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="+593...">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Rol</label>
-                    <select id="rolStaff" class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm">
-                        <option value="recepcionista">Recepcionista</option>
-                        <option value="admin">Administrador</option>
-                    </select>
-                </div>
-                <div class="flex gap-3 mt-2">
-                    <button type="submit" class="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition text-sm">Registrar</button>
-                    <button type="button" onclick="document.getElementById('modalNuevoStaff').classList.add('hidden')"
-                        class="px-5 text-gray-400 font-semibold text-sm hover:text-gray-600 transition">Cerrar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalQR" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[60] backdrop-blur-sm">
-        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-sm w-full mx-4 border border-gray-100">
-            <div class="bg-emerald-700 p-6 text-center relative">
-                <button onclick="document.getElementById('modalQR').classList.add('hidden')"
-                    class="absolute top-4 right-4 text-emerald-200 hover:text-white text-lg transition">✕</button>
-                
-                <img id="fotoClienteQR" src="" alt="Foto Cliente" class="w-20 h-20 rounded-full mx-auto mb-3 object-cover border-4 border-emerald-500 shadow-md bg-white">
-                
-                <h2 class="text-lg font-extrabold text-white">Pase de Acceso</h2>
-                <p id="nombreClienteQR" class="text-emerald-200 text-sm mt-1"></p>
-            </div>
-            <div class="p-8 flex flex-col items-center gap-6">
-                <div id="contenedorQR" class="p-4 bg-white border border-gray-100 rounded-2xl shadow-inner"></div>
-                <button id="btnEnviarWA"
-                    class="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-3.5 rounded-2xl shadow-lg transition text-sm">
-                    📲 Enviar por WhatsApp
-                </button>
+                </form>
             </div>
         </div>
     </div>
 
-    <div id="modalExitoCliente" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md border border-emerald-100 text-center relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-2 bg-emerald-500"></div>
-            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 shadow-inner">🎉</div>
-            <h2 class="text-2xl font-extrabold text-gray-900 mb-2">¡Cliente Registrado!</h2>
-            <p class="text-gray-500 text-sm mb-6">El suscriptor ha sido guardado exitosamente.</p>
+    <section id="contacto" class="py-20 bg-white border-t border-gray-100">
+        <div class="max-w-3xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-4">¿Tienes dudas adicionales?</h2>
+                <p class="text-gray-500">Déjanos tus datos y un asesor se pondrá en contacto contigo a la brevedad.</p>
+            </div>
             
-            <div class="bg-gray-50 rounded-2xl p-5 mb-6 text-left border border-gray-100 space-y-3">
-                <p class="text-sm"><span class="font-bold text-gray-700">Nombre:</span> <span id="resNombre" class="text-gray-600"></span></p>
-                <p class="text-sm"><span class="font-bold text-gray-700">WhatsApp:</span> <span id="resTelefono" class="text-gray-600"></span></p>
-                <p class="text-sm"><span class="font-bold text-gray-700">Email:</span> <span id="resEmail" class="text-gray-600"></span></p>
-                <p class="text-sm"><span class="font-bold text-gray-700">Emergencia:</span> <span id="resEmergencia" class="text-gray-600"></span></p>
-                <p class="text-sm"><span class="font-bold text-gray-700">Plan:</span> <span id="resPlan" class="text-gray-600 font-bold text-emerald-600"></span></p>
-            </div>
-
-            <button onclick="document.getElementById('modalExitoCliente').classList.add('hidden')" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 text-sm">
-                Genial, continuar 👍
-            </button>
-        </div>
-    </div>
-
-    <div id="lectorQRContainer" class="fixed inset-0 bg-black/80 hidden z-[70] flex items-center justify-center">
-        <div class="bg-white p-6 rounded-3xl w-full max-w-md text-center border border-gray-100">
-            <div id="reader"></div>
-            <button onclick="cerrarEscanner()"
-                class="w-full mt-4 p-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold text-sm transition">Cancelar</button>
-        </div>
-    </div>
-
-    <div id="modalRegistro" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm border border-gray-100">
-            <div class="text-center mb-6">
-                <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-xl mx-auto mb-3">📝</div>
-                <h2 class="text-lg font-extrabold text-gray-900">Activar Cuenta</h2>
-                <p class="text-xs text-gray-400 mt-1">Usa el correo exacto con el que el administrador te registró.</p>
-            </div>
-            <form id="formRegistro" class="flex flex-col gap-4">
+            <form id="formContactoLanding" class="bg-gray-50 p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-5 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre Completo</label>
+                        <input type="text" id="contactoNombre" required class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition" placeholder="Tu nombre">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Teléfono / WhatsApp</label>
+                        <input type="text" id="contactoTelefono" class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition" placeholder="+593...">
+                    </div>
+                </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Correo Electrónico</label>
-                    <input type="email" id="emailRegistro" required
-                        class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="tu_correo@gym.com">
+                    <input type="email" id="contactoEmail" required class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition" placeholder="tu@correo.com">
                 </div>
-
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">CONFIRMA TU CORREO</label>
-                    <input type="email" id="emailRegistroConfirm" required class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="Repite tu correo">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">¿En qué podemos ayudarte?</label>
+                    <textarea id="contactoMensaje" required rows="4" class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition resize-none" placeholder="Escribe tu mensaje aquí..."></textarea>
                 </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Crea una Contraseña</label>
-                    <input type="password" id="passRegistro" required minlength="6"
-                        class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="Mínimo 6 caracteres">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">CONFIRMA TU CONTRASEÑA</label>
-                    <input type="password" id="passRegistroConfirm" required minlength="6" class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="Repite tu contraseña">
-                </div>
-
-                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 mt-2 text-sm">
-                    Crear Cuenta
+                
+                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 mt-2 flex justify-center items-center gap-2">
+                    Enviar Mensaje <span>🚀</span>
                 </button>
-                <button type="button" onclick="cerrarRegistro()" class="text-gray-400 text-xs text-center hover:text-gray-600 transition">
-                    Cancelar y volver al Login
-                </button>
+                <p id="contactoAlerta" class="text-center text-sm font-bold mt-2 hidden transition-all"></p>
             </form>
         </div>
-    </div>
+    </section>
 
-    <div id="modalUpgrade" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-[110] backdrop-blur-sm">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-lg text-center border border-emerald-100">
-            <div class="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto mb-4 border-4 border-emerald-100 text-4xl">🚀</div>
-            <h2 class="text-2xl font-extrabold mb-2 text-gray-900">¡Tu gimnasio está creciendo!</h2>
-            <p class="text-gray-500 text-sm mb-6 leading-relaxed">
-                Estás alcanzando el límite de clientes de tu plan actual.<br>
-                Es momento de subir de nivel y desbloquear más herramientas.
-            </p>
-            <div class="bg-gray-50 rounded-2xl p-6 mb-6 text-left border border-gray-100">
-                <h3 id="tituloPlanUpsell" class="font-extrabold text-gray-900 mb-3 text-base">Cargando plan...</h3>
-                <ul id="listaFeaturesUpsell" class="text-sm text-gray-600 space-y-2"></ul>
+    <button onclick="document.getElementById('chatIaPanel').classList.toggle('hidden')" class="fixed bottom-6 right-6 w-14 h-14 bg-emerald-600 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl hover:bg-emerald-700 transition z-50">
+        👩🏻‍💻
+    </button>
+
+    <div id="chatIaPanel" class="fixed bottom-24 right-6 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 hidden flex-col z-50 overflow-hidden">
+        <div class="bg-emerald-600 p-4 text-white flex justify-between items-center">
+            <div>
+                <h4 class="font-bold">Asistente JS MemberLy</h4>
+                <p class="text-xs text-emerald-100">En línea (IA)</p>
             </div>
-            <div class="flex gap-3">
-                <button id="btnPagarUpgrade" onclick="iniciarPagoUpgrade()"
-                    class="flex-1 bg-emerald-600 text-white font-bold py-3.5 rounded-2xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 flex justify-center items-center gap-2 text-sm">
-                    Mejorar Plan <span>💳</span>
-                </button>
-                <button onclick="document.getElementById('modalUpgrade').classList.add('hidden')"
-                    class="px-6 text-gray-400 font-semibold hover:text-gray-600 transition text-sm">
-                    Quizás luego
-                </button>
+            <button onclick="document.getElementById('chatIaPanel').classList.add('hidden')" class="text-white hover:text-gray-200 text-xl">×</button>
+        </div>
+        <div id="cuerpoChat" class="h-64 bg-gray-50 p-4 overflow-y-auto flex flex-col gap-3 text-sm">
+            <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm border border-gray-100 text-gray-700 self-start max-w-[85%]">
+                ¡Hola! 👋 Soy el asistente de inteligencia artificial de JS MemberLy. ¿Tienes dudas sobre nuestros planes para tu gimnasio?
             </div>
         </div>
+        <form id="formChatIa" class="p-3 bg-white border-t border-gray-100 flex gap-2">
+            <input type="text" id="inputMensajeIa" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-emerald-500 text-sm" placeholder="Escribe tu duda..." required>
+            <button type="submit" class="bg-emerald-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-700">➤</button>
+        </form>
     </div>
 
-    <div id="modalAjustarPlanes" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm pt-10 pb-10">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md border border-gray-100 my-auto max-h-[90vh] overflow-y-auto">
-            
-            <h2 class="text-xl font-extrabold mb-1 text-gray-900">⚙️ Gestión de Membresías</h2>
-            <p class="text-xs text-gray-400 mb-6">Ajusta los precios actuales o crea nuevos planes para tu gimnasio.</p>
-            
-            <form id="formAjustarPlanes" class="flex flex-col gap-3">
-                <div id="contenedorPlanesDinamicos" class="space-y-3 max-h-56 overflow-y-auto p-3 bg-gray-50 rounded-2xl border border-gray-100 shadow-inner">
-                    <p class="text-sm text-gray-500 text-center italic">Cargando tus planes...</p>
-                </div>
-                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 text-sm mt-1">
-                    💾 Guardar Precios
-                </button>
-            </form>
-
-            <div class="relative my-7">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="px-3 bg-white text-gray-400 font-extrabold text-[10px] tracking-widest uppercase">O crear nuevo</span>
-                </div>
-            </div>
-
-            <form id="formNuevoPlan" class="flex flex-col gap-3 bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
-                <div>
-                    <input type="text" id="nuevoPlanNombre" required placeholder="Nombre (ej. Plan VIP)" class="w-full border border-white bg-white p-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm shadow-sm transition">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-bold">$</span>
-                        <input type="number" step="0.01" id="nuevoPlanPrecio" required placeholder="Precio" class="w-full border border-white bg-white pl-8 pr-3 py-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm shadow-sm transition">
-                    </div>
-                    <div>
-                        <input type="number" id="nuevoPlanDias" required placeholder="Días (ej. 30)" class="w-full border border-white bg-white p-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400 text-sm shadow-sm transition">
-                    </div>
-                </div>
-                <button type="submit" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition text-sm flex justify-center items-center gap-2 mt-1 shadow-md">
-                    ➕ Añadir Plan
-                </button>
-            </form>
-
-            <button type="button" onclick="document.getElementById('modalAjustarPlanes').classList.add('hidden')" class="w-full mt-5 text-gray-400 font-semibold hover:text-gray-600 transition text-sm">
-                Cerrar Ventana
-            </button>
-        </div>
-    </div>
-
-    <div id="modalRenovarPlan" class="hidden fixed inset-0 z-[100] flex justify-center items-center bg-gray-900/60 backdrop-blur-sm p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up border border-emerald-100">
-            <div class="bg-emerald-600 px-6 py-4 flex justify-between items-center">
-                <h3 class="text-white font-bold text-lg flex items-center gap-2"><span>🔄</span> Renovar o Cambiar Plan</h3>
-                <button type="button" onclick="cerrarModalRenovar()" class="text-emerald-100 hover:text-white transition text-3xl leading-none">&times;</button>
-            </div>
-            <form id="formRenovarPlan" class="p-6">
-                <input type="hidden" id="renovarClienteId">
-                <p class="text-sm text-gray-500 mb-5">Socio seleccionado: <br><span id="renovarClienteNombre" class="font-extrabold text-gray-800 text-lg"></span></p>
-
-                <div class="mb-5">
-                    <label class="block text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-2">Seleccionar Nuevo Plan</label>
-                    <select id="renovarPlanElegido" required class="w-full border border-gray-200 bg-gray-50 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-bold text-emerald-800 transition cursor-pointer">
-                        <option value="">Cargando planes...</option>
-                    </select>
-                </div>
-
-                <div class="mb-8 flex items-center justify-between bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
-                    <div>
-                        <label class="text-sm font-bold text-emerald-900 block">Renovación Automática</label>
-                        <p class="text-[11px] text-emerald-600 mt-1 leading-tight">Activar cobros automáticos al finalizar el plan.</p>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="renovarAutoSwitch" class="sr-only peer" checked>
-                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
-                </div>
-
-                <div class="flex gap-3">
-                    <button type="button" onclick="cerrarModalRenovar()" class="w-1/2 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-200 transition">Cancelar</button>
-                    <button type="submit" class="w-1/2 bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-200">Guardar Renovación</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <script src="config.js"></script>
 
     <script>
-        const SUPABASE_URL = 'https://kfqdefzuwejwmupgvelg.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcWRlZnp1d2Vqd211cGd2ZWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MTcwMzYsImV4cCI6MjA4Njk5MzAzNn0.Wdr14R9gZ6Osy8RrVaYXC6CKUtBoYqbE9tV3oiekCPE';
-        const API_URL = "http://localhost:8787/suscriptores";
-        const API_PLANES = "http://localhost:8787/planes";
-        
-        const miSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        let tokenActual = null;
-        let miTenantId = null; 
-        let graficoInstancia = null;
-        let modoRecuperacion = false;
-        let listaClientesOriginal = [];
+        // 1. Inicializa tu conexión a Supabase (Usa tus llaves reales aquí)
+        //const supabaseUrl = 'https://kfqdefzuwejwmupgvelg.supabase.co';
+        //const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcWRlZnp1d2Vqd211cGd2ZWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MTcwMzYsImV4cCI6MjA4Njk5MzAzNn0.Wdr14R9gZ6Osy8RrVaYXC6CKUtBoYqbE9tV3oiekCPE';
+        //const miSupabase = supabase.createClient(supabaseUrl, supabaseKey);
+        const miSupabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
-        let limiteClientesActual = 100;
-        let planSaasActual = 'starter';
-        let totalClientesActual = 0;
-
-        // LOGIN
-        document.getElementById('formLogin').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const errorMsg = document.getElementById('errorLogin');
-            btn.innerHTML = 'Cargando...'; btn.disabled = true; errorMsg.classList.add('hidden');
-
-            try {
-                const email = document.getElementById('emailLogin').value;
-                const password = document.getElementById('passLogin').value;
-
-                const { data, error: authError } = await miSupabase.auth.signInWithPassword({ email, password });
-                if (authError) throw authError;
-
-                tokenActual = data.session.access_token;
-                const userEmail = data.session.user.email;
-                const userId = data.session.user.id;
-
-                let { data: staffData } = await miSupabase
-                    .from('perfiles_staff')
-                    .select('*')
-                    .or(`id.eq.${userId},email.eq.${userEmail}`);
-
-                if (staffData && staffData.length > 0) {
-                    const perfil = staffData[0];
-                    miTenantId = perfil.tenant_id;
-                    
-                    if (perfil.id !== userId) {
-                        await miSupabase.from('perfiles_staff').update({ id: userId }).eq('email', userEmail);
-                    }
-
-                    document.getElementById('userNameDisplay').innerText = perfil.nombre;
-                    document.getElementById('userInitialsCircle').innerText = perfil.nombre.charAt(0).toUpperCase();
-                    aplicarPermisos(perfil.rol);
-
-                    const { data: negocio } = await miSupabase.from('tenants').select('*').eq('id', miTenantId).single();
-                    if (negocio) {
-                        document.getElementById('nombreGymSidebar').innerText = negocio.nombre_negocio;
-                        if (negocio.logo_url) document.getElementById('logoGymImg').src = negocio.logo_url;
-                        planSaasActual = negocio.plan_saas || 'starter';
-                        limiteClientesActual = negocio.limite_clientes || 100;
-                        if (negocio.estado_suscripcion !== 'activa') {
-                            alert("⚠️ La suscripción de tu gimnasio está inactiva. Funcionalidades limitadas.");
-                        }
-                    }
-
-                    document.getElementById('pantallaLogin').classList.add('hidden');
-                    document.getElementById('pantallaDashboard').classList.remove('hidden');
-                    await cargarPlanes();
-                    await cargarDatosYDashboard();
-                } else {
-                    throw new Error("No tienes un perfil asignado en este sistema.");
-                }
-            } catch (err) {
-                console.error(err);
-                errorMsg.innerText = "Error: " + err.message;
-                errorMsg.classList.remove('hidden');
-            } finally {
-                btn.innerHTML = 'Ingresar al Sistema'; btn.disabled = false;
-            }
-        });
-
-        // NAVEGACIÓN Y CARGA DE STAFF
-        async function cargarStaff() {
-            if (!miTenantId) return;
-            const { data: staff } = await miSupabase.from('perfiles_staff').select('*').eq('tenant_id', miTenantId).order('nombre');
-            if (staff) {
-                document.getElementById('tablaStaff').innerHTML = staff.map(s => `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 font-semibold text-sm text-gray-800">
-                            ${s.nombre}
-                            <br><span class="text-[10px] text-gray-400 font-normal">${s.email || 'Pendiente'}</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${s.rol === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'}">
-                                ${s.rol.toUpperCase()}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            ${s.rol !== 'admin'
-                                ? `<button onclick="eliminarStaff('${s.id}')" class="text-red-500 hover:text-red-700 text-sm font-bold transition">Eliminar</button>`
-                                : `<span class="text-gray-300 text-xs italic">Protegido</span>`}
-                        </td>
-                    </tr>
-                `).join('');
-            }
+        // Funciones del Modal
+        function abrirModalRegistro(nombrePlan, precio) {
+            document.getElementById('spanPlanSeleccionado').innerText = `Plan ${nombrePlan}`;
+            document.getElementById('inputPlanElegido').value = nombrePlan.toLowerCase();
+            document.getElementById('inputPrecioElegido').value = precio;
+            document.getElementById('modalRegistroSaaS').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         }
 
-        document.getElementById('formNuevoStaff').addEventListener('submit', async (e) => {
+        function cerrarModalRegistro() {
+            document.getElementById('modalRegistroSaaS').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // 2. EVENTO DE REGISTRO (CON PASARELA REAL DE PAYPAL)
+        document.getElementById('formRegistroSaaS').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = 'Guardando...'; btn.disabled = true;
-
-            const nombre = document.getElementById('nombreStaff').value;
-            const email = document.getElementById('emailStaff').value;
-            const telefono = document.getElementById('telefonoStaff').value;
-            const rol = document.getElementById('rolStaff').value;
-
-            try {
-                const { error: dbError } = await miSupabase
-                    .from('perfiles_staff')
-                    .insert([{ tenant_id: miTenantId, nombre, email, telefono, rol }]);
-                if (dbError) throw dbError;
-
-                // 1. Extraemos el nombre del gimnasio que ya está cargado en la barra lateral
-                const nombreGym = document.getElementById('nombreGymSidebar').innerText;
-                const urlRegistro = window.location.href.split('#')[0]; 
-                const mensaje = `Hola ${nombre}, te he agregado al equipo de ${nombreGym} en JS MemberLy. \n\nPor favor, ingresa a ${urlRegistro} y haz clic en "Crear mi cuenta de acceso" usando exactamente este correo: ${email}`;
-                const numeroWA = telefono.replace(/\D/g, ''); 
-
-                alert("✅ Perfil creado. Se abrirá WhatsApp para enviar las instrucciones.");
-                window.open(`https://wa.me/${numeroWA}?text=${encodeURIComponent(mensaje)}`, '_blank');
-
-                document.getElementById('modalNuevoStaff').classList.add('hidden');
-                e.target.reset();
-                cargarStaff();
-            } catch (err) {
-                alert("❌ Error: " + err.message);
-            } finally {
-                btn.innerHTML = originalText; btn.disabled = false;
-            }
-        });
-
-        // PLANES & DASHBOARD
-        async function cargarPlanes() {
-            const select = document.getElementById('planElegido');
-            if(!select) return;
             
-            select.innerHTML = '<option value="">Cargando planes...</option>';
-
-            // ¡AQUÍ ESTÁ LA MAGIA DEL FILTRO! Solo los planes de este tenant
-            const { data, error } = await miSupabase
-                .from('planes')
-                .select('*')
-                .eq('tenant_id', miTenantId) 
-                .order('precio');
-
-            if (error) {
-                console.error("Error cargando planes:", error);
-                return;
-            }
-
-            if (data && data.length > 0) {
-                // Guardamos el precio en un data-attribute para usarlo al enviar el formulario
-                select.innerHTML = data.map(p => 
-                    `<option value="${p.id}" data-meses="${Math.max(1, Math.round(p.dias_duracion / 30))}" data-precio="${p.precio}">
-                        ${p.nombre_plan} - $${p.precio}
-                    </option>`
-                ).join('');
-            } else {
-                select.innerHTML = '<option value="">Sin planes (Ve a Ajustar Precios)</option>';
-            }
-        }
-
-        async function cargarDatosYDashboard() {
-            try {
-                // 1. Traer Clientes del Backend (Cloudflare)
-                const res = await fetch(API_URL, { headers: { 'Authorization': `Bearer ${tokenActual}` } });
-                let clientesCrudos = await res.json();
-                const clientes = clientesCrudos.filter(c => c.tenant_id === miTenantId);
-
-                // 2. Traer Historial de Pagos (Supabase)
-                const { data: historial, error: histError } = await miSupabase
-                    .from('historial_suscripciones')
-                    .select('*')
-                    .eq('tenant_id', miTenantId);
-
-                // 3. LA MAGIA: Unir el historial con los clientes y calcular estado
-                const clientesConHistorial = clientes.map(cliente => {
-                    const subs = historial && !histError ? historial.filter(h => h.suscriptor_id === cliente.id) : [];
-                    subs.sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin));
-                    const ultimaSub = subs[0];
-                    
-                    // Pre-calculamos el estado una sola vez para usarlo en los filtros
-                    let estadoCalculado = 'Sin plan';
-                    if (ultimaSub && ultimaSub.fecha_fin) {
-                        const diffTime = new Date() - new Date(ultimaSub.fecha_fin);
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        if (diffDays > 30) estadoCalculado = 'Inactivo';
-                        else if (diffDays > 0 && diffDays <= 30) estadoCalculado = 'Atrasado';
-                        else estadoCalculado = 'Activo';
-                    }
-
-                    return {
-                        ...cliente,
-                        historial_suscripciones: subs,
-                        estado_calculado: estadoCalculado // <--- Guardamos el dato listo para usar
-                    };
-                });
-
-                // 4. Renderizar la tabla con los datos completos
-                listaClientesOriginal = clientesConHistorial; 
-                //renderizarTablaClientes(clientesConHistorial);
-                filtrarClientes(); 
-
-                // 5. KPIs de Límites del Plan SaaS
-                totalClientesActual = clientes.length;
-                document.getElementById('kpiTotal').innerText = totalClientesActual;
-                document.getElementById('kpiLimite').innerText = limiteClientesActual;
-
-                const barra = document.getElementById('barraUsoPlan');
-                const nombrePlan = document.getElementById('nombrePlanSaas');
-                if (barra) {
-                    let porcentajeUso = limiteClientesActual > 0 
-                        ? (totalClientesActual / limiteClientesActual) * 100 
-                        : 0;
-                    if (porcentajeUso > 100) porcentajeUso = 100;
-                    barra.style.width = `${porcentajeUso}%`;
-                    barra.className = `transition-all duration-700 h-2 rounded-full ${porcentajeUso >= 90 ? 'bg-red-500' : 'bg-emerald-500'}`;
-                }
-                if (nombrePlan) nombrePlan.innerText = planSaasActual;
-
-                // 6. KPIs de Estado (Aplicando la nueva regla de 30 días)
-                let contAlDia = 0;
-                let contAtrasados = 0;
-
-                clientesConHistorial.forEach(c => {
-                    const subs = c.historial_suscripciones || [];
-                    // Ordenamos para obtener el pago más reciente
-                    subs.sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin));
-                    const ultimaSub = subs[0];
-
-                    if (ultimaSub && ultimaSub.fecha_fin) {
-                        const diffTime = new Date() - new Date(ultimaSub.fecha_fin);
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        
-                        if (diffDays <= 0) {
-                            contAlDia++; // Tiene días a favor
-                        } else if (diffDays > 0 && diffDays <= 30) {
-                            contAtrasados++; // Atrasado (periodo de gracia)
-                        }
-                        // Si diffDays > 30, es "Inactivo" y no suma en estas dos gráficas principales
-                    }
-                });
-
-                const elementoAlDia = document.getElementById('kpiAlDia');
-                const elementoAtrasados = document.getElementById('kpiMorosos');
-                if (elementoAlDia) elementoAlDia.innerText = contAlDia;
-                if (elementoAtrasados) elementoAtrasados.innerText = contAtrasados;
-                
-                actualizarGrafico(contAlDia, contAtrasados);
-
-            } catch (error) { 
-                console.error("Error al cargar el dashboard:", error); 
-            }
-        }
-
-        function actualizarGrafico(alDia, morosos) {
-            const ctx = document.getElementById('graficoPagos').getContext('2d');
-            if (graficoInstancia) graficoInstancia.destroy();
-            graficoInstancia = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Al Día', 'Atrasados'],
-                    datasets: [{ data: [alDia, morosos], backgroundColor: ['#10B981', '#EF4444'], borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '72%' }
-            });
-        }
-
-        // PERMISOS
-        function aplicarPermisos(rol) {
-            document.querySelectorAll('.solo-admin').forEach(el =>
-                rol === 'recepcionista' ? el.classList.add('hidden') : el.classList.remove('hidden')
-            );
-        }
-
-        async function subirLogo(input) {
-            const archivo = input.files[0];
-            if (!archivo) return;
-
-            // --- NUEVA VALIDACIÓN DE TAMAÑO (1 MB) ---
-            if (archivo.size > 1048576) {
-                alert("⚠️ El archivo es demasiado grande. Por favor, sube un logo que pese menos de 1 MB.");
-                input.value = ''; // Limpiamos el input para que pueda intentar de nuevo
-                return;
-            }
-
-            const imgElement = document.getElementById('logoGymImg');
-            imgElement.src = "https://via.placeholder.com/150?text=Subiendo...";
-            try {
-                const fileName = `${miTenantId}/logo_${Date.now()}.png`;
-                await miSupabase.storage.from('logos').upload(fileName, archivo);
-                const { data: urlData } = miSupabase.storage.from('logos').getPublicUrl(fileName);
-                await miSupabase.from('tenants').update({ logo_url: urlData.publicUrl }).eq('id', miTenantId);
-                imgElement.src = urlData.publicUrl;
-            } catch (e) { alert("Error al subir"); }
-        }
-
-        async function eliminarStaff(id) {
-            if (confirm("¿Eliminar este miembro del equipo?")) {
-                await miSupabase.from('perfiles_staff').delete().eq('id', id);
-                cargarStaff();
-            }
-        }
-
-        function mostrarPaseQR(id, nombre, tel, fotoUrl) {
-            document.getElementById('modalQR').classList.remove('hidden');
-            document.getElementById('nombreClienteQR').innerText = nombre;
-            
-            // Lógica de la Foto: Si no tiene, creamos un avatar con sus iniciales automáticamente
-            const imgEl = document.getElementById('fotoClienteQR');
-            if (fotoUrl && fotoUrl !== 'null' && fotoUrl !== '') {
-                imgEl.src = fotoUrl;
-            } else {
-                imgEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=10B981&color=fff&size=150`;
-            }
-
-            const cont = document.getElementById('contenedorQR'); 
-            cont.innerHTML = '';
-            new QRCode(cont, { text: `https://wide-waves-shave.loca.lt/checkin/${id}`, width: 220, height: 220 });
-            
-            document.getElementById('btnEnviarWA').onclick = () =>
-                window.open(`https://wa.me/${tel.replace(/\D/g,'')}?text=Hola ${nombre}, aquí tienes tu pase QR de acceso al gimnasio.`, '_blank');
-        }
-
-        let html5QrCode;
-        function abrirEscanner() {
-            document.getElementById('lectorQRContainer').classList.remove('hidden');
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => {
-                html5QrCode.stop().then(() => window.location.href = txt);
-            });
-        }
-        function cerrarEscanner() {
-            if (html5QrCode) html5QrCode.stop().then(() => document.getElementById('lectorQRContainer').classList.add('hidden'));
-            else document.getElementById('lectorQRContainer').classList.add('hidden');
-        }
-
-        document.getElementById('formUpdatePassword').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const { error } = await miSupabase.auth.updateUser({ password: document.getElementById('newPassword').value });
-            if (!error) { alert("✅ Contraseña actualizada."); await miSupabase.auth.signOut(); location.reload(); }
-            else alert("Error: " + error.message);
-        });
-
-        miSupabase.auth.onAuthStateChange((event, session) => {
-            if (event === "PASSWORD_RECOVERY") {
-                modoRecuperacion = true;
-                document.getElementById('pantallaLogin').classList.add('hidden');
-                document.getElementById('modalPassword').classList.remove('hidden');
-                alert("👋 ¡Bienvenido al equipo! Por favor, crea tu nueva contraseña para activar tu cuenta.");
-            }
-        });
-
-        function cancelarReset() {
-            document.getElementById('modalPassword').classList.add('hidden');
-            if (modoRecuperacion) { miSupabase.auth.signOut(); location.reload(); }
-        }
-        async function solicitarResetPassword() {
-            const email = document.getElementById('emailLogin').value;
-            if (!email) return alert("⚠️ Ingresa tu correo primero.");
-            const { error } = await miSupabase.auth.resetPasswordForEmail(email, { redirectTo: 'http://127.0.0.1:5500/frontend/index.html' });
-            if (!error) alert("📩 Enlace enviado.");
-        }
-        function cerrarSesion() { miSupabase.auth.signOut(); location.reload(); }
-
-        function abrirRegistro() {
-            document.getElementById('modalRegistro').classList.remove('hidden');
-            document.getElementById('pantallaLogin').classList.add('hidden');
-        }
-        function cerrarRegistro() {
-            document.getElementById('modalRegistro').classList.add('hidden');
-            document.getElementById('pantallaLogin').classList.remove('hidden');
-        }
-
-        document.getElementById('formRegistro').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const email = document.getElementById('emailRegistro').value;
-            const password = document.getElementById('passRegistro').value;
-
-            // --- NUEVA VALIDACIÓN ---
-            const emailConfirm = document.getElementById('emailRegistroConfirm').value;
-            const passConfirm = document.getElementById('passRegistroConfirm').value;
+            // --- VALIDACIONES DE FORMULARIO ---
+            const email = document.getElementById('regEmailAdmin').value;
+            const emailConfirm = document.getElementById('regEmailAdminConfirm').value;
+            const pass = document.getElementById('regPassAdmin').value;
+            const passConfirm = document.getElementById('regPassAdminConfirm').value;
 
             if (email !== emailConfirm) {
                 alert("⚠️ Los correos electrónicos no coinciden.");
                 return;
             }
-            if (password !== passConfirm) {
+            if (pass !== passConfirm) {
                 alert("⚠️ Las contraseñas no coinciden.");
                 return;
             }
-            // ------------------------
-
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = 'Verificando...'; btn.disabled = true;
-
-            try {
-                const { data: estaAutorizado, error: rpcError } = await miSupabase.rpc('verificar_invitacion', { correo: email });
-                if (rpcError) throw new Error("Error al consultar el directorio de invitaciones.");
-                if (!estaAutorizado) throw new Error("Acceso denegado: Un administrador debe registrar este correo en el sistema primero.");
-
-                btn.innerHTML = 'Creando cuenta...';
-                const { data, error } = await miSupabase.auth.signUp({
-                    email, password,
-                    options: { emailRedirectTo: window.location.href }
-                });
-                if (error) throw error;
-
-                alert("✅ ¡Cuenta creada con éxito! Revisa tu bandeja de entrada/spam y confirma tu correo.");
-                e.target.reset();
-                cerrarRegistro();
-                document.getElementById('emailLogin').value = email;
-                document.getElementById('passLogin').focus();
-            } catch (err) {
-                console.error("Error en registro:", err);
-                alert("❌ " + err.message);
-            } finally {
-                btn.innerHTML = originalText; btn.disabled = false;
-            }
-        });
-
-        // TABLA DE CLIENTES (INTACTA - EXACTAMENTE COMO LA TIENES)
-        function renderizarTablaClientes(arreglo) {
-            const tbody = document.getElementById('tablaCuerpo');
-            if (!tbody) return;
-
-            tbody.innerHTML = arreglo.map(c => {
-                // 1. Obtener la suscripción más reciente
-                const subs = c.historial_suscripciones || [];
-                subs.sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin));
-                const ultimaSub = subs[0] || {};
-                
-                // 2. Formatear datos de interés
-                const vence = ultimaSub.fecha_fin ? new Date(ultimaSub.fecha_fin).toLocaleDateString('es-ES') : '<span class="text-gray-400">Sin plan</span>';
-                const fechaRegistro = c.fecha_registro || c.created_at; // Soporte para ambos nombres de columna
-                const registrado = fechaRegistro ? new Date(fechaRegistro).toLocaleDateString('es-ES') : 'Desconocido';
-                const emergencia = c.contacto_emergencia || '<span class="text-gray-400 italic">No registrado</span>';
-
-                // 3. Lógica Estricta de Estado (Atrasado <= 30 días, Inactivo > 30 días)
-                let estadoTexto = ultimaSub.estado_pago || 'Sin plan';
-                let badgeClass = 'bg-gray-100 text-gray-700';
-
-                if (ultimaSub.fecha_fin) {
-                    const diffTime = new Date() - new Date(ultimaSub.fecha_fin);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    
-                    if (diffDays > 30) {
-                        estadoTexto = 'Inactivo';
-                        badgeClass = 'bg-red-100 text-red-700';
-                    } else if (diffDays > 0 && diffDays <= 30) {
-                        estadoTexto = 'Atrasado';
-                        badgeClass = 'bg-yellow-100 text-yellow-700';
-                    } else {
-                        estadoTexto = 'Activo';
-                        badgeClass = 'bg-emerald-100 text-emerald-700';
-                    }
-                }
-
-                const badgeEstado = `<span class="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase ${badgeClass}">${estadoTexto}</span>`;
-
-                return `
-                    <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
-                                <img src="${c.foto_url || 'https://ui-avatars.com/api/?name='+encodeURIComponent(c.nombre_completo)+'&background=10B981&color=fff'}" class="w-8 h-8 rounded-full object-cover">
-                                <span class="text-sm font-bold text-gray-800">${c.nombre_completo}</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-700">📞 ${c.telefono || 'Sin teléfono'}</div>
-                            <div class="text-xs text-gray-400 mt-0.5">📩 ${c.email || 'Sin correo'}</div>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600">${emergencia}</td>
-                        <td class="px-6 py-4">${badgeEstado}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600 font-medium">${vence}</td>
-                        <td class="px-6 py-4 text-sm text-gray-400">${registrado}</td>
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex justify-end items-center gap-2">
-                                <button onclick="abrirModalRenovar('${c.id}', '${c.nombre_completo}')"
-                                    class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-100 transition shadow-sm" title="Renovar o Cambiar Plan">
-                                    🔄 Renovar
-                                </button>
-                                
-                                <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}', '${c.foto_url || ''}')"
-                                    class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition shadow-sm">
-                                    📱 QR
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // FUNCIÓN DE FILTRADO (AHORA SOPORTA FILTRO DOBLE POR DEFECTO)
-        function filtrarClientes() {
-            const texto = document.getElementById('inputBuscarCliente').value.toLowerCase();
-            const filtroEstado = document.getElementById('filtroEstado') ? document.getElementById('filtroEstado').value : 'Activos y Atrasados';
-
-            const filtrados = listaClientesOriginal.filter(c => {
-                const coincideTexto = 
-                    (c.nombre_completo && c.nombre_completo.toLowerCase().includes(texto)) ||
-                    (c.email && c.email.toLowerCase().includes(texto));
-
-                let coincideEstado = true; 
-                
-                if (filtroEstado !== 'Todos') {
-                    const subs = c.historial_suscripciones || [];
-                    const subsOrdenadas = [...subs].sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin));
-                    const ultimaSub = subsOrdenadas[0] || {};
-                    
-                    let estadoCalculado = ultimaSub.estado_pago || 'Sin plan';
-                    
-                    if (ultimaSub.fecha_fin) {
-                        const diffTime = new Date() - new Date(ultimaSub.fecha_fin);
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        
-                        if (diffDays > 30) estadoCalculado = 'Inactivo';
-                        else if (diffDays > 0 && diffDays <= 30) estadoCalculado = 'Atrasado';
-                        else estadoCalculado = 'Activo';
-                    }
-
-                    // APLICAMOS LA NUEVA REGLA (Permitir Activos OR Atrasados)
-                    if (filtroEstado === 'Activos y Atrasados') {
-                        coincideEstado = (estadoCalculado === 'Activo' || estadoCalculado === 'Atrasado');
-                    } else {
-                        coincideEstado = (estadoCalculado === filtroEstado);
-                    }
-                }
-
-                return coincideTexto && coincideEstado;
-            });
-
-            renderizarTablaClientes(filtrados);
-        }
-
-        // REGISTRO NUEVO SUSCRIPTOR
-        document.getElementById('formSuscriptor').addEventListener('submit', async (e) => {
-            e.preventDefault();
             
-            if (totalClientesActual >= limiteClientesActual) {
-                prepararYAbrirModalUpgrade(); return;
-            }
+            const btn = document.getElementById('btnPagarSaaS');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = 'Conectando con PayPal... ⏳';
+            btn.disabled = true;
 
-            // --- NUEVA VALIDACIÓN: TAMAÑO DE LA FOTO (MÁXIMO 1 MB) ---
-            const inputFoto = document.getElementById('fotoInput');
-            if (inputFoto && inputFoto.files[0]) {
-                const tamañoBytes = inputFoto.files[0].size;
-                if (tamañoBytes > 1048576) { // 1048576 bytes = 1 MB
-                    alert("⚠️ La foto del cliente es demasiado grande. Por favor, asegúrate de que pese menos de 1 MB.");
-                    inputFoto.value = ''; // Limpiamos el input para que pueda elegir otra sin recargar
-                    return; // Detenemos la ejecución aquí mismo
-                }
-            }
-            // ---------------------------------------------------------
-
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = 'Guardando...'; btn.disabled = true;
+            // Recopilamos datos
+            const nombreGym = document.getElementById('regNombreGym').value;
+            const paisGym = document.getElementById('regPais').value;
+            const idNacional = document.getElementById('regIdNacional').value;
+            
+            const nombreAdmin = document.getElementById('regNombreAdmin').value;
+            const telefonoAdmin = document.getElementById('regTelefonoAdmin').value;
+            const plan = document.getElementById('inputPlanElegido').value;
+            const precio = document.getElementById('inputPrecioElegido').value;
 
             try {
-                let fotoUrl = null;
-                const inputFoto = document.getElementById('fotoInput');
-                
-                if (inputFoto && inputFoto.files[0]) {
-                    const fotoFile = inputFoto.files[0];
-                    const fileName = `${miTenantId}/${Date.now()}_socio.png`;
-                    const { data } = await miSupabase.storage.from('avatars').upload(fileName, fotoFile);
-                    if (data) fotoUrl = miSupabase.storage.from('avatars').getPublicUrl(fileName).data.publicUrl;
-                }
-
-                const sel = document.getElementById('planElegido');
-                const nuevoCliente = {
-                    tenant_id: miTenantId,
-                    nombre_completo: document.getElementById('nombre').value,
-                    identificacion: document.getElementById('identificacionSocio').value,
-                    direccion: document.getElementById('direccionSocio').value,
-                    telefono: document.getElementById('telefono').value,
-                    email: document.getElementById('email').value,
-                    plan_id: sel.value,
-                    meses_duracion: sel.options[sel.selectedIndex].getAttribute('data-meses'),
-                    foto_url: fotoUrl,
-                    contacto_emergencia: document.getElementById('contactoEmergencia').value,
-
-                    // NUEVO: Capturamos si el switch está encendido (true/false)
-                    renovacion_automatica: document.getElementById('renovacionAutoCliente').checked
+                // --- NUEVO: 1. GUARDAR DATOS TEMPORALES ---
+                // Guardamos todo en memoria local antes de irnos a PayPal para no perderlo
+                const datosRegistroSaaS = {
+                    nombreGym, paisGym, idNacional, nombreAdmin, emailAdmin: email, telefonoAdmin, passAdmin: pass, plan
                 };
+                localStorage.setItem('js_memberly_registro_pendiente', JSON.stringify(datosRegistroSaaS));
 
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokenActual}` },
-                    body: JSON.stringify(nuevoCliente)
-                });
-                if (!res.ok) throw new Error("Error al guardar el cliente en el servidor.");
+                // --- NUEVO: 2. PEDIR EL LINK DE COBRO AL BACKEND ---
+                //const urlBackend = 'http://127.0.0.1:8787/api/suscripcion-saas/generar-link'; 
+                const urlBackend = `${CONFIG.BACKEND_URL}/api/suscripcion-saas/generar-link`;
 
-                // --- NUEVO: LLENAMOS Y MOSTRAMOS EL MODAL DE ÉXITO ---
-                const nombrePlanTexto = sel.options[sel.selectedIndex].text;
-                document.getElementById('resNombre').innerText = nuevoCliente.nombre_completo;
-                document.getElementById('resTelefono').innerText = nuevoCliente.telefono;
-                document.getElementById('resEmail').innerText = nuevoCliente.email;
-                document.getElementById('resEmergencia').innerText = nuevoCliente.contacto_emergencia || 'No registrado';
-                document.getElementById('resPlan').innerText = nombrePlanTexto;
-                
-                document.getElementById('modalExitoCliente').classList.remove('hidden');
-
-                e.target.reset();
-                if(document.getElementById('fotoInput')) document.getElementById('fotoInput').value = '';
-                await cargarDatosYDashboard();
-            } catch (err) {
-                console.error("Error al registrar suscriptor:", err);
-                alert("❌ Error: " + err.message);
-            } finally {
-                btn.innerHTML = originalText; btn.disabled = false;
-            }
-        });
-
-        // MODAL UPGRADE
-        function prepararYAbrirModalUpgrade() {
-            const titulo = document.getElementById('tituloPlanUpsell');
-            const lista = document.getElementById('listaFeaturesUpsell');
-            const btn = document.getElementById('btnPagarUpgrade');
-
-            if (planSaasActual.toLowerCase() === 'starter') {
-                titulo.innerText = 'Plan Pro — $69/mes';
-                lista.innerHTML = `
-                    <li class="flex items-center gap-2">✅ <span class="font-semibold">Hasta 500 clientes activos</span></li>
-                    <li class="flex items-center gap-2">✅ Usuarios de Staff ilimitados</li>
-                    <li class="flex items-center gap-2">✅ Recordatorios automáticos por WhatsApp</li>`;
-                btn.innerHTML = 'Mejorar a Plan Pro <span>💳</span>';
-            } else if (planSaasActual.toLowerCase() === 'pro') {
-                titulo.innerText = 'Plan Elite — $149/mes';
-                lista.innerHTML = `
-                    <li class="flex items-center gap-2">✅ <span class="font-semibold">Clientes y Staff Ilimitados</span></li>
-                    <li class="flex items-center gap-2">✅ Reportes avanzados de retención</li>
-                    <li class="flex items-center gap-2">✅ Soporte Prioritario 24/7</li>`;
-                btn.innerHTML = 'Mejorar a Plan Elite <span>💳</span>';
-            } else {
-                titulo.innerText = 'Ampliación de Capacidad';
-                lista.innerHTML = `<li class="flex items-center gap-2">✅ <span class="font-semibold">Aumenta tu límite actual de servidor</span></li>`;
-                btn.innerHTML = 'Contactar a Soporte <span>🎧</span>';
-            }
-            document.getElementById('modalUpgrade').classList.remove('hidden');
-        }
-
-        // --- SISTEMA DE NAVEGACIÓN COMPLETO (ACTUALIZADO) ---
-        function cambiarVista(vistaDestino) {
-            // 1. Mapear pantallas
-            const vistas = {
-                'resumen': document.getElementById('vistaResumen'),
-                'finanzas': document.getElementById('vistaFinanzas'),
-                'staff': document.getElementById('vistaStaff'),
-                'pagos': document.getElementById('vistaPagos'), 
-                'escanear': document.getElementById('vistaEscanear'),
-                'facturacion': document.getElementById('vistaFacturacion')
-            };
-
-            // 2. Apagar todas las pantallas
-            Object.values(vistas).forEach(pantalla => {
-                if (pantalla) pantalla.classList.add('hidden');
-            });
-
-            // 3. Encender la pantalla solicitada
-            if (vistas[vistaDestino]) vistas[vistaDestino].classList.remove('hidden');
-
-            // --- NUEVO: ACTUALIZAR ESTADO DEL MENÚ LATERAL ---
-            // A) Apagamos todos los botones (quitamos 'active', ponemos texto opaco)
-            document.querySelectorAll('.nav-link').forEach(btn => {
-                btn.classList.remove('active');
-                btn.classList.add('text-white/70');
-            });
-
-            // B) Encendemos solo el botón correcto
-            const mapaBotones = {
-                'resumen': 'btnNavDashboard',
-                'staff': 'btnNavStaff',
-                'finanzas': 'btnMenuFinanzas',
-                'pagos': 'btnMenuPagos',
-                'facturacion': 'btnMenuFacturacion'
-            };
-            
-            const btnActivo = document.getElementById(mapaBotones[vistaDestino]);
-            if (btnActivo) {
-                btnActivo.classList.add('active');
-                btnActivo.classList.remove('text-white/70');
-            } else if (vistaDestino === 'escanear') {
-                // En caso de que el botón de escanear no tenga ID
-                const btnEsc = document.querySelector('a[onclick="cambiarVista(\'escanear\')"]');
-                if (btnEsc) {
-                    btnEsc.classList.add('active');
-                    btnEsc.classList.remove('text-white/70');
-                }
-            }
-
-            // 4. Ejecutar lógicas adicionales (CORREGIDO)
-            if (vistaDestino === 'finanzas') {
-                cargarDashboardFinanciero();
-            } 
-            else if (vistaDestino === 'staff') {
-                cargarStaff();
-            } 
-
-            else if (vistaDestino === 'facturacion') {
-                cargarReporteFacturacion();
-            }
-
-            else if (vistaDestino === 'pagos') {
-                // Al usar varias líneas, las llaves {} son obligatorias
-                const paywall = document.getElementById('paywallPagos');
-                const premiumPlans = ['elite', 'pro']; // Solo Pro y Elite tienen acceso
-
-                // Validamos si existe el elemento en el HTML para evitar errores
-                if (paywall) {
-                    if (!premiumPlans.includes(planSaasActual.toLowerCase())) {
-                        paywall.classList.remove('hidden'); // Mostramos el bloqueo
-                        return; // Detenemos la ejecución para que no cargue los datos
-                    } else {
-                        paywall.classList.add('hidden'); // Ocultamos el bloqueo
-                    }
-                }
-                
-                // Si pasó el Paywall (o si es Pro/Elite), cargamos los datos
-                if (typeof cargarReporteFacturacion === 'function') {
-                    cargarReporteFacturacion(); 
-                }
-            }
-        }
-
-        // Variables globales para evitar duplicar gráficos al hacer clics múltiples
-        let chartFlujo = null;
-        let chartPlanes = null;
-
-        // --- LÓGICA DEL DASHBOARD FINANCIERO ---
-        async function cargarDashboardFinanciero() {
-            const paywall = document.getElementById('paywallFinanzas');
-            
-            // 1. GATEKEEPER SAAS
-            if (planSaasActual.toLowerCase() !== 'elite') {
-                paywall.classList.remove('hidden');
-                return; 
-            } else {
-                paywall.classList.add('hidden');
-            }
-
-            try {
-                // 2. EXTRAER DATOS REALES DE SUPABASE
-                // IMPORTANTE: Añadí suscriptor_id y fecha_inicio para poder calcular el MRR pasado y los clientes únicos
-                const { data: historial, error } = await miSupabase
-                    .from('historial_suscripciones')
-                    .select(`
-                        suscriptor_id,
-                        estado_pago,
-                        fecha_inicio,
-                        fecha_fin,
-                        precio_cobrado, 
-                        planes ( nombre_plan, dias_duracion )
-                    `)
-                    .eq('tenant_id', miTenantId);
-
-                if (error) throw error;
-
-                // 3. VARIABLES PARA MATEMÁTICAS AVANZADAS
-                let mrrActual = 0;
-                let mrrPasado = 0;
-                
-                let ingresosPorPlan = {}; 
-                let cashFlow15Dias = Array(15).fill(0); 
-                
-                // Definición estricta de tiempos
-                const hoy = new Date();
-                const anioActual = hoy.getFullYear();
-                const mesActual = hoy.getMonth();
-                
-                const inicioMesActual = new Date(anioActual, mesActual, 1);
-                const finMesActual = new Date(anioActual, mesActual + 1, 0);
-
-                const inicioMesPasado = new Date(mesActual === 0 ? anioActual - 1 : anioActual, mesActual === 0 ? 11 : mesActual - 1, 1);
-                const finMesPasado = new Date(mesActual === 0 ? anioActual - 1 : anioActual, mesActual === 0 ? 12 : mesActual, 0);
-
-                const limite15Dias = new Date();
-                limite15Dias.setDate(hoy.getDate() + 15);
-
-                const subsPorCliente = {}; // Para agrupar usuarios únicos y calcular Churn
-
-                // 4. PROCESAMIENTO DE DATOS
-                historial.forEach(sub => {
-                    const fInicio = new Date(sub.fecha_inicio);
-                    const fFin = new Date(sub.fecha_fin);
-                    const precio = parseFloat(sub.precio_cobrado) || 0; 
-                    const dias = sub.planes?.dias_duracion || 30;
-                    const nombrePlan = sub.planes?.nombre_plan || 'Plan Genérico';
-                    
-                    const meses = Math.max(1, Math.round(dias / 30));
-                    const ingresoMensualReal = precio / meses;
-
-                    // A. MRR MES ACTUAL (Solo dinero de suscripciones activas durante este mes exacto)
-                    if (fInicio <= finMesActual && fFin >= inicioMesActual) {
-                        mrrActual += ingresoMensualReal;
-                        if (!ingresosPorPlan[nombrePlan]) ingresosPorPlan[nombrePlan] = 0;
-                        ingresosPorPlan[nombrePlan] += ingresoMensualReal;
-                    }
-
-                    // B. MRR MES ANTERIOR (Para comparar)
-                    if (fInicio <= finMesPasado && fFin >= inicioMesPasado) {
-                        mrrPasado += ingresoMensualReal;
-                    }
-
-                    // C. FLUJO DE CAJA A 15 DÍAS
-                    if (fFin >= hoy && fFin <= limite15Dias) {
-                        const diffTime = Math.abs(fFin - hoy);
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        if (diffDays >= 0 && diffDays < 15) {
-                            cashFlow15Dias[diffDays] += precio; 
-                        }
-                    }
-
-                    // Agrupamos la última fecha de cada cliente para el Churn
-                    if (!subsPorCliente[sub.suscriptor_id] || new Date(subsPorCliente[sub.suscriptor_id].fecha_fin) < fFin) {
-                        subsPorCliente[sub.suscriptor_id] = sub;
-                    }
-                });
-
-                // 5. CÁLCULO DE CHURN Y RETENCIÓN (Solo vencimientos del año actual, >30 días)
-                let retenidosAnio = 0;
-                let churnedAnio = 0;
-
-                Object.values(subsPorCliente).forEach(ultimaSub => {
-                    const fFin = new Date(ultimaSub.fecha_fin);
-                    if (fFin.getFullYear() === anioActual) {
-                        const diffTime = hoy - fFin;
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        
-                        if (diffDays > 30) {
-                            churnedAnio++; // Inactivo oficialmente
-                        } else {
-                            retenidosAnio++; // Activo o Atrasado (retenible)
-                        }
-                    }
-                });
-
-                const totalAnio = retenidosAnio + churnedAnio;
-                let churn = 0;
-                let retencion = 100;
-                if (totalAnio > 0) {
-                    churn = Math.round((churnedAnio / totalAnio) * 100);
-                    retencion = 100 - churn;
-                }
-
-                // 6. ACTUALIZAR HTML (KPIs)
-                document.getElementById('kpiMRR').innerText = mrrActual.toFixed(2);
-                document.getElementById('kpiRetencion').innerText = retencion;
-                document.getElementById('kpiChurn').innerText = churn;
-
-                // CÁLCULO DINÁMICO DE CRECIMIENTO MRR (%)
-                let crecimiento = 0;
-                if (mrrPasado > 0) {
-                    crecimiento = ((mrrActual - mrrPasado) / mrrPasado) * 100;
-                } else if (mrrActual > 0) {
-                    crecimiento = 100;
-                }
-
-                // NUEVO: APUNTAMOS DIRECTAMENTE AL ID EXACTO
-                const spanCrecimiento = document.getElementById('kpiCrecimiento');
-                if (spanCrecimiento) {
-                    const esPositivo = crecimiento >= 0;
-                    spanCrecimiento.innerText = esPositivo ? `+${crecimiento.toFixed(1)}% vs mes anterior` : `${crecimiento.toFixed(1)}% vs mes anterior`;
-                    
-                    // Colores dinámicos: Verde si sube o se mantiene, Rojo si cae
-                    spanCrecimiento.className = esPositivo 
-                        ? 'text-xs font-bold px-2 py-1 rounded-md text-emerald-600 bg-emerald-50 mt-2 inline-block transition-all' 
-                        : 'text-xs font-bold px-2 py-1 rounded-md text-red-600 bg-red-50 mt-2 inline-block transition-all';
-                }
-
-                // 7. PREPARAR DATOS PARA GRÁFICOS (Tu código intacto)
-                const etiquetasDias = Array.from({length: 15}, (_, i) => {
-                    if (i === 0) return 'Hoy';
-                    if (i === 1) return 'Mañana';
-                    let d = new Date();
-                    d.setDate(d.getDate() + i);
-                    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }); 
-                });
-                
-                const etiquetasPlanes = Object.keys(ingresosPorPlan);
-                const datosPlanes = Object.values(ingresosPorPlan);
-
-                // 8. RENDERIZAR GRÁFICO DE FLUJO DE CAJA (Tu código intacto)
-                const ctxFlujo = document.getElementById('graficoFlujoCaja').getContext('2d');
-                if (window.chartFlujo) window.chartFlujo.destroy(); // Ajuste menor preventivo
-                
-                window.chartFlujo = new Chart(ctxFlujo, {
-                    type: 'bar',
-                    data: {
-                        labels: etiquetasDias,
-                        datasets: [{
-                            label: 'Renovaciones Proyectadas ($)',
-                            data: cashFlow15Dias,
-                            backgroundColor: '#10B981',
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: { y: { beginAtZero: true } }
-                    }
-                });
-
-                // 9. RENDERIZAR GRÁFICO DE ANILLO (Tu código intacto)
-                const ctxPlanes = document.getElementById('graficoPlanes').getContext('2d');
-                if (window.chartPlanes) window.chartPlanes.destroy(); // Ajuste menor preventivo
-                
-                const colores = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
-
-                window.chartPlanes = new Chart(ctxPlanes, {
-                    type: 'doughnut',
-                    data: {
-                        labels: etiquetasPlanes.length > 0 ? etiquetasPlanes : ['Sin datos'],
-                        datasets: [{
-                            data: datosPlanes.length > 0 ? datosPlanes : [1],
-                            backgroundColor: colores.slice(0, etiquetasPlanes.length || 1),
-                            borderWidth: 0,
-                            hoverOffset: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom' } },
-                        cutout: '70%'
-                    }
-                });
-
-            } catch (error) {
-                console.error("Error al cargar datos financieros:", error);
-            }
-        }
-
-        // --- LÓGICA DE GESTIÓN DE PLANES Y PRECIOS ---
-        let planesActualesAdmin = [];
-
-        // 1. DIBUJAR LOS PLANES EXISTENTES (AHORA CON BOTÓN DE BORRAR)
-        async function abrirModalPlanes() {
-            document.getElementById('modalAjustarPlanes').classList.remove('hidden');
-            const cont = document.getElementById('contenedorPlanesDinamicos');
-            cont.innerHTML = '<p class="text-sm text-gray-500 text-center italic">Cargando...</p>';
-            
-            const { data, error } = await miSupabase.from('planes').select('*').eq('tenant_id', miTenantId).order('precio');
-            
-            if (data && data.length > 0) {
-                planesActualesAdmin = data;
-                cont.innerHTML = data.map(p => `
-                    <div class="bg-white p-3 rounded-xl border border-gray-100 flex flex-col gap-1 shadow-sm relative">
-                        <button type="button" onclick="borrarPlan('${p.id}')" class="absolute top-2 right-2 text-red-300 hover:text-red-600 transition" title="Borrar Plan">
-                            🗑️
-                        </button>
-                        
-                        <label class="block text-[11px] font-extrabold text-gray-500 uppercase tracking-wider pr-6">${p.nombre_plan} <span class="text-gray-400 font-medium lowercase">(${p.dias_duracion} días)</span></label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 font-bold">$</span>
-                            <input type="number" step="0.01" id="precio_plan_${p.id}" value="${p.precio}" 
-                                class="w-full border border-gray-200 bg-gray-50 pl-8 pr-3 py-2 rounded-lg outline-none focus:ring-2 focus:ring-emerald-400 text-sm font-bold text-emerald-700 transition">
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                cont.innerHTML = '<p class="text-sm text-red-500 text-center font-bold mt-4">No tienes planes configurados.</p>';
-            }
-        }
-
-        // 2. GUARDAR ACTUALIZACIÓN DE PRECIOS (CON VALIDACIÓN ESTRICTA)
-        document.getElementById('formAjustarPlanes').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const textoOriginal = btn.innerHTML;
-            btn.innerHTML = 'Guardando... ⏳'; btn.disabled = true;
-            
-            try {
-                for (const plan of planesActualesAdmin) {
-                    const inputPrecio = document.getElementById(`precio_plan_${plan.id}`);
-                    const nuevoPrecio = parseFloat(inputPrecio.value);
-                    
-                    // Actualizamos y exigimos confirmación de Supabase (.select)
-                    const { data, error } = await miSupabase
-                        .from('planes')
-                        .update({ precio: nuevoPrecio })
-                        .eq('id', plan.id)
-                        .select();
-                        
-                    if (error) throw error;
-                    // Si Supabase devuelve un arreglo vacío, significa que RLS lo bloqueó
-                    if (!data || data.length === 0) throw new Error("Cambio bloqueado. Verifica que RLS esté desactivado en la tabla planes.");
-                }
-                
-                alert("✅ Precios actualizados correctamente en la base de datos.");
-                document.getElementById('modalAjustarPlanes').classList.add('hidden');
-                
-                if (typeof cargarPlanes === 'function') await cargarPlanes(); 
-                if (typeof cargarDashboardFinanciero === 'function') await cargarDashboardFinanciero();
-                
-            } catch (err) {
-                console.error(err);
-                alert("❌ Ocurrió un error al actualizar: " + err.message);
-            } finally {
-                btn.innerHTML = textoOriginal; btn.disabled = false;
-            }
-        });
-
-        // 3. NUEVO: FUNCIÓN PARA BORRAR PLANES
-        async function borrarPlan(idPlan) {
-            // Doble confirmación por seguridad
-            if(!confirm("⚠️ ¿Estás totalmente seguro de que deseas borrar este plan?")) return;
-            
-            try {
-                const { error } = await miSupabase.from('planes').delete().eq('id', idPlan);
-                
-                if (error) {
-                    // Si el error es por Llave Foránea, se lo explicamos amablemente al usuario
-                    if (error.message.includes('foreign key') || error.code === '23503') {
-                        throw new Error("No puedes borrar este plan porque ya tienes clientes o un historial asociado a él. Intenta simplemente cambiarle el precio.");
-                    }
-                    throw error;
-                }
-                
-                alert("🗑️ Plan eliminado exitosamente.");
-                
-                // Refrescamos la UI
-                await abrirModalPlanes(); 
-                if (typeof cargarPlanes === 'function') await cargarPlanes();
-                
-            } catch (err) {
-                console.error("Error al borrar:", err);
-                alert("❌ " + err.message);
-            }
-        }
-
-        // 4. CREAR UN NUEVO PLAN DESDE CERO
-        document.getElementById('formNuevoPlan').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const textoOriginal = btn.innerHTML;
-            btn.innerHTML = 'Creando... ⏳'; btn.disabled = true;
-
-            try {
-                const nombrePlan = document.getElementById('nuevoPlanNombre').value;
-                const precioPlan = parseFloat(document.getElementById('nuevoPlanPrecio').value);
-                const diasPlan = parseInt(document.getElementById('nuevoPlanDias').value);
-
-                const { error } = await miSupabase.from('planes').insert([{
-                    tenant_id: miTenantId,
-                    nombre_plan: nombrePlan,
-                    precio: precioPlan,
-                    dias_duracion: diasPlan
-                }]);
-
-                if (error) throw error;
-
-                alert("✅ ¡Nuevo plan añadido con éxito!");
-                e.target.reset(); 
-                
-                await abrirModalPlanes(); 
-                if (typeof cargarPlanes === 'function') await cargarPlanes(); 
-
-            } catch (err) {
-                console.error(err);
-                alert("❌ Error al crear el plan: " + err.message);
-            } finally {
-                btn.innerHTML = textoOriginal; btn.disabled = false;
-            }
-        });
-
-        /*
-        // --- CONEXIÓN REAL A LA API DE WHATSAPP (META) ---
-        async function enviarNotificacionWhatsApp(telefonoDestino, mensajeTexto) {
-            // 1. Limpiamos el teléfono (quitamos el '+' y espacios)
-            // Ejemplo: "+593 99 123 4567" se convierte en "593991234567"
-            const telLimpio = telefonoDestino.replace(/\D/g, '');
-
-            // 2. Tus credenciales de acceso
-            const PHONE_NUMBER_ID = '931796950027979';
-            const TOKEN = 'EAFvKWCZBmLA0BQ6B0yg3KYIZBQi9ALjWNDSCXHzYYuL0pkZAoYMPlXZCAf538QDXTk1060MAZAUoWE8tfeUfrupdRBqVAIZB2HBiTL14nj0pAGDMXZAQ70yhVjiaieEb6uHzN5kBGodnVh1qZCkL6QpqDKc4eMPbxlhi7wE5J7YeZCYe6l3yqx8Wk3ZCJP0SAKo8rvdlBcyWrpiBk6VUquM0QHGrSd9HtauJDjWbsnInTobeqQnnNCgpjxPkqEMzLmxOM3k9H0qsE48Xm64SWAWCCaXwZDZD';
-            
-            const url = `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`;
-
-            // 3. Estructura que exige Meta
-            const payload = {
-                messaging_product: "whatsapp",
-                to: telLimpio,
-                type: "text",
-                text: { 
-                    body: mensajeTexto 
-                }
-            };
-
-            try {
-                const respuesta = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await respuesta.json();
-                
-                if (data.error) {
-                    console.error("❌ Error de Meta WA:", data.error.message);
-                    return false;
-                } else {
-                    console.log("✅ ¡WhatsApp enviado con éxito a", telLimpio, "!");
-                    return true;
-                }
-            } catch (error) {
-                console.error("❌ Error de red al enviar WhatsApp:", error);
-                return false;
-            }
-        }
-        */
-
-        // --- CONEXIÓN REAL A LA API DE WHATSAPP (MODO PLANTILLAS LIVE) ---
-        async function enviarPlantillaWhatsApp(telefonoDestino, nombrePlantilla, parametrosFormatoTexto) {
-            const telLimpio = telefonoDestino.replace(/\D/g, '');
-
-            // RECUERDA PONER AQUÍ TU ID DE TELÉFONO Y TU NUEVO TOKEN PERMANENTE
-            const PHONE_NUMBER_ID = '931796950027979'; 
-            const TOKEN = 'EAFvKWCZBmLA0BQ75nZCd8Y0GfZCqOMaksyzAjQ45A0OzYbDXDQTvDnYRhvoTGAfkh34ZBpZCVZB9Me4yxs8kAvmoGRfHj9qk8ZCfZAlqCZCti6U0JEC6ZBQY4g9cX5OdqGrkMl176ZAmO4hKLemSh0TCTriKT0sDNYDd3sw69WrZBUyfyzbdCyrPDegwUVAPU9tdTAZDZD'; 
-            
-            const url = `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`;
-
-            // Construimos los parámetros dinámicos para Meta (Los {{1}}, {{2}}...)
-            const parametersArray = parametrosFormatoTexto.map(param => ({
-                type: "text",
-                text: param
-            }));
-
-            // Estructura oficial de Meta para Plantillas
-            const payload = {
-                messaging_product: "whatsapp",
-                to: telLimpio,
-                type: "template",
-                template: {
-                    name: nombrePlantilla,
-                    language: {
-                        code: "es_EC"
-                    },
-                    components: [
-                        {
-                            type: "body",
-                            parameters: parametersArray
-                        }
-                    ]
-                }
-            };
-
-            try {
-                const respuesta = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await respuesta.json();
-                
-                if (data.error) {
-                    console.error("❌ Error de Meta WA:", data.error.message);
-                    return false;
-                } else {
-                    console.log(`✅ ¡Plantilla '${nombrePlantilla}' enviada con éxito a ${telLimpio}!`);
-                    return true;
-                }
-            } catch (error) {
-                console.error("❌ Error de red al enviar WhatsApp:", error);
-                return false;
-            }
-        }
-
-        // --- MOTOR AUTOMATIZADO DE COBROS Y RECORDATORIOS (CON WHATSAPP REAL) ---
-        async function simularMotorCobros() {
-            const btn = window.event ? window.event.currentTarget : document.querySelector('button');
-            const textoOriginal = btn ? btn.innerHTML : 'Ejecutar';
-            if(btn) { btn.innerHTML = 'Enviando WA... 🚀'; btn.disabled = true; }
-
-            try {
-                console.log("==================================================");
-                console.log("🚀 INICIANDO MOTOR DE FACTURACIÓN Y WHATSAPP...");
-                
-                const hoy = new Date();
-                hoy.setHours(0, 0, 0, 0); 
-
-                let resumenWA_Cobro = 0;
-                let resumenWA_Aviso = 0;
-                let resumenCobros = 0;
-
-                const { data: suscripciones, error } = await miSupabase
-                    .from('historial_suscripciones')
-                    .select(`*, planes(nombre_plan, dias_duracion), suscriptores(nombre_completo, telefono)`)
-                    .eq('tenant_id', miTenantId)
-                    .order('fecha_fin', { ascending: false });
-
-                if (error) throw error;
-
-                for (const sub of suscripciones) {
-                    if (!sub.fecha_fin) continue;
-
-                    const partesFecha = sub.fecha_fin.split('T')[0].split('-'); 
-                    const fechaFin = new Date(partesFecha[0], partesFecha[1] - 1, partesFecha[2]);
-                    fechaFin.setHours(0, 0, 0, 0);
-                    
-                    const diffTime = fechaFin - hoy;
-                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
-
-                    const nombreCliente = sub.suscriptores?.nombre_completo || 'Cliente';
-                    // IMPORTANTE: Este teléfono en la BD debe ser tu número real para la prueba
-                    const telefono = sub.suscriptores?.telefono || 'Sin número';
-                    const plan = sub.planes?.nombre_plan || 'Plan';
-                    
-                    const renovacionAuto = sub.renovacion_automatica === true; 
-                    const recordatorioEnviado = sub.recordatorio_enviado === true; 
-
-                    // =========================================================================
-                    // REGLAS 3 Y 4: NO TIENE RENOVACIÓN AUTOMÁTICA -> Avisar 3 días ANTES
-                    // =========================================================================
-                    if (!renovacionAuto && diffDays === 3 && !recordatorioEnviado) {
-                        
-                        // 1. SOLICITAMOS EL LINK REAL AL BANCO 🏦
-                        let linkPago = await obtenerLinkPago(nombreCliente, sub.precio_cobrado, miTenantId);
-                        // Fallback de seguridad por si el banco está caído
-                        if (!linkPago) {
-                            linkPago = "https://tudominio.com/error-pago (Intenta más tarde)";
-                        }
-
-                        // Obtenemos el nombre del gimnasio para la variable {{2}}
-                        const nombreGym = document.getElementById('nombreGymSidebar').innerText;
-
-                        // 2. DISPARADOR DE LA PLANTILLA DE AVISO (Pasamos las variables en orden)
-                        // Variables: [ {{1}} Cliente, {{2}} Gimnasio, {{3}} Link ]
-                        const parametrosAviso = [nombreCliente, nombreGym, linkPago];
-                        await enviarPlantillaWhatsApp(telefono, 'recordatorio_pago_gym', parametrosAviso);
-
-                        // 4. MARCAMOS COMO ENVIADO EN BD
-                        await miSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
-                        resumenWA_Aviso++;
-                    }
-
-                    // =========================================================================
-                    // REGLA 2: SÍ TIENE RENOVACIÓN AUTOMÁTICA -> Cobrar 1 día DESPUÉS
-                    // =========================================================================
-                    if (renovacionAuto && diffDays === -1 && sub.estado_pago !== 'Renovado') {
-                        const transaccionExitosa = true; // Simulación de PlaceToPay
-                        
-                        if (transaccionExitosa) {
-                            const nuevaFechaFin = new Date(hoy);
-                            nuevaFechaFin.setDate(nuevaFechaFin.getDate() + (sub.planes?.dias_duracion || 30));
-
-                            // 1. PRIMERO: Apagamos todo el historial viejo del cliente (¡Solo en ESTE gimnasio!)
-                            await miSupabase.from('historial_suscripciones')
-                                .update({ estado_pago: 'Inactivo' })
-                                .eq('suscriptor_id', sub.suscriptor_id)
-                                .eq('tenant_id', miTenantId); // 🛡️ CANDADO MULTI-TENANT
-
-                            // 2. SEGUNDO: Insertamos el mes nuevo limpio y 'Pagado'
-                            await miSupabase.from('historial_suscripciones').insert([{
-                                tenant_id: miTenantId,
-                                suscriptor_id: sub.suscriptor_id,
-                                plan_id: sub.plan_id,
-                                precio_cobrado: sub.precio_cobrado,
-                                fecha_inicio: hoy.toISOString().split('T')[0],
-                                fecha_fin: nuevaFechaFin.toISOString().split('T')[0],
-                                estado_pago: 'Pagado',
-                                renovacion_automatica: true 
-                            }]);
-                            
-                            // 2. DISPARADOR DE LA PLANTILLA DE RECIBO
-                            // Variables: [ {{1}} Cliente, {{2}} Gimnasio, {{3}} Precio, {{4}} Nueva Fecha Fin ]
-                            const nombreGym = document.getElementById('nombreGymSidebar').innerText;
-                            const parametrosRecibo = [
-                                nombreCliente, 
-                                nombreGym, 
-                                sub.precio_cobrado.toString(), 
-                                nuevaFechaFin.toLocaleDateString('es-ES')
-                            ];
-                            await enviarPlantillaWhatsApp(telefono, 'recibo_pago_gym', parametrosRecibo);
-                            
-                            resumenCobros++;
-                            resumenWA_Cobro++;
-                        }
-                    }
-                }
-                
-                if (resumenCobros > 0 || resumenWA_Aviso > 0) {
-                    if(typeof cargarDatosYDashboard === 'function') await cargarDatosYDashboard();
-                    if(typeof cargarDashboardFinanciero === 'function') await cargarDashboardFinanciero();
-                }
-
-                alert(`📊 REPORTE DEL MOTOR:\n\n🔔 Avisos enviados: ${resumenWA_Aviso}\n🧾 Recibos WA enviados: ${resumenWA_Cobro}\n\n¡Revisa tu celular! 📱`);
-
-            } catch (err) {
-                console.error("❌ Error en el motor:", err);
-                alert("❌ Ocurrió un error al ejecutar el motor: " + err.message);
-            } finally {
-                if(btn) { btn.innerHTML = textoOriginal; btn.disabled = false; }
-            }
-        }
-        
-        // --- FUNCIÓN PARA RENOVAR O CAMBIAR PLAN DE UN CLIENTE ---
-        async function renovarSuscripcionCliente(suscriptorId, nuevoPlanId, precioCobrado, diasDuracion, quiereRenovacionAuto) {
-            try {
-                const hoy = new Date();
-                const nuevaFechaFin = new Date(hoy);
-                nuevaFechaFin.setDate(nuevaFechaFin.getDate() + diasDuracion);
-
-                // 1. REGLA DE ORO: Marcar todo el historial anterior como 'Inactivo'
-                // Al no filtrar por ID de suscripción, sino por ID de cliente, apagamos TODAS sus suscripciones pasadas
-                const { error: errUpdate } = await miSupabase
-                    .from('historial_suscripciones')
-                    .update({ estado_pago: 'Inactivo' })
-                    .eq('suscriptor_id', suscriptorId)
-                    .eq('tenant_id', miTenantId);
-
-                if (errUpdate) throw errUpdate;
-
-                // 2. Insertar la nueva fila fresca como 'Pagado' (Activa)
-                const { error: errInsert } = await miSupabase
-                    .from('historial_suscripciones')
-                    .insert([{
-                        tenant_id: miTenantId,
-                        suscriptor_id: suscriptorId,
-                        plan_id: nuevoPlanId,
-                        precio_cobrado: precioCobrado,
-                        fecha_inicio: hoy.toISOString().split('T')[0],
-                        fecha_fin: nuevaFechaFin.toISOString().split('T')[0],
-                        estado_pago: 'Pagado', // En nuestro sistema esto significa "Activo"
-                        renovacion_automatica: quiereRenovacionAuto,
-                        recordatorio_enviado: false // Reseteamos el aviso de WhatsApp
-                    }]);
-
-                if (errInsert) throw errInsert;
-
-                console.log("✅ Renovación guardada. Historial anterior archivado correctamente.");
-                
-                // Refrescamos la tabla para que el cliente pase de Rojo/Amarillo a Verde al instante
-                if (typeof cargarDatosYDashboard === 'function') await cargarDatosYDashboard();
-                
-                alert("🎉 ¡Suscripción renovada con éxito!");
-
-            } catch (error) {
-                console.error("Error al renovar:", error);
-                alert("❌ Error al renovar la suscripción: " + error.message);
-            }
-        }
-
-        // --- LÓGICA DE RENOVACIÓN DE PLANES (SCD Tipo 2) ---
-        async function abrirModalRenovar(clienteId, nombre) {
-            // 1. Llenamos los datos visuales
-            document.getElementById('renovarClienteId').value = clienteId;
-            document.getElementById('renovarClienteNombre').innerText = nombre;
-            document.getElementById('modalRenovarPlan').classList.remove('hidden');
-            
-            // 2. Cargamos los planes fresquitos de tu gimnasio
-            const select = document.getElementById('renovarPlanElegido');
-            select.innerHTML = '<option value="">Cargando planes...</option>';
-
-            const { data: planes, error } = await miSupabase
-                .from('planes')
-                .select('*')
-                .eq('tenant_id', miTenantId)
-                .order('precio');
-
-            if (planes && !error) {
-                select.innerHTML = planes.map(p => 
-                    `<option value="${p.id}" data-dias="${p.dias_duracion}" data-precio="${p.precio}">
-                        ${p.nombre_plan} - $${p.precio}
-                    </option>`
-                ).join('');
-            } else {
-                select.innerHTML = '<option value="">Error al cargar planes</option>';
-            }
-        }
-
-        function cerrarModalRenovar() {
-            document.getElementById('modalRenovarPlan').classList.add('hidden');
-            document.getElementById('formRenovarPlan').reset();
-        }
-
-        // 3. EVENTO DE GUARDADO (Calcula fechas dinámicas, archiva y renueva)
-        document.getElementById('formRenovarPlan').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const textoOriginal = btn.innerHTML;
-            btn.innerHTML = 'Guardando... ⏳'; btn.disabled = true;
-
-            try {
-                const suscriptorId = document.getElementById('renovarClienteId').value;
-                const selectPlan = document.getElementById('renovarPlanElegido');
-                const opcionSeleccionada = selectPlan.options[selectPlan.selectedIndex];
-                
-                const planId = selectPlan.value;
-                const precioCobrado = parseFloat(opcionSeleccionada.getAttribute('data-precio'));
-                const diasDuracion = parseInt(opcionSeleccionada.getAttribute('data-dias'));
-                const renovacionAuto = document.getElementById('renovarAutoSwitch').checked;
-
-                // PASO 1: Calcular fechas dinámicas para no robarle días al cliente
-                const hoy = new Date();
-                hoy.setHours(0, 0, 0, 0);
-                let fechaInicioCalculada = new Date(hoy); // Por defecto arranca hoy
-
-                // Extraemos la última suscripción para ver cuándo vence realmente
-                const { data: subVieja } = await miSupabase
-                    .from('historial_suscripciones')
-                    .select('fecha_fin')
-                    .eq('suscriptor_id', suscriptorId)
-                    .order('fecha_fin', { ascending: false })
-                    .limit(1);
-
-                if (subVieja && subVieja.length > 0 && subVieja[0].fecha_fin) {
-                    const partesFecha = subVieja[0].fecha_fin.split('T')[0].split('-');
-                    const fechaFinAnterior = new Date(partesFecha[0], partesFecha[1] - 1, partesFecha[2]);
-                    fechaFinAnterior.setHours(0, 0, 0, 0);
-
-                    // Si el plan todavía está vigente (vence hoy o en el futuro)
-                    if (fechaFinAnterior >= hoy) {
-                        // Arrancamos el nuevo plan exactamente al día siguiente de que caduque el actual
-                        fechaInicioCalculada = new Date(fechaFinAnterior);
-                        fechaInicioCalculada.setDate(fechaInicioCalculada.getDate() + 1);
-                    }
-                }
-
-                const nuevaFechaFin = new Date(fechaInicioCalculada);
-                nuevaFechaFin.setDate(nuevaFechaFin.getDate() + diasDuracion);
-                    
-                // PASO 2: "Apagar" todo el historial anterior marcándolo como Inactivo (¡Solo en ESTE gimnasio!)
-                const { error: errUpdate } = await miSupabase
-                    .from('historial_suscripciones')
-                    .update({ estado_pago: 'Inactivo' })
-                    .eq('suscriptor_id', suscriptorId)
-                    .eq('tenant_id', miTenantId); // 🛡️ CANDADO MULTI-TENANT
-
-                if (errUpdate) throw errUpdate;
-
-                // PASO 3: Insertar la nueva suscripción con las fechas perfectas
-                const { error: errInsert } = await miSupabase
-                    .from('historial_suscripciones')
-                    .insert([{
-                        tenant_id: miTenantId,
-                        suscriptor_id: suscriptorId,
-                        plan_id: planId,
-                        precio_cobrado: precioCobrado,
-                        fecha_inicio: fechaInicioCalculada.toISOString().split('T')[0],
-                        fecha_fin: nuevaFechaFin.toISOString().split('T')[0],
-                        estado_pago: 'Pagado',
-                        renovacion_automatica: renovacionAuto,
-                        recordatorio_enviado: false
-                    }]);
-
-                if (errInsert) throw errInsert;
-
-                alert(`🎉 ¡Suscripción renovada!\nInicia: ${fechaInicioCalculada.toLocaleDateString('es-ES')}\nVence: ${nuevaFechaFin.toLocaleDateString('es-ES')}`);
-                cerrarModalRenovar();
-                
-                // Refrescar la pantalla
-                if (typeof cargarDatosYDashboard === 'function') await cargarDatosYDashboard();
-                if (typeof cargarDashboardFinanciero === 'function') await cargarDashboardFinanciero();
-
-            } catch (err) {
-                console.error("Error renovando:", err);
-                alert("❌ Ocurrió un error al guardar: " + err.message);
-            } finally {
-                btn.innerHTML = textoOriginal; btn.disabled = false;
-            }
-        });
-
-        // --- CONEXIÓN AL BACKEND PARA GENERAR LINK DE PAGO (PAYPAL) ---
-        async function obtenerLinkPago(nombreCliente, precio, tenantId) {
-            // ⚠️ Asegúrate de que este puerto (8787) coincida con el que muestra tu terminal de Cloudflare
-            const urlBackend = 'http://127.0.0.1:8787/api/pagos/generar-link'; 
-
-            try {
                 const respuesta = await fetch(urlBackend, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        nombre_cliente: nombreCliente,
-                        precio_cobrado: precio,
-                        tenant_id: tenantId
+                        gym_nombre: nombreGym,
+                        admin_nombre: nombreAdmin,
+                        plan_elegido: plan,
+                        precio_cobrar: precio
                     })
                 });
 
                 const data = await respuesta.json();
-                
-                if (data.exito) {
-                    console.log("✅ Link de PayPal generado:", data.url_pago);
-                    return data.url_pago;
+
+                if (data.exito && data.url_pago) {
+                    // ¡Nos vamos a cobrar!
+                    window.location.href = data.url_pago; 
                 } else {
-                    console.error("❌ Error del banco:", data.mensaje);
-                    return null;
+                    throw new Error(data.mensaje || "Error conectando con la pasarela.");
                 }
-            } catch (error) {
-                console.error("❌ Error de red conectando al backend:", error);
-                return null;
-            }
-        }
-
-        async function guardarCredencialesPagos(event) {
-            event.preventDefault(); // Evita que la página se recargue
-
-            const btn = document.getElementById('btnGuardarPagos');
-            const textoOriginal = btn.innerHTML;
-            btn.innerHTML = '⏳ Guardando credenciales...';
-            btn.disabled = true;
-
-            const clientId = document.getElementById('paypalClientId').value.trim();
-            const secret = document.getElementById('paypalSecret').value.trim();
-
-            try {
-                // Asumiendo que miTenantId es tu variable global con el ID del gimnasio
-                const { error } = await miSupabase
-                    .from('tenants')
-                    .update({ 
-                        paypal_client_id: clientId, 
-                        paypal_secret: secret 
-                    })
-                    .eq('id', miTenantId);
-
-                if (error) throw error;
-
-                alert('✅ ¡Credenciales guardadas con éxito! Tu pasarela de pagos está activa.');
-                
-                // Opcional: Limpiar el formulario por seguridad
-                document.getElementById('paypalSecret').value = '';
 
             } catch (error) {
-                console.error("Error guardando credenciales:", error);
-                alert('❌ Error al guardar: ' + error.message);
-            } finally {
+                console.error("Error iniciando pago SaaS:", error);
+                alert("❌ Ocurrió un error: " + error.message);
                 btn.innerHTML = textoOriginal;
                 btn.disabled = false;
             }
-        }
+        });
 
-        // --- LÓGICA DE REPORTE DE FACTURACIÓN ---
-        let datosFacturacionActuales = [];
+        let facturacionAnual = false;
 
-        async function cargarReporteFacturacion() {
-            const paywall = document.getElementById('paywallReporteFact');
-            const premiumPlans = ['elite', 'pro'];
-
-            if (!premiumPlans.includes(planSaasActual.toLowerCase())) {
-                paywall.classList.remove('hidden');
-                return; 
-            } else {
-                paywall.classList.add('hidden');
-            }
-
-            const tbody = document.getElementById('tablaFacturacion');
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">Cargando pagos... ⏳</td></tr>';
-
-            const filtro = document.getElementById('mesFiltroFacturacion').value;
-            const hoy = new Date();
-            let mesFiltro = hoy.getMonth();
-            let anioFiltro = hoy.getFullYear();
-
-            if (filtro === 'mes_pasado') {
-                mesFiltro = mesFiltro === 0 ? 11 : mesFiltro - 1;
-                anioFiltro = mesFiltro === 11 ? anioFiltro - 1 : anioFiltro;
-            }
-
-            try {
-                // Traemos los pagos, uniendo con los datos del suscriptor y el plan
-                const { data, error } = await miSupabase
-                    .from('historial_suscripciones')
-                    .select(`
-                        id,
-                        fecha_inicio,
-                        precio_cobrado,
-                        estado_pago,
-                        suscriptores ( nombre_completo, identificacion, direccion ),
-                        planes ( nombre_plan )
-                    `)
-                    .eq('tenant_id', miTenantId)
-                    .eq('estado_pago', 'Pagado') // Solo mostramos lo que realmente se ha pagado
-                    .order('fecha_inicio', { ascending: false });
-
-                if (error) throw error;
-
-                // Filtramos por fecha según lo seleccionado
-                let datosFiltrados = data;
-                if (filtro !== 'todos') {
-                    datosFiltrados = data.filter(item => {
-                        const fPago = new Date(item.fecha_inicio);
-                        return fPago.getMonth() === mesFiltro && fPago.getFullYear() === anioFiltro;
-                    });
-                }
-
-                datosFacturacionActuales = datosFiltrados; // Guardamos para exportar
-
-                if (datosFiltrados.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 font-bold text-gray-500">No hay pagos registrados en este periodo.</td></tr>';
-                    return;
-                }
-
-                // Renderizamos la tabla
-                tbody.innerHTML = datosFiltrados.map(item => `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 text-sm font-medium text-gray-600">${new Date(item.fecha_inicio).toLocaleDateString('es-ES')}</td>
-                        <td class="px-6 py-4 text-sm font-bold text-gray-800">${item.suscriptores?.nombre_completo || 'Desconocido'}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">${item.suscriptores?.identificacion || '<span class="text-red-400 text-xs italic">Falta ID</span>'}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600 truncate max-w-[150px]">${item.suscriptores?.direccion || 'Sin dirección'}</td>
-                        <td class="px-6 py-4 text-xs text-gray-500 uppercase tracking-wide">Suscripción ${item.planes?.nombre_plan || ''}</td>
-                        <td class="px-6 py-4 text-right text-sm font-extrabold text-emerald-600">$${parseFloat(item.precio_cobrado).toFixed(2)}</td>
-                    </tr>
-                `).join('');
-
-            } catch (err) {
-                console.error("Error al cargar facturación:", err);
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">Error: ${err.message}</td></tr>`;
-            }
-        }
-
-        // GENERADOR DE ARCHIVO EXCEL (CSV)
-        function descargarExcelFacturacion() {
-
-            if (datosFacturacionActuales.length === 0) return alert("No hay datos para exportar.");
-
-            // 1. Cabeceras del Excel
-            let csvContent = "Fecha de Pago,Cliente,Cedula_RUC,Direccion,Detalle,Total_USD\n";
-
-            // 2. Llenar filas
-            datosFacturacionActuales.forEach(item => {
-                const fecha = item.fecha_inicio;
-                const cliente = `"${item.suscriptores?.nombre_completo || ''}"`; // Comillas para evitar problemas con comas en nombres
-                const id = `"${item.suscriptores?.identificacion || ''}"`;
-                const direccion = `"${item.suscriptores?.direccion || ''}"`;
-                const detalle = `"Suscripcion ${item.planes?.nombre_plan || ''}"`;
-                const total = parseFloat(item.precio_cobrado).toFixed(2);
-
-                csvContent += `${fecha},${cliente},${id},${direccion},${detalle},${total}\n`;
-            });
-
-            // 3. Crear el archivo descargable
-            const blob = new Blob(["\ufeff", csvContent], { type: 'text/csv;charset=utf-8;' }); // \ufeff asegura que las tildes/ñ se vean bien
-            const url = URL.createObjectURL(blob);
+        function cambiarFacturacion() {
+            facturacionAnual = !facturacionAnual;
             
-            // 4. Forzar la descarga
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Reporte_Facturacion_Gym_${new Date().getTime()}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Animación del botón
+            const toggleBtn = document.getElementById('toggleBoton');
+            const bgToggle = document.getElementById('toggleFacturacion');
+            const labelMensual = document.getElementById('labelMensual');
+            const labelAnual = document.getElementById('labelAnual');
+
+            if (facturacionAnual) {
+                toggleBtn.classList.add('translate-x-7');
+                labelAnual.classList.replace('text-gray-500', 'text-emerald-700');
+                labelAnual.classList.add('font-bold');
+                labelMensual.classList.replace('text-emerald-700', 'text-gray-500');
+                labelMensual.classList.remove('font-bold');
+                
+                // Cambiar textos a precios anuales
+                document.getElementById('precioStarter').innerHTML = '$290<span class="text-lg text-gray-500 font-normal">/año</span>';
+                document.getElementById('precioPro').innerHTML = '$690<span class="text-lg text-emerald-200 font-normal">/año</span>';
+                document.getElementById('precioElite').innerHTML = '$1490<span class="text-lg text-gray-500 font-normal">/año</span>';
+
+                // Actualizar los botones para que pasen el precio anual al modal
+                document.getElementById('btnElegirStarter').setAttribute('onclick', "abrirModalRegistro('Starter Anual', 290)");
+                document.getElementById('btnElegirPro').setAttribute('onclick', "abrirModalRegistro('Pro Anual', 690)");
+                document.getElementById('btnElegirElite').setAttribute('onclick', "abrirModalRegistro('Elite Anual', 1490)");
+                
+            } else {
+                toggleBtn.classList.remove('translate-x-7');
+                labelMensual.classList.replace('text-gray-500', 'text-emerald-700');
+                labelMensual.classList.add('font-bold');
+                labelAnual.classList.replace('text-emerald-700', 'text-gray-500');
+                labelAnual.classList.remove('font-bold');
+                
+                // Regresar a precios mensuales
+                document.getElementById('precioStarter').innerHTML = '$29<span class="text-lg text-gray-500 font-normal">/mes</span>';
+                document.getElementById('precioPro').innerHTML = '$69<span class="text-lg text-emerald-200 font-normal">/mes</span>';
+                document.getElementById('precioElite').innerHTML = '$149<span class="text-lg text-gray-500 font-normal">/mes</span>';
+
+                // Regresar botones a mensual
+                document.getElementById('btnElegirStarter').setAttribute('onclick', "abrirModalRegistro('Starter Mensual', 29)");
+                document.getElementById('btnElegirPro').setAttribute('onclick', "abrirModalRegistro('Pro Mensual', 69)");
+                document.getElementById('btnElegirElite').setAttribute('onclick', "abrirModalRegistro('Elite Mensual', 149)");
+            }
         }
+
+        // --- LÓGICA DEL CHAT IA ---
+        document.getElementById('formChatIa').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const input = document.getElementById('inputMensajeIa');
+            const mensaje = input.value.trim();
+
+            if (!mensaje) return;
+
+            const cuerpoChat = document.getElementById('cuerpoChat');
+
+            // 1. Mostrar el mensaje del usuario (Burbuja verde a la derecha)
+            cuerpoChat.innerHTML += `
+                <div class="bg-emerald-600 text-white p-3 rounded-lg rounded-tr-none shadow-sm self-end max-w-[85%] text-sm">
+                    ${mensaje}
+                </div>
+            `;
+            input.value = ''; // Limpiar la caja de texto
+            
+            // 2. Mostrar indicador de "escribiendo..."
+            const idTemp = 'mensaje-' + Date.now();
+            cuerpoChat.innerHTML += `
+                <div id="${idTemp}" class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm border border-gray-100 text-gray-400 self-start max-w-[85%] text-sm italic">
+                    Escribiendo... ⏳
+                </div>
+            `;
+            cuerpoChat.scrollTop = cuerpoChat.scrollHeight; // Auto-scroll hacia abajo
+
+            // 3. Consultar a tu Cloudflare Worker
+            try {
+                // ⚠️ ATENCIÓN: Cambia esta URL por la URL real de tu Cloudflare Worker (ej. https://tu-worker.tu-cuenta.workers.dev/chat)
+                // Si estás probando en local, usa: http://localhost:8787/chat
+                //const API_CHAT_URL = 'http://localhost:8787/chat'; 
+                const API_CHAT_URL = `${CONFIG.BACKEND_URL}/chat`;
+
+                const res = await fetch(API_CHAT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mensaje: mensaje })
+                });
+
+                const data = await res.json();
+                
+                if (!res.ok) throw new Error(data.error);
+
+                // 4. Reemplazar "escribiendo..." con la respuesta real de Gemini
+                const burbujaRespuesta = document.getElementById(idTemp);
+                // Reemplazamos los saltos de línea por etiquetas <br> de HTML
+                burbujaRespuesta.innerHTML = data.respuesta.replace(/\n/g, '<br>'); 
+                burbujaRespuesta.classList.remove('text-gray-400', 'italic');
+                burbujaRespuesta.classList.add('text-gray-700');
+
+            } catch (error) {
+                document.getElementById(idTemp).innerHTML = "❌ Ocurrió un error. Por favor intenta más tarde.";
+                document.getElementById(idTemp).classList.remove('italic');
+            }
+
+            cuerpoChat.scrollTop = cuerpoChat.scrollHeight; // Auto-scroll final
+        });
+
+
+        // --- LÓGICA DEL FORMULARIO DE CONTACTO ---
+        const formContacto = document.getElementById('formContactoLanding');
+        
+        if (formContacto) {
+            formContacto.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const btn = e.target.querySelector('button[type="submit"]');
+                const alerta = document.getElementById('contactoAlerta');
+                const originalText = btn.innerHTML;
+                
+                // UX: Bloqueamos el botón y mostramos estado de carga
+                btn.innerHTML = 'Enviando... ⏳';
+                btn.disabled = true;
+                alerta.classList.add('hidden');
+
+                const payload = {
+                    nombre: document.getElementById('contactoNombre').value,
+                    email: document.getElementById('contactoEmail').value,
+                    telefono: document.getElementById('contactoTelefono').value,
+                    mensaje: document.getElementById('contactoMensaje').value
+                };
+
+                try {
+                    // ATENCIÓN: Reemplaza "TU_CODIGO_AQUI" por las letras que te dio Formspree
+                    const res = await fetch('https://formspree.io/f/xzdaaoww', {
+                        method: 'POST',
+                        headers: { 
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json' 
+                        },
+                        body: JSON.stringify({
+                            // Formspree leerá estas llaves para armar tu correo
+                            Nombre: payload.nombre,
+                            Email: payload.email,
+                            Telefono: payload.telefono,
+                            Mensaje: payload.mensaje
+                        })
+                    });
+
+                    if (!res.ok) throw new Error("Error al enviar a Formspree");
+
+                    // UX: Éxito
+                    alerta.innerText = "✅ ¡Mensaje enviado con éxito! Te contactaremos pronto.";
+                    alerta.className = "text-center text-sm font-bold mt-2 text-emerald-600 block";
+                    formContacto.reset(); // Limpia las cajas de texto
+
+                } catch (error) {
+                    // UX: Error
+                    console.error(error);
+                    alerta.innerText = "❌ Ocurrió un error. Intenta nuevamente.";
+                    alerta.className = "text-center text-sm font-bold mt-2 text-red-500 block";
+                } finally {
+                    // Restauramos el botón a la normalidad
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    
+                    // Borramos el mensaje de éxito después de 5 segundos para mantenerlo limpio
+                    setTimeout(() => {
+                        if (alerta.classList.contains('text-emerald-600')) {
+                            alerta.classList.add('hidden');
+                        }
+                    }, 5000);
+                }
+            });
+        }
+
+        // 3. PROCESAR EL REGRESO DEL PAGO (Cuando PayPal nos devuelve al cliente)
+        async function verificarPagoExitoso() {
+            // Leemos la URL para ver si venimos de PayPal
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Si la URL dice ?pago_saas=cancelado
+            if (urlParams.has('pago_saas') && urlParams.get('pago_saas') === 'cancelado') {
+                alert("⚠️ Has cancelado el proceso de pago.");
+                localStorage.removeItem('js_memberly_registro_pendiente');
+                window.history.replaceState({}, document.title, window.location.pathname); // Limpiar URL
+                return;
+            }
+
+            // Si la URL tiene el token de éxito que envía PayPal (ej. ?token=...)
+            // Opcionalmente puedes usar return_url: "...?pago_saas=exitoso" en tu backend para ser más preciso.
+            if (urlParams.has('token')) {
+                
+                // Rescatamos los datos que guardamos en memoria
+                const datosGuardados = localStorage.getItem('js_memberly_registro_pendiente');
+                if (!datosGuardados) return; // No hay registro pendiente
+                
+                const datos = JSON.parse(datosGuardados);
+                let limite = datos.plan === 'starter' ? 100 : (datos.plan === 'pro' ? 500 : 9999);
+
+                // Mostramos un modal bloqueante para que no toquen nada mientras guardamos
+                document.body.insertAdjacentHTML('beforeend', `
+                    <div id="pantallaCargando" class="fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-[999] text-white">
+                        <span class="text-6xl mb-4 animate-spin">⚙️</span>
+                        <h2 class="text-2xl font-bold">Configurando tu Gimnasio...</h2>
+                        <p>Por favor no cierres esta ventana.</p>
+                    </div>
+                `);
+
+                try {
+                                    
+                    // PASO A: Crear el Gimnasio
+                    const { data: tenantData, error: tenantError } = await miSupabase
+                        .from('tenants')
+                        .insert([{ 
+                            nombre_negocio: datos.nombreGym,
+                            pais: datos.paisGym,
+                            identificacion_fiscal: datos.idNacional,
+                            plan_saas: datos.plan,
+                            limite_clientes: limite,
+                            estado_suscripcion: 'activa'
+                        }])
+                        .select().single();
+
+                    if (tenantError) throw tenantError;
+
+                    // Capturamos el ID real que la base de datos acaba de generar
+                    const nuevoTenantId = tenantData.id;
+
+                    // PASO B: Registrar al Administrador en Auth
+                    const { data: authData, error: authError } = await miSupabase.auth.signUp({
+                        email: datos.emailAdmin,
+                        password: datos.passAdmin,
+                        options: {
+                            data: {
+                                nombre_usuario: datos.nombreAdmin,
+                                nombre_gimnasio: datos.nombreGym
+                            }
+                        }
+                    });
+                    
+                    if (authError) throw authError;
+
+                    // 🛡️ EL NUEVO ESCUDO DE SEGURIDAD 🛡️
+                    if (!authData || !authData.user) {
+                        // Borramos el tenant que acabamos de crear para no dejar basura
+                        await miSupabase.from('tenants').delete().eq('id', nuevoTenantId);
+                        throw new Error("El correo electrónico ingresado ya está registrado en nuestro sistema. Por favor, usa un correo diferente.");
+                    }
+
+                    // PASO C: Vincular Staff usando el nuevoTenantId
+                    const { error: staffError } = await miSupabase
+                        .from('perfiles_staff')
+                        .insert([{ 
+                            id: authData.user.id, 
+                            tenant_id: nuevoTenantId, 
+                            nombre: datos.nombreAdmin, 
+                            email: datos.emailAdmin, 
+                            telefono: datos.telefonoAdmin,
+                            rol: 'admin' 
+                        }]);
+                        
+                    if (staffError) throw staffError;
+
+                    // LIMPIEZA Y ÉXITO
+                    localStorage.removeItem('js_memberly_registro_pendiente');
+                    alert(`🎉 ¡Pago confirmado! Tu gimnasio "${datos.nombreGym}" está listo.\n\nConfirma tu correo e inicia sesión para comenzar.`);
+                    window.location.href = 'panel.html'; // Lo mandamos al login
+                    
+                } catch (error) {
+                    console.error("Error crítico configurando el tenant:", error);
+                    alert("❌ El pago fue exitoso pero hubo un error creando la cuenta. Por favor contáctanos con soporte.\nError: " + error.message);
+                    document.getElementById('pantallaCargando').remove();
+                }
+            }
+        }
+
+        // Ejecutar automáticamente al cargar la página
+        verificarPagoExitoso();
     </script>
+
 </body>
 </html>
