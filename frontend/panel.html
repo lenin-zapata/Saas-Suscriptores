@@ -6,6 +6,8 @@
     <title>JS MemberLy - Panel</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -99,7 +101,7 @@
 
     <div id="pantallaDashboard" class="flex w-full h-full hidden">
 
-        <aside class="w-64 bg-emerald-900 text-white flex flex-col shadow-2xl z-10 shrink-0">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-emerald-900 text-white flex hidden md:flex flex-col shadow-2xl z-10 shrink-0 z-50 -translate-x-full transition-transform duration-300 md:relative md:translate-x-0">
 
             <div class="p-6 flex flex-col items-center border-b border-white/10 text-center">
                 <div class="relative group cursor-pointer w-20 h-20 rounded-2xl bg-white/10 flex items-center justify-center overflow-hidden mb-3 border border-white/20 shadow-inner">
@@ -152,6 +154,9 @@
 
             <header class="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-40">
                 <div>
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 mr-3 rounded-lg bg-gray-100 text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-width="2" stroke-linecap="round"/></svg>
+                    </button>
                     <h1 class="text-xl font-extrabold text-gray-900 tracking-tight">Resumen General</h1>
                     <p class="text-xs text-gray-400 font-medium mt-0.5">Panel de control de tu gimnasio</p>
                 </div>
@@ -374,9 +379,9 @@
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <h2 class="text-2xl font-bold text-gray-800 text-center md:text-left">Reportes Financieros Avanzados</h2>
                     
-                    <button onclick="simularMotorCobros()" class="bg-indigo-600 text-white font-bold py-2.5 px-5 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 flex items-center gap-2 text-sm">
+                    <!-- <button onclick="simularMotorCobros()" class="bg-indigo-600 text-white font-bold py-2.5 px-5 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 flex items-center gap-2 text-sm">
                         🤖 Ejecutar Motor de Cobros (Simulador)
-                    </button>
+                    </button> -->
                 </div>
 
                 <div id="paywallFinanzas" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
@@ -436,7 +441,7 @@
                         + Nuevo Miembro
                     </button>
                 </div>
-                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-x-auto">
                     <table class="min-w-full">
                         <thead>
                             <tr class="border-b border-gray-100">
@@ -2108,6 +2113,7 @@
             }
         }
 
+        /*
         // --- MOTOR AUTOMATIZADO DE COBROS Y RECORDATORIOS (CON WHATSAPP REAL) ---
         async function simularMotorCobros() {
             const btn = window.event ? window.event.currentTarget : document.querySelector('button');
@@ -2235,6 +2241,7 @@
                 if(btn) { btn.innerHTML = textoOriginal; btn.disabled = false; }
             }
         }
+        */
         
         // --- FUNCIÓN PARA RENOVAR O CAMBIAR PLAN DE UN CLIENTE ---
         async function renovarSuscripcionCliente(suscriptorId, nuevoPlanId, precioCobrado, diasDuracion, quiereRenovacionAuto) {
@@ -2581,6 +2588,11 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
         }
     </script>
 </body>

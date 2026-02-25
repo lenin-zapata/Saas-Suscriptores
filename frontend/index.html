@@ -6,6 +6,8 @@
     <title>JS MemberLy - Gestión de Gimnasios</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
 </head>
 <body class="bg-gray-50 font-sans text-gray-800 antialiased selection:bg-emerald-200">
 
@@ -175,6 +177,15 @@
                         </div>
                     </div>
 
+                    <div class="flex items-start mb-6">
+                        <div class="flex items-center h-5">
+                            <input id="terminosUso" type="checkbox" value="" class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-emerald-300" required>
+                        </div>
+                        <label for="terminosUso" class="ml-2 text-sm font-medium text-gray-900">
+                            He leído y acepto los <a onclick="document.getElementById('modalPoliticas').classList.remove('hidden')" class="text-emerald-600 hover:underline">Términos de Uso y Política de Privacidad</a>.
+                        </label>
+                    </div>
+
                     <div class="pt-6 border-t border-gray-100 mt-2">
                         <button type="submit" id="btnPagarSaaS" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md flex justify-center items-center gap-2.5 border border-gray-800">
                             <span class="text-sm tracking-wide">Completar pago seguro con</span>
@@ -248,6 +259,23 @@
             <input type="text" id="inputMensajeIa" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-emerald-500 text-sm" placeholder="Escribe tu duda..." required>
             <button type="submit" class="bg-emerald-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-700">➤</button>
         </form>
+    </div>
+
+    <div id="modalPoliticas" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[200] backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div class="p-6 border-b font-bold text-lg flex justify-between">
+                Términos y Privacidad Internacional
+                <button onclick="document.getElementById('modalPoliticas').classList.add('hidden')">×</button>
+            </div>
+            <div class="p-8 overflow-y-auto text-sm text-gray-600 leading-relaxed">
+                <h3 class="font-bold text-gray-900">1. Protección de Datos (LOPDP Ecuador & GDPR)</h3>
+                <p>JS MemberLy actúa como encargado del tratamiento. Los datos de suscriptores (nombres, fotos, teléfonos) pertenecen al Gimnasio (Cliente). Nos comprometemos a no vender ni compartir dicha información con terceros.</p>
+                <h3 class="font-bold text-gray-900 mt-4">2. Pagos y Recurrencia</h3>
+                <p>Al activar la "Renovación Automática", el usuario autoriza el cobro periódico mediante la pasarela integrada. El Gimnasio es responsable de emitir la factura legal correspondiente según la normativa del SRI (Ecuador) o su país de origen.</p>
+                <h3 class="font-bold text-gray-900 mt-4">3. Limitación de Responsabilidad</h3>
+                <p>JS MemberLy proporciona la herramienta tecnológica, pero no es responsable por disputas entre el gimnasio y sus socios finales.</p>
+            </div>
+        </div>
     </div>
 
     <script src="config.js"></script>
@@ -625,6 +653,7 @@
 
         // Ejecutar automáticamente al cargar la página
         verificarPagoExitoso();
+
     </script>
 
 </body>

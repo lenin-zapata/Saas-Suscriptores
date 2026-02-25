@@ -292,7 +292,7 @@ export default {
 
             // 4. Obtener el Token de Acceso (OAuth 2.0 de PayPal)
             const auth = btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`);
-            const tokenResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+            const tokenResponse = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Basic ${auth}`,
@@ -330,7 +330,7 @@ export default {
                 }
             };
 
-            const orderResponse = await fetch('https://api-m.sandbox.paypal.com/v2/checkout/orders', {
+            const orderResponse = await fetch('https://api-m.paypal.com/v2/checkout/orders', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -359,12 +359,12 @@ export default {
 
             // 1. TUS LLAVES MAESTRAS DE PAYPAL (Usa las de Sandbox para probar)
             // Estas llaves siempre son las tuyas, porque el dinero va a tu cuenta
-            const MIS_LLAVES_SAAS_CLIENT_ID = "AVzG4UqAzzmD8NoEIl-D21knjKUYSn7iYHyftFc0OGp0Rf022YAzZLWx9CvRSI2_-jQuXT4B5_Kq8l8N"; 
-            const MIS_LLAVES_SAAS_SECRET = "EIq9CnXb4xcMDexfy8L8_9qfybwXSh1bNFrioSbIENgR0YVeEwWT0cqIukjHSMtBeU1iNNRWw-eVww-t";
+            const MIS_LLAVES_SAAS_CLIENT_ID = "AUFAi7JAXcVHxzlTtl5A4staH3CGRQiqSqU7lWXGiWBFfmtKf7gKjFDuuaTf2NQhGFn-YBZd7LqV1nur"; 
+            const MIS_LLAVES_SAAS_SECRET = "ELfu1NzRnEuqmvoNBx8q9rqC_YUOWWJqHcpoAavGBO4S1fqf_FUsygkppioBeCDIRVcgCxrirNtcWO-u";
 
             // 2. Obtener Token de Acceso
             const auth = btoa(`${MIS_LLAVES_SAAS_CLIENT_ID}:${MIS_LLAVES_SAAS_SECRET}`);
-            const tokenResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+            const tokenResponse = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Basic ${auth}`,
@@ -403,7 +403,7 @@ export default {
                 }
             };
 
-            const orderResponse = await fetch('https://api-m.sandbox.paypal.com/v2/checkout/orders', {
+            const orderResponse = await fetch('https://api-m.paypal.com/v2/checkout/orders', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -450,7 +450,7 @@ export default {
                 type: "template",
                 template: {
                     name: body.plantilla,
-                    language: { code: "es" },
+                    language: { code: "es_EC" },
                     components: [{
                         type: "body",
                         parameters: body.parametros.map((param: string) => ({ type: "text", text: param }))
@@ -487,68 +487,235 @@ export default {
   // =========================================================================
   // 2. EVENTO SCHEDULED (El Cron Job Automático que corre en segundo plano)
   // =========================================================================
+  
+  // =========================================================================
+  // 2. EVENTO SCHEDULED (El Cron Job Automático que corre en segundo plano)
+  // =========================================================================
   async scheduled(event: any, env: Env, ctx: ExecutionContext): Promise<void> {
-    // Usamos SERVICE_KEY para tener acceso a todos los tenants en este proceso global
+    // SERVICE_KEY nos da permisos de superadministrador para ver TODOS los gimnasios
     const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
     
-    // Ajustamos la fecha para Ecuador (GMT-5)
+    // 1. Ajustamos la fecha para la zona horaria de Ecuador (GMT-5) y normalizamos a medianoche
     const fechaEcuador = new Date(new Date().getTime() - (5 * 60 * 60 * 1000));
-    const hoy = fechaEcuador.toISOString().split('T')[0]; 
+    fechaEcuador.setUTCHours(0, 0, 0, 0); 
+    const hoyStr = fechaEcuador.toISOString().split('T')[0];
+
+    console.log(`🚀 Ejecutando Motor de Cobros Automático para la fecha: ${hoyStr}`);
 
     try {
-        console.log(`⏱️ Iniciando revisión automática de pagos para el: ${hoy}`);
-
-        // 1. Buscamos suscripciones vencidas de gimnasios Pro o Elite
+        // 2. Buscamos todas las suscripciones activas ('Pagado') de la base de datos completa
         const { data: suscripciones, error } = await adminSupabase
             .from('historial_suscripciones')
             .select(`
-                id,
-                fecha_fin,
-                estado_pago,
-                suscriptores!inner (nombre_completo, telefono),
-                tenants!inner (nombre_negocio, plan_saas)
+                *,
+                planes ( nombre_plan, dias_duracion ),
+                suscriptores ( nombre_completo, telefono ),
+                tenants ( id, nombre_negocio, paypal_client_id, paypal_secret )
             `)
-            .eq('estado_pago', 'Pagado')
-            .lt('fecha_fin', hoy) 
-            .in('tenants.plan_saas', ['pro', 'elite']);
+            .eq('estado_pago', 'Pagado');
 
         if (error) throw error;
-
         if (!suscripciones || suscripciones.length === 0) {
-            console.log("✅ No hay suscripciones vencidas de planes Premium para alertar hoy.");
+            console.log("✅ No hay suscripciones activas para procesar hoy.");
             return;
         }
 
-        console.log(`⚠️ Se encontraron ${suscripciones.length} suscripciones vencidas. Iniciando actualizaciones...`);
-
-        // 2. Procesamos cada suscripción encontrada
-        for (const sub of suscripciones) {
+        // --- HELPER 1: Envío directo de WhatsApp desde el Worker (SOPORTA ENCABEZADOS) ---
+        const enviarWA = async (telefono: string, plantilla: string, paramsHeader: string[] = [], paramsBody: string[] = []) => {
+            const telLimpio = telefono.replace(/\D/g, '');
+            const metaUrl = `https://graph.facebook.com/v18.0/${env.WA_PHONE_ID}/messages`;
             
-            // A. Cambiamos el estado a 'Atrasado' en Supabase
-            await adminSupabase
-                .from('historial_suscripciones')
-                .update({ estado_pago: 'Atrasado' })
-                .eq('id', sub.id);
+            const componentesPlantilla = [];
+            
+            // Si le mandamos datos para el encabezado
+            if (paramsHeader.length > 0) {
+                componentesPlantilla.push({
+                    type: "header",
+                    parameters: paramsHeader.map(param => ({ type: "text", text: param }))
+                });
+            }
+            
+            // Si le mandamos datos para el cuerpo
+            if (paramsBody.length > 0) {
+                componentesPlantilla.push({
+                    type: "body",
+                    parameters: paramsBody.map(param => ({ type: "text", text: param }))
+                });
+            }
 
-            // B. Variables tipadas para la simulación de WhatsApp
-            const nombre = (sub.suscriptores as any).nombre_completo;
-            const telefono = (sub.suscriptores as any).telefono;
-            const gym = (sub.tenants as any).nombre_negocio;
-            const plan = (sub.tenants as any).plan_saas;
+            const payload = {
+                messaging_product: "whatsapp",
+                to: telLimpio,
+                type: "template",
+                template: {
+                    name: plantilla,
+                    language: { code: "es_EC" }, // Coincide con el Spanish (ECU) de tu foto
+                    components: componentesPlantilla
+                }
+            };
+            
+            try {
+                const res = await fetch(metaUrl, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${env.WA_TOKEN}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json() as any;
+                if (data.error) console.error(`❌ Meta rechazó WA para ${telLimpio}:`, data.error.message);
+                else console.log(`✅ WA enviado con éxito a ${telLimpio}`);
+            } catch (err: any) {
+                console.error("❌ Error de red conectando con Meta:", err.message);
+            }
+        };
 
-            console.log(`
-            =========================================
-            📲 SIMULACIÓN DE WHATSAPP ENVIADO
-            Destino: ${telefono}
-            Gimnasio: ${gym} (Plan: ${plan.toUpperCase()})
-            Mensaje: "Hola ${nombre}, notamos que tu mensualidad en ${gym} se venció el ${sub.fecha_fin}. ¡Te extrañamos en el entrenamiento! Escríbenos para regularizar tu cuenta."
-            =========================================`);
+        // --- HELPER 2: Generación interna de link de PayPal ---
+        const generarLinkPago = async (tenant: any, clienteNombre: string, precio: number) => {
+            if (!tenant.paypal_client_id || !tenant.paypal_secret) return "https://jsmemberly.pages.dev/error-pago";
+            try {
+                const auth = btoa(`${tenant.paypal_client_id}:${tenant.paypal_secret}`);
+                const tokenResponse = await fetch('https://api-m.paypal.com/v1/oauth2/token', { 
+                    method: 'POST',
+                    headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'grant_type=client_credentials'
+                });
+                const tokenData = await tokenResponse.json() as any;
+                
+                const orderPayload = {
+                    intent: "CAPTURE",
+                    purchase_units: [{
+                        reference_id: `GYM-${Date.now()}`,
+                        description: `Suscripción - ${clienteNombre}`,
+                        amount: { currency_code: "USD", value: parseFloat(precio.toString()).toFixed(2) }
+                    }],
+                    payment_source: {
+                        paypal: {
+                            experience_context: {
+                                payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+                                user_action: "PAY_NOW",
+                                return_url: "https://jsmemberly.pages.dev/panel.html", 
+                                cancel_url: "https://jsmemberly.pages.dev/panel.html"
+                            }
+                        }
+                    }
+                };
+                const orderResponse = await fetch('https://api-m.paypal.com/v2/checkout/orders', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderPayload)
+                });
+                const orderData = await orderResponse.json() as any;
+                return orderData.links.find((link: any) => link.rel === "payer-action").href;
+            } catch (e) {
+                console.error("Error generando link de PayPal en el Cron:", e);
+                return "https://jsmemberly.pages.dev/error-pago";
+            }
+        };
+
+        // 3. Procesamos cada suscripción
+        for (const sub of suscripciones) {
+            if (!sub.fecha_fin || !sub.suscriptores || !sub.tenants) continue;
+
+            const partesFecha = sub.fecha_fin.split('-'); 
+            const fechaFin = new Date(parseInt(partesFecha[0]), parseInt(partesFecha[1]) - 1, parseInt(partesFecha[2]));
+            fechaFin.setUTCHours(0, 0, 0, 0);
+            
+            const diffTime = fechaFin.getTime() - fechaEcuador.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
+
+            const nombreCliente = sub.suscriptores.nombre_completo;
+            const telefono = sub.suscriptores.telefono;
+            const renovacionAuto = sub.renovacion_automatica === true; 
+            const recordatorioEnviado = sub.recordatorio_enviado === true; 
+            const tenant = sub.tenants;
+            const nombreGym = tenant.nombre_negocio;
+
+            if (!telefono) continue; // Si no tiene teléfono, saltamos al siguiente
+
+            // =========================================================================
+            // REGLAS 3 Y 4: NO TIENE RENOVACIÓN AUTOMÁTICA -> Avisar 3 días ANTES
+            // =========================================================================
+            if (!renovacionAuto && diffDays === 3 && !recordatorioEnviado) {
+                console.log(`🔔 Enviando aviso de pago a ${nombreCliente} (${nombreGym})`);
+                
+                //const linkPago = await generarLinkPago(tenant, nombreCliente, sub.precio_cobrado);
+                //const parametrosAviso = [nombreCliente, nombreGym, linkPago];
+                
+                const linkPago = await generarLinkPago(tenant, nombreCliente, sub.precio_cobrado);
+                
+                const paramsHeaderAviso: string[] = [nombreGym]; // Pon [nombreGym] si tu plantilla de aviso tiene variable en el título
+                const paramsBodyAviso = [nombreCliente, nombreGym, linkPago]; // Ajusta si tiene más o menos variables
+                
+                // Enviar WA y marcar en BD
+                await enviarWA(telefono, 'recordatorio_pago_gym', paramsHeaderAviso, paramsBodyAviso);
+                await adminSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
+            }
+
+            // =========================================================================
+            // REGLA 2: SÍ TIENE RENOVACIÓN AUTOMÁTICA -> Cobrar 1 día DESPUÉS (-1)
+            // =========================================================================
+            if (renovacionAuto && diffDays === -1) {
+                console.log(`💳 Procesando renovación automática para ${nombreCliente} (${nombreGym})`);
+                
+                // Simulación de transacción exitosa (Aquí se integraría el cobro real por token de tarjeta)
+                const transaccionExitosa = true; 
+                
+                if (transaccionExitosa) {
+                    const diasPlan = sub.planes?.dias_duracion || 30;
+                    
+                    // Calculamos nueva fecha basándonos en hoy
+                    const nuevaFechaFin = new Date(fechaEcuador);
+                    nuevaFechaFin.setDate(nuevaFechaFin.getDate() + diasPlan);
+                    const nuevaFechaFinStr = nuevaFechaFin.toISOString().split('T')[0];
+
+                    // 1. Apagamos la suscripción vieja (Inactivo) del cliente en ESTE tenant
+                    await adminSupabase.from('historial_suscripciones')
+                        .update({ estado_pago: 'Inactivo' })
+                        .eq('suscriptor_id', sub.suscriptor_id)
+                        .eq('tenant_id', sub.tenant_id);
+
+                    // 2. Insertamos el nuevo mes pagado
+                    await adminSupabase.from('historial_suscripciones').insert([{
+                        tenant_id: sub.tenant_id,
+                        suscriptor_id: sub.suscriptor_id,
+                        plan_id: sub.plan_id,
+                        precio_cobrado: sub.precio_cobrado,
+                        fecha_inicio: hoyStr,
+                        fecha_fin: nuevaFechaFinStr,
+                        estado_pago: 'Pagado',
+                        renovacion_automatica: true 
+                    }]);
+                    
+                    // 3. Enviamos Recibo
+                    // Variables: [ {{1}} Cliente, {{2}} Gimnasio, {{3}} Precio, {{4}} Nueva Fecha Fin ]
+                    const parametrosRecibo = [
+                        nombreCliente, 
+                        nombreGym, 
+                        sub.precio_cobrado.toString(), 
+                        nuevaFechaFin.toLocaleDateString('es-ES') 
+                    ];
+
+                    // 3. Enviamos Recibo
+                    // SEGÚN TU CAPTURA DE PANTALLA:
+                    // Encabezado {{1}}: Nombre del Gimnasio
+                    const paramsHeaderRecibo = [nombreGym]; 
+                    
+                    // Cuerpo {{1}}: Cliente, {{2}}: Gimnasio, {{3}}: Precio, {{4}}: Fecha
+                    const paramsBodyRecibo = [
+                        nombreCliente, 
+                        nombreGym, 
+                        sub.precio_cobrado.toString(), 
+                        nuevaFechaFin.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) 
+                    ];
+                    
+                    await enviarWA(telefono, 'recibo_pago_gym', paramsHeaderRecibo, paramsBodyRecibo);
+                }
+            }
         }
 
-        console.log("✅ Revisión automática completada con éxito.");
+        console.log("✅ Motor de cobros automático finalizado con éxito.");
 
     } catch (error: any) {
-        console.error("❌ Error grave en el Cron Job:", error.message);
+        console.error("❌ Error grave en el Motor de Cobros (Cron):", error.message);
     }
   }
 };
