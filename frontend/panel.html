@@ -2421,8 +2421,7 @@
         });
 
         // --- CONEXIÓN AL BACKEND PARA GENERAR LINK DE PAGO (PAYPAL) ---
-        async function obtenerLinkPago(nombreCliente, precio, tenantId) {
-            //const urlBackend = 'http://127.0.0.1:8787/api/pagos/generar-link'; 
+        async function obtenerLinkPago(nombreCliente, precio, tenantId, suscriptorId, planId, diasDuracion) {
             const urlBackend = `${CONFIG.BACKEND_URL}/api/pagos/generar-link`;
 
             try {
@@ -2432,7 +2431,10 @@
                     body: JSON.stringify({
                         nombre_cliente: nombreCliente,
                         precio_cobrado: precio,
-                        tenant_id: tenantId
+                        tenant_id: tenantId,
+                        suscriptor_id: suscriptorId,
+                        plan_id: planId,
+                        dias_duracion: diasDuracion
                     })
                 });
 
