@@ -729,9 +729,9 @@ export default {
             if (!tenant) throw new Error("Tenant no encontrado");
 
             // 🌟 EL ARREGLO ESTÁ AQUÍ: Forzamos Sandbox por defecto para evitar choques en producción
-            // BUSCAR
-            //const URL_PAYPAL = env.PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com'; 
-            const URL_PAYPAL = 'https://api-m.sandbox.paypal.com';
+            // BUSCAR - Descomentar sandbox para hacer pruebas
+            const URL_PAYPAL = env.PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com'; 
+            //const URL_PAYPAL = 'https://api-m.sandbox.paypal.com';
 
             // 2. Nos autenticamos con PayPal
             const auth = btoa(`${tenant.paypal_client_id}:${tenant.paypal_secret}`);
