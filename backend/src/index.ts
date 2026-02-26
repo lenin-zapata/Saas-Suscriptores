@@ -609,28 +609,60 @@ export default {
                     const diasDuracion = parseInt(datos[4]);
                     const precioCobrado = parseFloat(datos[5]);
 
-                    const hoyDate = new Date();
-                    const nuevaFechaFin = new Date(hoyDate);
-                    nuevaFechaFin.setDate(nuevaFechaFin.getDate() + diasDuracion);
+                    // === 🧠 NUEVA LÓGICA INTELIGENTE DE FECHAS ===
+                    // Ajustamos la fecha de hoy a Ecuador
+                    const hoyDate = new Date(new Date().getTime() - (5 * 60 * 60 * 1000));
+                    hoyDate.setUTCHours(0, 0, 0, 0);
+                    
+                    let fechaInicioCalculada = new Date(hoyDate);
 
+                    // 1. Buscamos la fecha de fin de la ÚLTIMA suscripción de este cliente
+                    const { data: ultimaSub } = await adminSupabase
+                        .from('historial_suscripciones')
+                        .select('fecha_fin')
+                        .eq('suscriptor_id', suscriptorId)
+                        .eq('tenant_id', tenantId)
+                        .order('fecha_fin', { ascending: false })
+                        .limit(1);
+
+                    // 2. Si tiene una suscripción anterior, verificamos si aún no se vence
+                    if (ultimaSub && ultimaSub.length > 0 && ultimaSub[0].fecha_fin) {
+                        const partesAnterior = ultimaSub[0].fecha_fin.split('-');
+                        const fechaFinAnterior = new Date(Date.UTC(parseInt(partesAnterior[0]), parseInt(partesAnterior[1]) - 1, parseInt(partesAnterior[2])));
+                        
+                        // Si la fecha de fin anterior es mayor o igual a hoy, empezamos DESDE AHÍ
+                        if (fechaFinAnterior >= hoyDate) {
+                            fechaInicioCalculada = fechaFinAnterior;
+                        }
+                    }
+
+                    // 3. Calculamos la nueva fecha fin sumando los días a la fecha elegida
+                    const nuevaFechaFin = new Date(fechaInicioCalculada);
+                    nuevaFechaFin.setUTCDate(nuevaFechaFin.getUTCDate() + diasDuracion);
+                    
+                    const strFechaInicio = fechaInicioCalculada.toISOString().split('T')[0];
+                    const strFechaFin = nuevaFechaFin.toISOString().split('T')[0];
+                    // ===============================================
+
+                    // Apagamos las suscripciones viejas
                     await adminSupabase.from('historial_suscripciones')
                         .update({ estado_pago: 'Inactivo' })
                         .eq('suscriptor_id', suscriptorId)
                         .eq('tenant_id', tenantId);
 
-                    // MAGIA: Si el pago fue recurrente, lo marcamos como 'Suscrito'
-                    // Si fue de un solo mes, lo marcamos como 'Pagado'
+                    // MAGIA: Determinamos el nuevo estado
                     const nuevoEstado = (body.event_type === 'PAYMENT.SALE.COMPLETED') ? 'Suscrito' : 'Pagado';
 
+                    // Insertamos el nuevo mes con las fechas exactas
                     await adminSupabase.from('historial_suscripciones').insert([{
                         tenant_id: tenantId,
                         suscriptor_id: suscriptorId,
                         plan_id: planId,
                         precio_cobrado: precioCobrado,
-                        fecha_inicio: hoyDate.toISOString().split('T')[0],
-                        fecha_fin: nuevaFechaFin.toISOString().split('T')[0],
+                        fecha_inicio: strFechaInicio,  // <-- FECHA INTELIGENTE
+                        fecha_fin: strFechaFin,        // <-- FECHA INTELIGENTE
                         estado_pago: nuevoEstado, 
-                        renovacion_automatica: true, // Mantiene la preferencia viva
+                        renovacion_automatica: true, 
                         recordatorio_enviado: false
                     }]);
 
@@ -679,6 +711,67 @@ export default {
         } catch (error: any) {
             console.error("❌ Error grave en Webhook:", error);
             return new Response(`Error: ${error.message}`, { status: 500 });
+        }
+    }
+
+    // =========================================================================
+    // 🪙 CAPTURAR PAGO ÚNICO (El paso final de PayPal)
+    // =========================================================================
+    if (url.pathname === '/api/capturar-orden' && request.method === 'GET') {
+        try {
+            const tokenOrden = url.searchParams.get('token');
+            const tenantId = url.searchParams.get('tenant_id');
+            if (!tokenOrden || !tenantId) throw new Error("Faltan parámetros");
+
+            // 1. Buscamos las llaves del gimnasio
+            const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+            const { data: tenant } = await adminSupabase.from('tenants').select('paypal_client_id, paypal_secret').eq('id', tenantId).single();
+            if (!tenant) throw new Error("Tenant no encontrado");
+
+            // 🌟 EL ARREGLO ESTÁ AQUÍ: Forzamos Sandbox por defecto para evitar choques en producción
+            // BUSCAR
+            //const URL_PAYPAL = env.PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com'; 
+            const URL_PAYPAL = 'https://api-m.sandbox.paypal.com';
+
+            // 2. Nos autenticamos con PayPal
+            const auth = btoa(`${tenant.paypal_client_id}:${tenant.paypal_secret}`);
+            const tokenRes = await fetch(`${URL_PAYPAL}/v1/oauth2/token`, {
+                method: 'POST',
+                headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'grant_type=client_credentials'
+            });
+            const tokenData = await tokenRes.json() as any;
+
+            if (!tokenData.access_token) {
+                console.error("❌ Fallo Autenticación PayPal:", tokenData);
+                throw new Error("No se pudo obtener el Access Token");
+            }
+
+            // 3. ¡CAPTURAMOS EL DINERO! 
+            const captureRes = await fetch(`${URL_PAYPAL}/v2/checkout/orders/${tokenOrden}/capture`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${tokenData.access_token}`, 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({}) // PayPal exige un body vacío
+            });
+            
+            const captureData = await captureRes.json() as any;
+
+            // EL SEGURO: Si PayPal rechaza el cobro, te mostramos el error real
+            if (!captureRes.ok || captureData.status !== 'COMPLETED') {
+                console.error("❌ PayPal rechazó la captura:", captureData);
+                return Response.redirect("https://jsmemberly.pages.dev/index.html?pago=error", 302);
+            }
+
+            console.log("✅ ¡Dinero capturado con éxito! PayPal disparará el Webhook al instante.");
+            
+            // 4. Mandamos al cliente a su panel verde
+            return Response.redirect("https://jsmemberly.pages.dev/index.html?pago=exitoso", 302);
+        } catch (error: any) {
+            console.error("❌ Error grave capturando orden única:", error.message);
+            return Response.redirect("https://jsmemberly.pages.dev/index.html?pago=error", 302);
         }
     }
 
@@ -854,7 +947,13 @@ export default {
                         }],
                         payment_source: {
                             paypal: {
-                                experience_context: { payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED", user_action: "PAY_NOW", return_url: "https://jsmemberly.pages.dev/panel.html", cancel_url: "https://jsmemberly.pages.dev/panel.html" }
+                                experience_context: { 
+                                    payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED", 
+                                    user_action: "PAY_NOW", 
+                                    // Aquí redirigimos al backend primero para capturar el dinero
+                                    return_url: `https://api-suscripciones.js-group.workers.dev/api/capturar-orden?tenant_id=${tenant.id}`, 
+                                    cancel_url: "https://jsmemberly.pages.dev/" 
+                                }
                             }
                         }
                     };
