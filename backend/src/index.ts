@@ -631,11 +631,23 @@ export default {
 
             if (!telefono) continue; // Si no tiene teléfono, saltamos al siguiente
 
+            // Extraemos el plan SaaS del gimnasio
+            const planSaasGym = tenant.plan_saas?.toLowerCase() || 'starter';
+
             // =========================================================================
             // REGLAS 3 Y 4: NO TIENE RENOVACIÓN AUTOMÁTICA -> Avisar 3 días ANTES
             // =========================================================================
             if (!renovacionAuto && diffDays === 3 && !recordatorioEnviado) {
+                
+                // 🛡️ CANDADO: Si es Starter, lo marcamos como enviado para que no se quede en bucle, pero NO enviamos el WA
+                if (planSaasGym === 'starter') {
+                    console.log(`🔒 Tenant en Plan Starter. Se omite WA para ${nombreCliente}.`);
+                    await adminSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
+                    continue; 
+                }
+
                 console.log(`🔔 Enviando aviso de pago a ${nombreCliente} (${nombreGym})`);
+                // ... (El resto de tu código de envío de WhatsApp sigue igual)
                 
                 //const linkPago = await generarLinkPago(tenant, nombreCliente, sub.precio_cobrado);
                 //const parametrosAviso = [nombreCliente, nombreGym, linkPago];
