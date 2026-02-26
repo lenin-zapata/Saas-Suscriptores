@@ -271,89 +271,6 @@ export default {
         </html>`, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
     }
 
-    // // --- INTEGRACIÓN PAYPAL (DINÁMICA POR GIMNASIO) ---
-    // if (url.pathname === '/api/pagos/generar-link' && request.method === 'POST') {
-    //     try {
-    //         const body = await request.json() as any;
-
-    //         // 1. Validamos que nos envíen el ID del gimnasio
-    //         if (!body.tenant_id) throw new Error("Falta el tenant_id");
-
-    //         // 2. BUSCAMOS LAS LLAVES DEL GIMNASIO EN LA BASE DE DATOS 🕵️‍♂️
-    //         const { data: tenantInfo, error: errTenant } = await supabase
-    //             .from('tenants')
-    //             .select('paypal_client_id, paypal_secret')
-    //             .eq('id', body.tenant_id)
-    //             .single();
-
-    //         if (errTenant || !tenantInfo || !tenantInfo.paypal_client_id) {
-    //             throw new Error("El gimnasio no ha configurado su cuenta de PayPal.");
-    //         }
-
-    //         // 3. Usamos las llaves dinámicas del gimnasio
-    //         const PAYPAL_CLIENT_ID = tenantInfo.paypal_client_id;
-    //         const PAYPAL_SECRET = tenantInfo.paypal_secret;
-
-    //         // 4. Obtener el Token de Acceso (OAuth 2.0 de PayPal)
-    //         const auth = btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`);
-    //         const tokenResponse = await fetch('${URL_PAYPAL}/v1/oauth2/token', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Authorization': `Basic ${auth}`,
-    //                 'Content-Type': 'application/x-www-form-urlencoded'
-    //             },
-    //             body: 'grant_type=client_credentials'
-    //         });
-            
-    //         const tokenData = await tokenResponse.json() as any;
-    //         const accessToken = tokenData.access_token;
-
-    //         // 5. Crear la orden de cobro
-    //         const orderPayload = {
-    //             intent: "CAPTURE",
-    //             purchase_units: [{
-    //                 reference_id: `GYM-${Date.now()}`,
-    //                 description: `Suscripción - ${body.nombre_cliente}`,
-    //                 amount: {
-    //                     currency_code: "USD",
-    //                     value: parseFloat(body.precio_cobrado).toFixed(2)
-    //                 }
-    //             }],
-    //             // ... (El resto del payment_source y fetch de la orden se queda EXACTAMENTE IGUAL) ...
-    //             payment_source: {
-    //                 paypal: {
-    //                     experience_context: {
-    //                         payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
-    //                         user_action: "PAY_NOW",
-    //                         //return_url: "http://127.0.0.1:5500/frontend/index.html", 
-    //                         //cancel_url: "http://127.0.0.1:5500/frontend/index.html"
-    //                         return_url: "https://jsmemberly.pages.dev/panel.html", 
-    //                         cancel_url: "https://jsmemberly.pages.dev/panel.html"
-    //                     }
-    //                 }
-    //             }
-    //         };
-
-    //         const orderResponse = await fetch('${URL_PAYPAL}/v2/checkout/orders', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Authorization': `Bearer ${accessToken}`,
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify(orderPayload)
-    //         });
-
-    //         const orderData = await orderResponse.json() as any;
-    //         const linkPago = orderData.links.find((link: any) => link.rel === "payer-action").href;
-
-    //         return new Response(JSON.stringify({ exito: true, url_pago: linkPago }), { status: 200, headers: corsHeaders });
-
-    //     } catch (error: any) {
-    //         console.error("❌ Error con PayPal Dinámico:", error);
-    //         return new Response(JSON.stringify({ exito: false, mensaje: error.message }), { status: 500, headers: corsHeaders });
-    //     }
-    // }
-
     // --- INTEGRACIÓN PAYPAL (SUSCRIPCIONES RECURRENTES POR GIMNASIO) ---
     if (url.pathname === '/api/pagos/generar-link' && request.method === 'POST') {
         try {
@@ -651,25 +568,22 @@ export default {
     }
 
     // =========================================================================
-    // 🎧 WEBHOOK DE PAYPAL (El Robot Contable 24/7)
+    // 🎧 WEBHOOK DE PAYPAL (Suscripciones y Pagos Únicos)
     // =========================================================================
     if (url.pathname === '/api/webhooks/paypal' && request.method === 'POST') {
         try {
             const body = await request.json() as any;
             
-            // 1. Verificamos que sea un cobro recurrente exitoso
-            if (body.event_type === 'PAYMENT.SALE.COMPLETED') {
+            // 1. Aceptamos tanto suscripciones (SALE) como pagos únicos (CAPTURE)
+            if (body.event_type === 'PAYMENT.SALE.COMPLETED' || body.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
                 
-                // Extraemos la "etiqueta secreta" que le enviamos a PayPal al crear el link
-                const customId = body.resource.custom || "";
+                // Extraemos la etiqueta (PayPal usa 'custom' para suscripciones y 'custom_id' para pagos únicos)
+                const customId = body.resource.custom || body.resource.custom_id || "";
                 if (!customId) return new Response("Ignorado: Sin custom_id", { status: 200 });
 
-                // Usamos la Service Key para tener permisos de administrador (saltar RLS)
                 const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
-
-                // Separamos los datos (El separador es "|")
                 const datos = customId.split('|');
-                const tipoCobro = datos[0]; 
+                const tipoCobro = datos[0];
 
                 if (tipoCobro === 'SAAS') {
                     // -----------------------------------------------------------------
@@ -687,8 +601,7 @@ export default {
 
                 } else if (tipoCobro === 'GYM') {
                     // -----------------------------------------------------------------
-                    // ESCENARIO B: Un cliente le pagó a un GIMNASIO (Renovación automática)
-                    // Formato esperado: GYM | tenantId | suscriptorId | planId | diasDuracion | precio
+                    // EL CLIENTE FINAL LE PAGÓ AL GIMNASIO (Un mes o Suscripción)
                     // -----------------------------------------------------------------
                     const tenantId = datos[1];
                     const suscriptorId = datos[2];
@@ -696,18 +609,19 @@ export default {
                     const diasDuracion = parseInt(datos[4]);
                     const precioCobrado = parseFloat(datos[5]);
 
-                    // Calculamos las fechas
                     const hoyDate = new Date();
                     const nuevaFechaFin = new Date(hoyDate);
                     nuevaFechaFin.setDate(nuevaFechaFin.getDate() + diasDuracion);
 
-                    // A. Apagamos el historial viejo (Solo en este gimnasio)
                     await adminSupabase.from('historial_suscripciones')
                         .update({ estado_pago: 'Inactivo' })
                         .eq('suscriptor_id', suscriptorId)
                         .eq('tenant_id', tenantId);
 
-                    // B. Insertamos el nuevo mes pagado
+                    // MAGIA: Si el pago fue recurrente, lo marcamos como 'Suscrito'
+                    // Si fue de un solo mes, lo marcamos como 'Pagado'
+                    const nuevoEstado = (body.event_type === 'PAYMENT.SALE.COMPLETED') ? 'Suscrito' : 'Pagado';
+
                     await adminSupabase.from('historial_suscripciones').insert([{
                         tenant_id: tenantId,
                         suscriptor_id: suscriptorId,
@@ -715,8 +629,8 @@ export default {
                         precio_cobrado: precioCobrado,
                         fecha_inicio: hoyDate.toISOString().split('T')[0],
                         fecha_fin: nuevaFechaFin.toISOString().split('T')[0],
-                        estado_pago: 'Pagado',
-                        renovacion_automatica: true,
+                        estado_pago: nuevoEstado, 
+                        renovacion_automatica: true, // Mantiene la preferencia viva
                         recordatorio_enviado: false
                     }]);
 
@@ -801,7 +715,7 @@ export default {
                 *,
                 planes ( nombre_plan, dias_duracion ),
                 suscriptores ( nombre_completo, telefono ),
-                tenants ( id, nombre_negocio, paypal_client_id, paypal_secret )
+                tenants ( id, nombre_negocio, paypal_client_id, paypal_secret, plan_saas )
             `)
             .eq('estado_pago', 'Pagado');
 
@@ -859,45 +773,105 @@ export default {
             }
         };
 
-        // --- HELPER 2: Generación interna de link de PayPal ---
-        const generarLinkPago = async (tenant: any, clienteNombre: string, precio: number) => {
+        // --- HELPER 2: Generación Inteligente de link de PayPal (CON RASTREO) ---
+        const generarLinkPago = async (tenant: any, clienteNombre: string, precio: number, esSuscripcion: boolean, dias: number, suscriptorId: string, planId: string) => {
             if (!tenant.paypal_client_id || !tenant.paypal_secret) return "https://jsmemberly.pages.dev/error-pago";
             try {
+                const URL_PAYPAL = env.PAYPAL_API_URL || 'https://api-m.paypal.com';
                 const auth = btoa(`${tenant.paypal_client_id}:${tenant.paypal_secret}`);
-                const tokenResponse = await fetch('${URL_PAYPAL}/v1/oauth2/token', { 
+                
+                // 1. Obtener Token
+                const tokenResponse = await fetch(`${URL_PAYPAL}/v1/oauth2/token`, { 
                     method: 'POST',
                     headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: 'grant_type=client_credentials'
                 });
                 const tokenData = await tokenResponse.json() as any;
+                if (!tokenData.access_token) {
+                    console.error("❌ ERROR PAYPAL (TOKEN):", tokenData);
+                    throw new Error("Credenciales inválidas para este entorno.");
+                }
+                const accessToken = tokenData.access_token;
                 
-                const orderPayload = {
-                    intent: "CAPTURE",
-                    purchase_units: [{
-                        reference_id: `GYM-${Date.now()}`,
-                        description: `Suscripción - ${clienteNombre}`,
-                        amount: { currency_code: "USD", value: parseFloat(precio.toString()).toFixed(2) }
-                    }],
-                    payment_source: {
-                        paypal: {
-                            experience_context: {
-                                payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
-                                user_action: "PAY_NOW",
-                                return_url: "https://jsmemberly.pages.dev/panel.html", 
-                                cancel_url: "https://jsmemberly.pages.dev/panel.html"
+                const customId = `GYM|${tenant.id}|${suscriptorId}|${planId}|${dias}|${precio}`;
+
+                if (esSuscripcion) {
+                    // 2. Crear Producto
+                    const prodRes = await fetch(`${URL_PAYPAL}/v1/catalogs/products`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: `Membresía - ${clienteNombre}`, type: "SERVICE"})
+                    });
+                    const prodData = await prodRes.json() as any;
+                    if (!prodData.id) {
+                        console.error("❌ ERROR PAYPAL (PRODUCTO):", prodData);
+                        throw new Error("Fallo al crear producto");
+                    }
+
+                    // 3. Crear Plan
+                    const planRes = await fetch(`${URL_PAYPAL}/v1/billing/plans`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            product_id: prodData.id,
+                            name: `Membresía ${dias} días Automática`,
+                            status: "ACTIVE",
+                            billing_cycles: [{ frequency: { interval_unit: "DAY", interval_count: dias }, tenure_type: "REGULAR", sequence: 1, total_cycles: 0, pricing_scheme: { fixed_price: { value: parseFloat(precio.toString()).toFixed(2), currency_code: "USD" } } }],
+                            payment_preferences: { auto_bill_outstanding: true, setup_fee_failure_action: "CONTINUE", payment_failure_threshold: 3 }
+                        })
+                    });
+                    const planData = await planRes.json() as any;
+                    if (!planData.id) {
+                        console.error("❌ ERROR PAYPAL (PLAN):", planData);
+                        throw new Error("Fallo al crear plan de cobro");
+                    }
+
+                    // 4. Crear Suscripción
+                    const subRes = await fetch(`${URL_PAYPAL}/v1/billing/subscriptions`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            plan_id: planData.id,
+                            custom_id: customId,
+                            application_context: { return_url: "https://jsmemberly.pages.dev/panel.html", cancel_url: "https://jsmemberly.pages.dev/panel.html", user_action: "SUBSCRIBE_NOW" }
+                        })
+                    });
+                    const subData = await subRes.json() as any;
+                    if (!subData.links) {
+                        console.error("❌ ERROR PAYPAL (FINAL):", subData);
+                        throw new Error("Sin links de suscripción");
+                    }
+                    return subData.links.find((l: any) => l.rel === "approve").href;
+
+                } else {
+                    const orderPayload = {
+                        intent: "CAPTURE",
+                        purchase_units: [{
+                            reference_id: `GYM-${Date.now()}`,
+                            description: `Suscripción 1 Mes - ${clienteNombre}`,
+                            custom_id: customId,
+                            amount: { currency_code: "USD", value: parseFloat(precio.toString()).toFixed(2) }
+                        }],
+                        payment_source: {
+                            paypal: {
+                                experience_context: { payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED", user_action: "PAY_NOW", return_url: "https://jsmemberly.pages.dev/panel.html", cancel_url: "https://jsmemberly.pages.dev/panel.html" }
                             }
                         }
+                    };
+                    const orderResponse = await fetch(`${URL_PAYPAL}/v2/checkout/orders`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify(orderPayload)
+                    });
+                    const orderData = await orderResponse.json() as any;
+                    if (!orderData.links) {
+                        console.error("❌ ERROR PAYPAL (PAGO ÚNICO):", orderData);
+                        throw new Error("Sin links de pago único");
                     }
-                };
-                const orderResponse = await fetch('${URL_PAYPAL}/v2/checkout/orders', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${tokenData.access_token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify(orderPayload)
-                });
-                const orderData = await orderResponse.json() as any;
-                return orderData.links.find((link: any) => link.rel === "payer-action").href;
-            } catch (e) {
-                console.error("Error generando link de PayPal en el Cron:", e);
+                    return orderData.links.find((link: any) => link.rel === "payer-action").href;
+                }
+            } catch (e: any) {
+                console.error("Error PayPal:", e.message);
                 return "https://jsmemberly.pages.dev/error-pago";
             }
         };
@@ -926,11 +900,10 @@ export default {
             const planSaasGym = tenant.plan_saas?.toLowerCase() || 'starter';
 
             // =========================================================================
-            // REGLAS 3 Y 4: NO TIENE RENOVACIÓN AUTOMÁTICA -> Avisar 3 días ANTES
+            // REGLA: Avisar 3 días ANTES a TODOS (Con Link Dinámico)
             // =========================================================================
-            if (!renovacionAuto && diffDays === 3 && !recordatorioEnviado) {
+            if (diffDays === 3 && !recordatorioEnviado) {
                 
-                // 🛡️ CANDADO: Si es Starter, lo marcamos como enviado para que no se quede en bucle, pero NO enviamos el WA
                 if (planSaasGym === 'starter') {
                     console.log(`🔒 Tenant en Plan Starter. Se omite WA para ${nombreCliente}.`);
                     await adminSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
@@ -938,22 +911,20 @@ export default {
                 }
 
                 console.log(`🔔 Enviando aviso de pago a ${nombreCliente} (${nombreGym})`);
-                // ... (El resto de tu código de envío de WhatsApp sigue igual)
                 
-                //const linkPago = await generarLinkPago(tenant, nombreCliente, sub.precio_cobrado);
-                //const parametrosAviso = [nombreCliente, nombreGym, linkPago];
+                const diasPlan = sub.planes?.dias_duracion || 30;
+                // Pasamos las variables para decidir qué link crear
+                const linkPago = await generarLinkPago(tenant, nombreCliente, sub.precio_cobrado, renovacionAuto, diasPlan, sub.suscriptor_id, sub.plan_id);
                 
-                const linkPago = await generarLinkPago(tenant, nombreCliente, sub.precio_cobrado);
+                // Mantenemos los arreglos EXACTAMENTE como funcionaban en tu código original
+                const paramsHeaderAviso: string[] = [nombreGym]; 
+                const paramsBodyAviso = [nombreCliente, nombreGym, linkPago]; 
                 
-                const paramsHeaderAviso: string[] = [nombreGym]; // Pon [nombreGym] si tu plantilla de aviso tiene variable en el título
-                const paramsBodyAviso = [nombreCliente, nombreGym, linkPago]; // Ajusta si tiene más o menos variables
-                
-                // Enviar WA y marcar en BD
                 await enviarWA(telefono, 'recordatorio_pago_gym', paramsHeaderAviso, paramsBodyAviso);
                 await adminSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
             }
 
-            // =========================================================================
+            /* // =========================================================================
             // REGLA 2: SÍ TIENE RENOVACIÓN AUTOMÁTICA -> Cobrar 1 día DESPUÉS (-1)
             // =========================================================================
             if (renovacionAuto && diffDays === -1) {
@@ -1012,7 +983,7 @@ export default {
                     
                     await enviarWA(telefono, 'recibo_pago_gym', paramsHeaderRecibo, paramsBodyRecibo);
                 }
-            }
+            } */
         }
 
         console.log("✅ Motor de cobros automático finalizado con éxito.");

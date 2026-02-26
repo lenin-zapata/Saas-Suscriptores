@@ -287,8 +287,8 @@
                             
                             <div class="mt-5 mb-6 flex items-center justify-between bg-emerald-50 p-4 rounded-xl border border-emerald-100">
                                 <div>
-                                    <label class="text-sm font-bold text-emerald-900 block">🔄 Renovación Automática</label>
-                                    <p class="text-[11px] text-emerald-700 mt-0.5 leading-tight">Cobro automático 1 día después del vencimiento. Si se desactiva, se enviará link de pago 3 días antes.</p>
+                                    <label class="text-sm font-bold text-emerald-900 block">🌐 Preferencia de Pago Online</label>
+                                    <p class="text-[11px] text-emerald-700 mt-0.5 leading-tight">Si se activa, el próximo mes recibirá un link de <strong>Suscripción</strong>. Si se desactiva, recibirá un link de <strong>Pago Único</strong>.</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="renovacionAutoCliente" class="sr-only peer" checked>
@@ -811,8 +811,8 @@
 
                 <div class="mb-8 flex items-center justify-between bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
                     <div>
-                        <label class="text-sm font-bold text-emerald-900 block">Renovación Automática</label>
-                        <p class="text-[11px] text-emerald-600 mt-1 leading-tight">Activar cobros automáticos al finalizar el plan.</p>
+                        <label class="text-sm font-bold text-emerald-900 block">Preferencia de Pago Online</label>
+                        <p class="text-[11px] text-emerald-600 mt-1 leading-tight">Define si el link del próximo mes será de suscripción o pago único.</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="renovarAutoSwitch" class="sr-only peer" checked>
@@ -1344,7 +1344,9 @@
                 const ultimaSub = subs[0] || {};
                 
                 // 2. Formatear datos de interés
-                const vence = ultimaSub.fecha_fin ? new Date(ultimaSub.fecha_fin).toLocaleDateString('es-ES') : '<span class="text-gray-400">Sin plan</span>';
+                // Le sumamos 'T12:00:00' para anclar la fecha al mediodía y evitar el salto de día
+                //const vence = ultimaSub.fecha_fin ? new Date(ultimaSub.fecha_fin).toLocaleDateString('es-ES') : '<span class="text-gray-400">Sin plan</span>';
+                const vence = ultimaSub.fecha_fin ? new Date(ultimaSub.fecha_fin + 'T12:00:00').toLocaleDateString('es-ES') : '<span class="text-gray-400">Sin plan</span>';
                 const fechaRegistro = c.fecha_registro || c.created_at; // Soporte para ambos nombres de columna
                 const registrado = fechaRegistro ? new Date(fechaRegistro).toLocaleDateString('es-ES') : 'Desconocido';
                 const emergencia = c.contacto_emergencia || '<span class="text-gray-400 italic">No registrado</span>';
@@ -2123,136 +2125,6 @@
             }
         }
 
-        /*
-        // --- MOTOR AUTOMATIZADO DE COBROS Y RECORDATORIOS (CON WHATSAPP REAL) ---
-        async function simularMotorCobros() {
-            const btn = window.event ? window.event.currentTarget : document.querySelector('button');
-            const textoOriginal = btn ? btn.innerHTML : 'Ejecutar';
-            if(btn) { btn.innerHTML = 'Enviando WA... 🚀'; btn.disabled = true; }
-
-            try {
-                console.log("==================================================");
-                console.log("🚀 INICIANDO MOTOR DE FACTURACIÓN Y WHATSAPP...");
-                
-                const hoy = new Date();
-                hoy.setHours(0, 0, 0, 0); 
-
-                let resumenWA_Cobro = 0;
-                let resumenWA_Aviso = 0;
-                let resumenCobros = 0;
-
-                const { data: suscripciones, error } = await miSupabase
-                    .from('historial_suscripciones')
-                    .select(`*, planes(nombre_plan, dias_duracion), suscriptores(nombre_completo, telefono)`)
-                    .eq('tenant_id', miTenantId)
-                    .order('fecha_fin', { ascending: false });
-
-                if (error) throw error;
-
-                for (const sub of suscripciones) {
-                    if (!sub.fecha_fin) continue;
-
-                    const partesFecha = sub.fecha_fin.split('T')[0].split('-'); 
-                    const fechaFin = new Date(partesFecha[0], partesFecha[1] - 1, partesFecha[2]);
-                    fechaFin.setHours(0, 0, 0, 0);
-                    
-                    const diffTime = fechaFin - hoy;
-                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
-
-                    const nombreCliente = sub.suscriptores?.nombre_completo || 'Cliente';
-                    // IMPORTANTE: Este teléfono en la BD debe ser tu número real para la prueba
-                    const telefono = sub.suscriptores?.telefono || 'Sin número';
-                    const plan = sub.planes?.nombre_plan || 'Plan';
-                    
-                    const renovacionAuto = sub.renovacion_automatica === true; 
-                    const recordatorioEnviado = sub.recordatorio_enviado === true; 
-
-                    // =========================================================================
-                    // REGLAS 3 Y 4: NO TIENE RENOVACIÓN AUTOMÁTICA -> Avisar 3 días ANTES
-                    // =========================================================================
-                    if (!renovacionAuto && diffDays === 3 && !recordatorioEnviado) {
-                        
-                        // 1. SOLICITAMOS EL LINK REAL AL BANCO 🏦
-                        let linkPago = await obtenerLinkPago(nombreCliente, sub.precio_cobrado, miTenantId);
-                        // Fallback de seguridad por si el banco está caído
-                        if (!linkPago) {
-                            linkPago = "https://tudominio.com/error-pago (Intenta más tarde)";
-                        }
-
-                        // Obtenemos el nombre del gimnasio para la variable {{2}}
-                        const nombreGym = document.getElementById('nombreGymSidebar').innerText;
-
-                        // 2. DISPARADOR DE LA PLANTILLA DE AVISO (Pasamos las variables en orden)
-                        // Variables: [ {{1}} Cliente, {{2}} Gimnasio, {{3}} Link ]
-                        const parametrosAviso = [nombreCliente, nombreGym, linkPago];
-                        await enviarPlantillaWhatsApp(telefono, 'recordatorio_pago_gym', parametrosAviso);
-
-                        // 4. MARCAMOS COMO ENVIADO EN BD
-                        await miSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
-                        resumenWA_Aviso++;
-                    }
-
-                    // =========================================================================
-                    // REGLA 2: SÍ TIENE RENOVACIÓN AUTOMÁTICA -> Cobrar 1 día DESPUÉS
-                    // =========================================================================
-                    if (renovacionAuto && diffDays === -1 && sub.estado_pago !== 'Renovado') {
-                        const transaccionExitosa = true; // Simulación de PlaceToPay
-                        
-                        if (transaccionExitosa) {
-                            const nuevaFechaFin = new Date(hoy);
-                            nuevaFechaFin.setDate(nuevaFechaFin.getDate() + (sub.planes?.dias_duracion || 30));
-
-                            // 1. PRIMERO: Apagamos todo el historial viejo del cliente (¡Solo en ESTE gimnasio!)
-                            await miSupabase.from('historial_suscripciones')
-                                .update({ estado_pago: 'Inactivo' })
-                                .eq('suscriptor_id', sub.suscriptor_id)
-                                .eq('tenant_id', miTenantId); // 🛡️ CANDADO MULTI-TENANT
-
-                            // 2. SEGUNDO: Insertamos el mes nuevo limpio y 'Pagado'
-                            await miSupabase.from('historial_suscripciones').insert([{
-                                tenant_id: miTenantId,
-                                suscriptor_id: sub.suscriptor_id,
-                                plan_id: sub.plan_id,
-                                precio_cobrado: sub.precio_cobrado,
-                                fecha_inicio: hoy.toISOString().split('T')[0],
-                                fecha_fin: nuevaFechaFin.toISOString().split('T')[0],
-                                estado_pago: 'Pagado',
-                                renovacion_automatica: true 
-                            }]);
-                            
-                            // 2. DISPARADOR DE LA PLANTILLA DE RECIBO
-                            // Variables: [ {{1}} Cliente, {{2}} Gimnasio, {{3}} Precio, {{4}} Nueva Fecha Fin ]
-                            const nombreGym = document.getElementById('nombreGymSidebar').innerText;
-                            const parametrosRecibo = [
-                                nombreCliente, 
-                                nombreGym, 
-                                sub.precio_cobrado.toString(), 
-                                nuevaFechaFin.toLocaleDateString('es-ES')
-                            ];
-                            await enviarPlantillaWhatsApp(telefono, 'recibo_pago_gym', parametrosRecibo);
-                            
-                            resumenCobros++;
-                            resumenWA_Cobro++;
-                        }
-                    }
-                }
-                
-                if (resumenCobros > 0 || resumenWA_Aviso > 0) {
-                    if(typeof cargarDatosYDashboard === 'function') await cargarDatosYDashboard();
-                    if(typeof cargarDashboardFinanciero === 'function') await cargarDashboardFinanciero();
-                }
-
-                alert(`📊 REPORTE DEL MOTOR:\n\n🔔 Avisos enviados: ${resumenWA_Aviso}\n🧾 Recibos WA enviados: ${resumenWA_Cobro}\n\n¡Revisa tu celular! 📱`);
-
-            } catch (err) {
-                console.error("❌ Error en el motor:", err);
-                alert("❌ Ocurrió un error al ejecutar el motor: " + err.message);
-            } finally {
-                if(btn) { btn.innerHTML = textoOriginal; btn.disabled = false; }
-            }
-        }
-        */
-        
         // --- FUNCIÓN PARA RENOVAR O CAMBIAR PLAN DE UN CLIENTE ---
         async function renovarSuscripcionCliente(suscriptorId, nuevoPlanId, precioCobrado, diasDuracion, quiereRenovacionAuto) {
             try {

@@ -262,18 +262,63 @@
     </div>
 
     <div id="modalPoliticas" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[200] backdrop-blur-sm p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-            <div class="p-6 border-b font-bold text-lg flex justify-between">
-                Términos y Privacidad Internacional
-                <button onclick="document.getElementById('modalPoliticas').classList.add('hidden')">×</button>
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
+            <div class="bg-emerald-700 p-6 text-white flex justify-between items-center shrink-0">
+                <div>
+                    <h2 class="font-bold text-xl">Términos de Uso y Políticas de Privacidad</h2>
+                    <p class="text-xs text-emerald-200 mt-1">Última actualización: Febrero 2026 | JS MemberLy</p>
+                </div>
+                <button onclick="document.getElementById('modalPoliticas').classList.add('hidden')" class="text-emerald-200 hover:text-white text-3xl leading-none transition">×</button>
             </div>
-            <div class="p-8 overflow-y-auto text-sm text-gray-600 leading-relaxed">
-                <h3 class="font-bold text-gray-900">1. Protección de Datos (LOPDP Ecuador & GDPR)</h3>
-                <p>JS MemberLy actúa como encargado del tratamiento. Los datos de suscriptores (nombres, fotos, teléfonos) pertenecen al Gimnasio (Cliente). Nos comprometemos a no vender ni compartir dicha información con terceros.</p>
-                <h3 class="font-bold text-gray-900 mt-4">2. Pagos y Recurrencia</h3>
-                <p>Al activar la "Renovación Automática", el usuario autoriza el cobro periódico mediante la pasarela integrada. El Gimnasio es responsable de emitir la factura legal correspondiente según la normativa del SRI (Ecuador) o su país de origen.</p>
-                <h3 class="font-bold text-gray-900 mt-4">3. Limitación de Responsabilidad</h3>
-                <p>JS MemberLy proporciona la herramienta tecnológica, pero no es responsable por disputas entre el gimnasio y sus socios finales.</p>
+            
+            <div class="p-8 overflow-y-auto text-sm text-gray-600 leading-relaxed space-y-6">
+                
+                <section>
+                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>1.</span> Naturaleza del Servicio y Roles</h3>
+                    <p><strong>JS MemberLy</strong> proporciona una plataforma tecnológica (SaaS) diseñada para la administración de centros deportivos. En este ecosistema existen tres roles: <strong>La Plataforma</strong> (Nosotros), el <strong>Gimnasio/Cliente</strong> (Usted, quien contrata nuestro software), y el <strong>Suscriptor Final</strong> (El cliente del gimnasio). Nosotros proveemos la infraestructura tecnológica, pero la relación comercial directa existe estrictamente entre el Gimnasio y su Suscriptor Final.</p>
+                </section>
+
+                <section>
+                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>2.</span> Protección de Datos y Privacidad (LOPDP y GDPR)</h3>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>Propiedad de los datos:</strong> El Gimnasio es el titular y único responsable legal de los datos recolectados de sus Suscriptores (nombres, identificaciones, fotos, teléfonos). JS MemberLy actúa únicamente como <em>"Encargado del Tratamiento"</em> para almacenar y procesar esta información en servidores seguros en la nube.</li>
+                        <li><strong>Confidencialidad:</strong> Nos comprometemos a no vender, alquilar ni compartir las bases de datos de los Gimnasios con terceros bajo ninguna circunstancia.</li>
+                        <li><strong>Seguridad:</strong> Utilizamos encriptación de grado bancario (protocolos HTTPS, bases de datos cifradas y autenticación segura mediante tokens) para proteger la información.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>3.</span> Pagos, Suscripciones y Renovaciones Automáticas</h3>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>Suscripción SaaS:</strong> El pago por el uso de JS MemberLy se realiza mediante PayPal. Al elegir un plan (Mensual o Anual), el Gimnasio autoriza el cobro automático recurrente. Los pagos realizados no son reembolsables.</li>
+                        <li><strong>Cobros a Suscriptores Finales:</strong> JS MemberLy integra pasarelas de pago para que el Gimnasio cobre a sus clientes. Nosotros <strong>no retenemos ni tocamos los fondos</strong> de los usuarios finales; el dinero viaja directamente desde la tarjeta del Suscriptor a la cuenta comercial (PayPal u otra) del Gimnasio.</li>
+                        <li><strong>Responsabilidad Fiscal:</strong> JS MemberLy no emite facturas al consumidor final. Es responsabilidad exclusiva y legal del Gimnasio emitir los comprobantes de venta válidos (facturación electrónica, SRI, etc.) a sus clientes por los servicios deportivos prestados.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>4.</span> Uso de la API de WhatsApp (Meta)</h3>
+                    <p>Nuestra plataforma automatiza el envío de notificaciones mediante la API Oficial de Meta. El Gimnasio acepta cumplir estrictamente con las <a href="https://www.whatsapp.com/legal/business-policy/" target="_blank" class="text-emerald-600 hover:underline font-bold">Políticas de Comercio de WhatsApp</a>.</p>
+                    <p class="mt-2">Queda estrictamente prohibido utilizar el sistema para enviar Spam, mensajes promocionales no solicitados, o contenido que infrinja la ley. <strong>JS MemberLy no se hace responsable</strong> si Meta bloquea el número de teléfono o la cuenta del Gimnasio debido a reportes de spam por parte de los usuarios finales.</p>
+                </section>
+
+                <section>
+                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>5.</span> Disponibilidad del Servicio (SLA) y Limitación de Responsabilidad</h3>
+                    <p>Nos esforzamos por mantener una disponibilidad operativa del 99.9%. Sin embargo, el servicio se proporciona "tal cual" (As is). No nos hacemos responsables por caídas temporales del servidor debido a mantenimientos programados, fallos masivos en proveedores de nube (AWS, Cloudflare), o interrupciones en las pasarelas de pago de terceros.</p>
+                    <p class="mt-2 text-red-600 font-medium">En ningún caso JS MemberLy será responsable por lucro cesante, pérdida de datos derivada de un mal uso del usuario (ej. compartir contraseñas), o disputas legales, quejas o demandas entre los Suscriptores Finales y el Gimnasio.</p>
+                </section>
+
+                <section>
+                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>6.</span> Cancelación y Retención de Datos</h3>
+                    <p>El Gimnasio puede cancelar su suscripción SaaS en cualquier momento desde su panel de control. Tras la cancelación, la cuenta pasará a estado inactivo. Mantendremos la base de datos del Gimnasio protegida por un periodo de gracia de <strong>30 días</strong> por si desea reactivar su cuenta. Pasado este tiempo, los datos podrán ser eliminados permanentemente de nuestros servidores por seguridad.</p>
+                </section>
+
+            </div>
+            
+            <div class="bg-gray-50 p-6 border-t border-gray-100 flex justify-end shrink-0">
+                <button onclick="document.getElementById('modalPoliticas').classList.add('hidden')" class="bg-emerald-600 text-white font-bold py-2.5 px-6 rounded-xl hover:bg-emerald-700 transition shadow-md">
+                    He leído y entiendo los términos
+                </button>
             </div>
         </div>
     </div>
