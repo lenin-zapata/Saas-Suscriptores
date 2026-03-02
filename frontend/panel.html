@@ -6,7 +6,7 @@
     <title>JS MemberLy - Panel</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/svg" href="favicon.svg">
     <link rel="apple-touch-icon" href="favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -48,7 +48,7 @@
 </head>
 <body class="bg-gray-50 text-gray-800 h-screen flex overflow-hidden">
 
-    <div id="pantallaLogin" class="w-full h-full flex items-center justify-center login-bg fixed z-50">
+    <!-- <div id="pantallaLogin" class="w-full h-full flex items-center justify-center login-bg fixed z-50">
 
         <div class="absolute top-0 left-0 w-72 h-72 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
         <div class="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
@@ -97,6 +97,78 @@
                 <p id="errorLogin" class="text-red-500 text-xs text-center hidden font-medium bg-red-50 py-2 px-3 rounded-lg"></p>
             </form>
         </div>
+    </div> -->
+
+    <div id="pantallaLogin" class="w-full h-full flex fixed z-50 bg-white">
+        
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 relative">
+            <div class="w-full max-w-md bg-white">
+                <div class="mb-10 text-center">
+                    <div class="flex items-center justify-center gap-3 mb-0.5">
+                        <img src="logo.png" alt="JS Logo" class="w-24 h-24 md:w-40 md:h-40 rounded-xl object-contain shrink-0">
+                    </div>
+                    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Bienvenido de vuelta</h1>
+                    <p class="text-gray-500 text-sm mt-2">Ingresa tus credenciales para acceder a tu panel.</p>
+                </div>
+
+                <form id="formLogin" class="flex flex-col gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Correo Electrónico</label>
+                        <input type="email" id="emailLogin" required
+                            class="w-full border border-gray-200 bg-white px-4 py-3.5 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition shadow-sm text-sm"
+                            placeholder="admin@tu-gym.com">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-bold text-gray-700">Contraseña</label>
+                            <button type="button" onclick="solicitarResetPassword()" class="text-xs text-emerald-600 hover:text-emerald-800 font-bold transition">¿Olvidaste tu clave?</button>
+                        </div>
+                        <input type="password" id="passLogin" required
+                            class="w-full border border-gray-200 bg-white px-4 py-3.5 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition shadow-sm text-sm"
+                            placeholder="••••••••">
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-black transition shadow-xl shadow-gray-200 mt-2 text-sm flex justify-center items-center gap-2">
+                        Ingresar al Sistema
+                    </button>
+
+                    <p id="errorLogin" class="text-red-600 text-xs text-center hidden font-bold bg-red-50 border border-red-100 py-3 px-4 rounded-xl mt-2"></p>
+                </form>
+
+                <div class="mt-8 pt-8 border-t border-gray-100 text-center">
+                    <p class="text-sm text-gray-500">¿Eres personal nuevo en un gimnasio?</p>
+                    <button type="button" onclick="abrirRegistro()"
+                        class="mt-2 w-full bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold py-3.5 rounded-xl hover:bg-emerald-100 transition text-sm">
+                        Crear mi cuenta de acceso
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="hidden lg:flex w-1/2 bg-gray-900 relative items-center justify-center overflow-hidden p-12">
+            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-luminosity scale-105"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-emerald-900/90 to-gray-900/80"></div>
+            
+            <div class="relative z-10 text-left max-w-lg">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white text-xs font-bold mb-6 backdrop-blur-md">
+                    ⭐ Software #1 para centros deportivos
+                </div>
+                <h2 class="text-4xl md:text-5xl font-extrabold text-white mb-6 leading-tight">Digitaliza y escala tu negocio.</h2>
+                <p class="text-emerald-50 text-lg leading-relaxed mb-8">
+                    "Desde que usamos JS MemberLy, reducimos el tiempo de administración a la mitad y nuestros ingresos aumentaron gracias a los cobros automáticos."
+                </p>
+                <div class="flex items-center gap-4">
+                    <div class="flex -space-x-4">
+                        <img class="w-10 h-10 rounded-full border-2 border-emerald-900" src="https://i.pravatar.cc/100?img=1" alt="Avatar">
+                        <img class="w-10 h-10 rounded-full border-2 border-emerald-900" src="https://i.pravatar.cc/100?img=3" alt="Avatar">
+                        <img class="w-10 h-10 rounded-full border-2 border-emerald-900" src="https://i.pravatar.cc/100?img=5" alt="Avatar">
+                    </div>
+                    <div class="text-sm text-emerald-100 font-medium">Más de <strong class="text-white">50 gimnasios</strong><br>ya están dentro.</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div id="pantallaDashboard" class="flex w-full h-full hidden">
