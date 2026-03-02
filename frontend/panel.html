@@ -479,14 +479,25 @@
                     <div class="bg-blue-50 border-l-4 border-blue-500 p-5 mb-8 rounded-r-xl">
                         <div class="flex justify-between items-start">
                             <div>
-                                <h4 class="text-blue-900 font-bold mb-2">Conecta tu cuenta de PayPal en 3 pasos</h4>
+                                <h4 class="text-blue-900 font-bold mb-3">Conecta tu cuenta de PayPal en 4 pasos</h4>
+                                
+                                <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 px-4 py-2 rounded-lg mb-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-blue-600 flex-shrink-0">
+                                        <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 0 1 .67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 1 1-.671-1.34l.041-.022ZM12 9a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="text-sm text-blue-700">
+                                        <strong class="font-medium text-blue-800">Importante:</strong> Se requiere una cuenta de Paypal de tipo Empresa.
+                                    </span>
+                                </div>
+
                                 <ol class="text-blue-800 text-sm space-y-2 list-decimal ml-4">
                                     <li>Inicia sesión en el panel de <a href="https://developer.paypal.com" target="_blank" class="font-bold underline hover:text-blue-600">PayPal Developer</a>.</li>
-                                    <li>Haz clic en el botón <strong>"Create App"</strong> (Asegúrate de seleccionar la opción <em>Merchant</em>).</li>
+                                    <li>Cambia al modo <strong>"Live"</strong>.</li>
+                                    <li>Haz clic en el botón <strong>"Create App"</strong> en la sección <strong>"Apps & Credentials"</strong> (Asegúrate de seleccionar la opción <em>Merchant</em>).</li>
                                     <li>Copia los dos códigos que te dará PayPal y pégalos aquí abajo.</li>
                                 </ol>
                             </div>
-                            <a href="#" onclick="alert('Tutorial en video próximamente')" class="flex flex-col items-center justify-center bg-white p-2 rounded-lg shadow-sm border border-blue-100 hover:bg-gray-50 transition min-w-[100px]">
+                            <a target="_blank" href="https://www.youtube.com/watch?v=povhVRdCExc" class="flex flex-col items-center justify-center bg-white p-2 rounded-lg shadow-sm border border-blue-100 hover:bg-gray-50 transition min-w-[100px]">
                                 <span class="text-2xl mb-1">▶️</span>
                                 <span class="text-xs font-bold text-blue-600">Ver Tutorial</span>
                             </a>
@@ -837,8 +848,8 @@
         const SUPABASE_URL = CONFIG.SUPABASE_URL; 
         const SUPABASE_KEY = CONFIG.SUPABASE_KEY;
 
-        console.log("BACKEND_URL: ", CONFIG.BACKEND_URL);
-        console.log("FRONTEND_URL: ", CONFIG.FRONTEND_URL);
+        // console.log("BACKEND_URL: ", CONFIG.BACKEND_URL);
+        // console.log("FRONTEND_URL: ", CONFIG.FRONTEND_URL);
 
         //const API_URL = "http://localhost:8787/suscriptores";
         //const API_PLANES = "http://localhost:8787/planes";
