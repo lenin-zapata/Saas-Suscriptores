@@ -849,7 +849,7 @@
         // Agrega el parámetro de storage al crear el cliente
         const miSupabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {
             auth: {
-                storage: window.sessionStorage
+                storage: window.localStorage
             }
         });
         let tokenActual = null;
@@ -1269,7 +1269,7 @@
             // Esperamos a que Supabase destruya la sesión en el servidor
             await miSupabase.auth.signOut(); 
             // Limpiamos la memoria del navegador por seguridad
-            window.sessionStorage.clear(); 
+            window.localStorage.clear(); 
             // Redirigimos al inicio
             window.location.href = 'panel.html'; 
         }

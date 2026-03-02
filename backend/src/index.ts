@@ -23,8 +23,10 @@ export default {
 
     // 1. Definimos quiénes tienen la llave para entrar a tu API
     const origenesPermitidos = [
-      'https://jsmemberly.pages.dev', // Producción
-      'http://127.0.0.1:5500'         // Live Server (por si acaso)
+      'https://jsmemberly.com',       // <-- TU NUEVO DOMINIO OFICIAL
+      'https://www.jsmemberly.com',   // <-- POR SI ENTRAN CON WWW
+      'https://jsmemberly.pages.dev', // (Opcional, déjalo por si acaso)
+      'http://127.0.0.1:5500'         
     ];
 
     // 2. Le preguntamos a la petición: "¿Desde qué página vienes?"
@@ -33,7 +35,7 @@ export default {
     // 3. Si vienes de un lugar permitido, te abro la puerta. Si no, uso el principal por defecto.
     const originSeguro = origenesPermitidos.includes(origenPeticion) 
       ? origenPeticion 
-      : 'https://jsmemberly.pages.dev';
+      : 'https://www.jsmemberly.com/';
 
     // 4. Armamos los cabeceros dinámicamente para esta petición exacta
     const corsHeaders = {
@@ -157,7 +159,17 @@ export default {
         if (!aiResponse.ok) {
             const errorGroq = await aiResponse.text();
             console.error("❌ Rechazo de Groq API:", errorGroq);
-            throw new Error("Error en la comunicación con la Inteligencia Artificial.");
+            
+            // 🚨 GUARDAR EN CAJA NEGRA
+            const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+            await adminSupabase.from('errores_sistema').insert([{ 
+                origen: 'Chatbot IA (Groq)', 
+                mensaje: errorGroq.substring(0, 500) // Guardamos máximo 500 caracteres
+            }]);
+
+            // 🛟 PLAN B: Respuesta amigable para no perder al cliente
+            const respuestaEmergencia = "¡Hola! 👋 En este momento mi sistema inteligente se está actualizando, pero me encantaría ayudarte. Por favor, déjame tu número de WhatsApp y un asesor humano te contactará de inmediato.";
+            return new Response(JSON.stringify({ respuesta: respuestaEmergencia }), { status: 200, headers: corsHeaders });
         }
 
         const data = await aiResponse.json() as any;
@@ -166,8 +178,11 @@ export default {
         return new Response(JSON.stringify({ respuesta: textoRespuesta }), { status: 200, headers: corsHeaders });
 
       } catch (e: any) {
-        console.error("❌ Error 500 en /chat:", e.message);
-        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+        // Si todo el servidor falla, también lo guardamos
+        const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+        await adminSupabase.from('errores_sistema').insert([{ origen: 'Endpoint /chat', mensaje: e.message }]);
+        
+        return new Response(JSON.stringify({ error: "Servicio no disponible temporalmente." }), { status: 500, headers: corsHeaders });
       }
     }
 
@@ -337,8 +352,8 @@ export default {
                     // ESTA LÍNEA ES VITAL: Le pegamos una etiqueta al cobro para que el Webhook sepa quién pagó
                     custom_id: `GYM|${body.tenant_id}|${body.suscriptor_id}|${body.plan_id}|${dias}|${body.precio_cobrado}`,
                     application_context: {
-                        return_url: "https://jsmemberly.pages.dev/panel.html", 
-                        cancel_url: "https://jsmemberly.pages.dev/panel.html",
+                        return_url: "https://www.jsmemberly.com/panel.html", 
+                        cancel_url: "https://www.jsmemberly.com/panel.html",
                         user_action: "SUBSCRIBE_NOW"
                     }
                 })
@@ -356,90 +371,7 @@ export default {
         }
     }
 
-    // // =========================================================================
-    // // COBRO DE LA SUSCRIPCIÓN SAAS (TUS INGRESOS COMO DUEÑO DE JS MEMBERLY)
-    // // =========================================================================
-    // if (url.pathname === '/api/suscripcion-saas/generar-link' && request.method === 'POST') {
-    //     try {
-    //         const body = await request.json() as any;
-
-    //         // 1. TUS LLAVES MAESTRAS DE PAYPAL (Usa las de Sandbox para probar)
-    //         // Estas llaves siempre son las tuyas, porque el dinero va a tu cuenta
-    //         const MIS_LLAVES_SAAS_CLIENT_ID = "AUFAi7JAXcVHxzlTtl5A4staH3CGRQiqSqU7lWXGiWBFfmtKf7gKjFDuuaTf2NQhGFn-YBZd7LqV1nur"; 
-    //         const MIS_LLAVES_SAAS_SECRET = "ELfu1NzRnEuqmvoNBx8q9rqC_YUOWWJqHcpoAavGBO4S1fqf_FUsygkppioBeCDIRVcgCxrirNtcWO-u";
-
-    //         // 2. Obtener Token de Acceso
-    //         const auth = btoa(`${MIS_LLAVES_SAAS_CLIENT_ID}:${MIS_LLAVES_SAAS_SECRET}`);
-    //         const tokenResponse = await fetch('${URL_PAYPAL}/v1/oauth2/token', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Authorization': `Basic ${auth}`,
-    //                 'Content-Type': 'application/x-www-form-urlencoded'
-    //             },
-    //             body: 'grant_type=client_credentials'
-    //         });
-            
-    //         const tokenData = await tokenResponse.json() as any;
-    //         const accessToken = tokenData.access_token;
-
-    //         // 3. Crear la orden de compra del software
-    //         const orderPayload = {
-    //             intent: "CAPTURE",
-    //             purchase_units: [{
-    //                 reference_id: `SAAS-${Date.now()}`,
-    //                 description: `Suscripción JS MemberLy - Plan ${body.plan_elegido.toUpperCase()} (${body.gym_nombre})`,
-    //                 amount: {
-    //                     currency_code: "USD",
-    //                     value: parseFloat(body.precio_cobrar).toFixed(2)
-    //                 }
-    //             }],
-    //             payment_source: {
-    //                 paypal: {
-    //                   experience_context: {
-    //                     payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
-    //                     user_action: "PAY_NOW",
-    //                     //return_url: "http://127.0.0.1:5500/frontend/landing.html?pago_saas=exitoso", 
-    //                     //cancel_url: "http://127.0.0.1:5500/frontend/landing.html?pago_saas=cancelado"
-                        
-    //                     return_url: "https://jsmemberly.pages.dev/index.html?pago_saas=exitoso", 
-    //                     cancel_url: "https://jsmemberly.pages.dev/index.html?pago_saas=cancelado"
-
-    //                   }
-    //                 }
-    //             }
-    //         };
-
-    //         const orderResponse = await fetch('${URL_PAYPAL}/v2/checkout/orders', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Authorization': `Bearer ${accessToken}`,
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify(orderPayload)
-    //         });
-
-    //         const orderData = await orderResponse.json() as any;
-            
-    //         if (!orderData.links) {
-    //             console.error("Respuesta de PayPal sin links:", orderData);
-    //             throw new Error("Error en la configuración de PayPal Maestro.");
-    //         }
-
-    //         const linkPago = orderData.links.find((link: any) => link.rel === "payer-action").href;
-
-    //         // [OPCIONAL PERO RECOMENDADO] 
-    //         // Aquí podrías guardar los datos del body en una tabla temporal en Supabase 
-    //         // llamada 'prospectos_saas' para no perder sus datos si abandonan el carrito.
-
-    //         return new Response(JSON.stringify({ exito: true, url_pago: linkPago }), { status: 200, headers: corsHeaders });
-
-    //     } catch (error: any) {
-    //         console.error("❌ Error generando cobro SaaS:", error);
-    //         return new Response(JSON.stringify({ exito: false, mensaje: error.message }), { status: 500, headers: corsHeaders });
-    //     }
-    // }
-
-    // =========================================================================
+    /* // =========================================================================
     // COBRO DE LA SUSCRIPCIÓN SAAS (TUS INGRESOS COMO DUEÑO DE JS MEMBERLY)
     // =========================================================================
     if (url.pathname === '/api/suscripcion-saas/generar-link' && request.method === 'POST') {
@@ -516,6 +448,108 @@ export default {
             const linkPago = subData.links.find((link: any) => link.rel === "approve").href;
 
             return new Response(JSON.stringify({ exito: true, url_pago: linkPago }), { status: 200, headers: corsHeaders });
+
+        } catch (error: any) {
+            console.error("❌ Error generando cobro SaaS:", error);
+            return new Response(JSON.stringify({ exito: false, mensaje: error.message }), { status: 500, headers: corsHeaders });
+        }
+    } */
+
+    // =========================================================================
+    // COBRO DE LA SUSCRIPCIÓN SAAS (TUS INGRESOS COMO DUEÑO DE JS MEMBERLY)
+    // =========================================================================
+    if (url.pathname === '/api/suscripcion-saas/generar-link' && request.method === 'POST') {
+        try {
+            const body = await request.json() as any;
+
+            // --- 1. CREACIÓN DEL GIMNASIO EN ESTADO PENDIENTE ---
+            const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+            const limite = body.plan_elegido.includes('starter') ? 100 : (body.plan_elegido.includes('pro') ? 500 : 9999);
+            const planLimpio = body.plan_elegido.replace(' anual', '').replace(' mensual', '').trim();
+
+            const { data: nuevoTenant, error: errTenant } = await adminSupabase
+                .from('tenants')
+                .insert([{
+                    nombre_negocio: body.gym_nombre,
+                    pais: body.pais,
+                    identificacion_fiscal: body.id_nacional,
+                    plan_saas: planLimpio,
+                    limite_clientes: limite,
+                    estado_suscripcion: 'pendiente_pago',
+                    zona_horaria: body.zona_horaria || 'America/Guayaquil'
+                }])
+                .select().single();
+
+            if (errTenant) throw errTenant;
+            const tenantIdReal = nuevoTenant.id;
+
+            // --- 2. LLAVES DINÁMICAS Y PAYPAL ---
+            const MIS_LLAVES_SAAS_CLIENT_ID = env.PAYPAL_SAAS_CLIENT_ID; 
+            const MIS_LLAVES_SAAS_SECRET = env.PAYPAL_SAAS_SECRET;
+            const URL_PAYPAL = env.PAYPAL_API_URL;
+
+            const auth = btoa(`${MIS_LLAVES_SAAS_CLIENT_ID}:${MIS_LLAVES_SAAS_SECRET}`);
+            const tokenResponse = await fetch(`${URL_PAYPAL}/v1/oauth2/token`, { 
+                method: 'POST',
+                headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'grant_type=client_credentials'
+            });
+            const tokenData = await tokenResponse.json() as any;
+            const accessToken = tokenData.access_token;
+
+            const esAnual = body.plan_elegido.toLowerCase().includes('anual');
+            const periodoCobro = esAnual ? "YEAR" : "MONTH";
+
+            const prodRes = await fetch(`${URL_PAYPAL}/v1/catalogs/products`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: `JS MemberLy - Plan ${body.plan_elegido.toUpperCase()}`,
+                    type: "SERVICE",
+                    category: "SOFTWARE"
+                })
+            });
+            const prodData = await prodRes.json() as any;
+
+            const planRes = await fetch(`${URL_PAYPAL}/v1/billing/plans`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_id: prodData.id,
+                    name: `Suscripción SaaS ${esAnual ? 'Anual' : 'Mensual'}`,
+                    status: "ACTIVE",
+                    billing_cycles: [{
+                        frequency: { interval_unit: periodoCobro, interval_count: 1 },
+                        tenure_type: "REGULAR",
+                        sequence: 1,
+                        total_cycles: 0, 
+                        pricing_scheme: { fixed_price: { value: parseFloat(body.precio_cobrar).toFixed(2), currency_code: "USD" } }
+                    }],
+                    payment_preferences: { auto_bill_outstanding: true, setup_fee_failure_action: "CONTINUE", payment_failure_threshold: 3 }
+                })
+            });
+            const planData = await planRes.json() as any;
+
+            // --- 3. GENERAR LINK DE PAGO ENLAZADO AL GIMNASIO ---
+            const subRes = await fetch(`${URL_PAYPAL}/v1/billing/subscriptions`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    plan_id: planData.id,
+                    // Enviamos el UUID real de la base de datos al Webhook
+                    custom_id: `SAAS|${tenantIdReal}|${body.admin_nombre}`,
+                    application_context: {
+                        return_url: "https://www.jsmemberly.com/index.html?pago_saas=exitoso", 
+                        cancel_url: "https://www.jsmemberly.com/index.html?pago_saas=cancelado",
+                        user_action: "SUBSCRIBE_NOW"
+                    }
+                })
+            });
+            const subData = await subRes.json() as any;
+            const linkPago = subData.links.find((link: any) => link.rel === "approve").href;
+
+            // Devolvemos el tenant_id al frontend para que lo almacene
+            return new Response(JSON.stringify({ exito: true, url_pago: linkPago, tenant_id: tenantIdReal }), { status: 200, headers: corsHeaders });
 
         } catch (error: any) {
             console.error("❌ Error generando cobro SaaS:", error);
@@ -710,6 +744,13 @@ export default {
 
         } catch (error: any) {
             console.error("❌ Error grave en Webhook:", error);
+            // 🚨 GUARDAR EN CAJA NEGRA
+            const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+            await adminSupabase.from('errores_sistema').insert([{ 
+                origen: 'Webhook PayPal', 
+                mensaje: error.message || JSON.stringify(error)
+            }]);
+            
             return new Response(`Error: ${error.message}`, { status: 500 });
         }
     }
@@ -728,7 +769,6 @@ export default {
             const { data: tenant } = await adminSupabase.from('tenants').select('paypal_client_id, paypal_secret').eq('id', tenantId).single();
             if (!tenant) throw new Error("Tenant no encontrado");
 
-            // 🌟 EL ARREGLO ESTÁ AQUÍ: Forzamos Sandbox por defecto para evitar choques en producción
             // BUSCAR - Descomentar sandbox para hacer pruebas
             const URL_PAYPAL = env.PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com'; 
             //const URL_PAYPAL = 'https://api-m.sandbox.paypal.com';
@@ -762,16 +802,16 @@ export default {
             // EL SEGURO: Si PayPal rechaza el cobro, te mostramos el error real
             if (!captureRes.ok || captureData.status !== 'COMPLETED') {
                 console.error("❌ PayPal rechazó la captura:", captureData);
-                return Response.redirect("https://jsmemberly.pages.dev/index.html?pago=error", 302);
+                return Response.redirect("https://www.jsmemberly.com/index.html?pago=error", 302);
             }
 
             console.log("✅ ¡Dinero capturado con éxito! PayPal disparará el Webhook al instante.");
             
             // 4. Mandamos al cliente a su panel verde
-            return Response.redirect("https://jsmemberly.pages.dev/index.html?pago=exitoso", 302);
+            return Response.redirect("https://www.jsmemberly.com/index.html?pago=exitoso", 302);
         } catch (error: any) {
             console.error("❌ Error grave capturando orden única:", error.message);
-            return Response.redirect("https://jsmemberly.pages.dev/index.html?pago=error", 302);
+            return Response.redirect("https://www.jsmemberly.com/index.html?pago=error", 302);
         }
     }
 
@@ -785,14 +825,27 @@ export default {
   // =========================================================================
   // 2. EVENTO SCHEDULED (El Cron Job Automático que corre en segundo plano)
   // =========================================================================
-  
-  // =========================================================================
-  // 2. EVENTO SCHEDULED (El Cron Job Automático que corre en segundo plano)
-  // =========================================================================
   async scheduled(event: any, env: Env, ctx: ExecutionContext): Promise<void> {
     // SERVICE_KEY nos da permisos de superadministrador para ver TODOS los gimnasios
     const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
     
+    // =========================================================================
+    // 🧹 1. RECOLECTOR DE BASURA (Borrar gimnasios "pendientes" de hace >48h)
+    // =========================================================================
+    try {
+        const anteayer = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+        const { error: errBorrado } = await adminSupabase
+            .from('tenants')
+            .delete()
+            .eq('estado_suscripcion', 'pendiente_pago')
+            .lt('created_at', anteayer);
+        
+        if (errBorrado) console.error("⚠️ Error en recolector de basura:", errBorrado.message);
+        else console.log("🧹 Limpieza de registros pendientes completada.");
+    } catch (e) {
+        console.error("⚠️ Error ejecutando recolector de basura:", e);
+    }
+
     // 1. Ajustamos la fecha para la zona horaria de Ecuador (GMT-5) y normalizamos a medianoche
     const fechaEcuador = new Date(new Date().getTime() - (5 * 60 * 60 * 1000));
     fechaEcuador.setUTCHours(0, 0, 0, 0); 
@@ -868,7 +921,7 @@ export default {
 
         // --- HELPER 2: Generación Inteligente de link de PayPal (CON RASTREO) ---
         const generarLinkPago = async (tenant: any, clienteNombre: string, precio: number, esSuscripcion: boolean, dias: number, suscriptorId: string, planId: string) => {
-            if (!tenant.paypal_client_id || !tenant.paypal_secret) return "https://jsmemberly.pages.dev/error-pago";
+            if (!tenant.paypal_client_id || !tenant.paypal_secret) return "https://www.jsmemberly.com/error-pago";
             try {
                 const URL_PAYPAL = env.PAYPAL_API_URL || 'https://api-m.paypal.com';
                 const auth = btoa(`${tenant.paypal_client_id}:${tenant.paypal_secret}`);
@@ -926,7 +979,7 @@ export default {
                         body: JSON.stringify({
                             plan_id: planData.id,
                             custom_id: customId,
-                            application_context: { return_url: "https://jsmemberly.pages.dev/panel.html", cancel_url: "https://jsmemberly.pages.dev/panel.html", user_action: "SUBSCRIBE_NOW" }
+                            application_context: { return_url: "https://www.jsmemberly.com/panel.html", cancel_url: "https://www.jsmemberly.com/panel.html", user_action: "SUBSCRIBE_NOW" }
                         })
                     });
                     const subData = await subRes.json() as any;
@@ -951,8 +1004,8 @@ export default {
                                     payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED", 
                                     user_action: "PAY_NOW", 
                                     // Aquí redirigimos al backend primero para capturar el dinero
-                                    return_url: `https://api-suscripciones.js-group.workers.dev/api/capturar-orden?tenant_id=${tenant.id}`, 
-                                    cancel_url: "https://jsmemberly.pages.dev/" 
+                                    return_url: `https://api.jsmemberly.com//api/capturar-orden?tenant_id=${tenant.id}`, 
+                                    cancel_url: "https://www.jsmemberly.com/" 
                                 }
                             }
                         }
@@ -971,7 +1024,7 @@ export default {
                 }
             } catch (e: any) {
                 console.error("Error PayPal:", e.message);
-                return "https://jsmemberly.pages.dev/error-pago";
+                return "https://www.jsmemberly.com/error-pago";
             }
         };
 
@@ -979,23 +1032,42 @@ export default {
         for (const sub of suscripciones) {
             if (!sub.fecha_fin || !sub.suscriptores || !sub.tenants) continue;
 
+            const tenant = sub.tenants;
+            const telefono = sub.suscriptores.telefono;
+            if (!telefono) continue; 
+
+            // === 🌍 CEREBRO DE ZONA HORARIA ===
+            const zonaHorariaGym = tenant.zona_horaria || 'America/Guayaquil';
+            const now = new Date();
+            
+            // Extraemos la fecha y hora exactas en el país del gimnasio
+            const formatter = new Intl.DateTimeFormat('en-US', { 
+                timeZone: zonaHorariaGym, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', hour12: false 
+            });
+            const parts = formatter.formatToParts(now);
+            
+            const anioLocal = parseInt(parts.find(p => p.type === 'year')?.value || '0');
+            const mesLocal = parseInt(parts.find(p => p.type === 'month')?.value || '1') - 1; // 0-indexed en JS
+            const diaLocal = parseInt(parts.find(p => p.type === 'day')?.value || '1');
+            let horaLocal = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
+            if (horaLocal === 24) horaLocal = 0; // Ajuste de medianoche
+
+            // ⛔ REGLA DE CORTESÍA: Solo enviamos WhatsApps si son exactamente las 9:00 AM en SU país
+            if (horaLocal !== 9) continue; 
+            // ==================================
+
+            // Calculamos los días restantes basados en su medianoche local
+            const fechaHoyGym = new Date(anioLocal, mesLocal, diaLocal); 
             const partesFecha = sub.fecha_fin.split('-'); 
             const fechaFin = new Date(parseInt(partesFecha[0]), parseInt(partesFecha[1]) - 1, parseInt(partesFecha[2]));
-            fechaFin.setUTCHours(0, 0, 0, 0);
             
-            const diffTime = fechaFin.getTime() - fechaEcuador.getTime();
+            const diffTime = fechaFin.getTime() - fechaHoyGym.getTime();
             const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
 
             const nombreCliente = sub.suscriptores.nombre_completo;
-            const telefono = sub.suscriptores.telefono;
             const renovacionAuto = sub.renovacion_automatica === true; 
             const recordatorioEnviado = sub.recordatorio_enviado === true; 
-            const tenant = sub.tenants;
             const nombreGym = tenant.nombre_negocio;
-
-            if (!telefono) continue; // Si no tiene teléfono, saltamos al siguiente
-
-            // Extraemos el plan SaaS del gimnasio
             const planSaasGym = tenant.plan_saas?.toLowerCase() || 'starter';
 
             // =========================================================================
@@ -1004,18 +1076,16 @@ export default {
             if (diffDays === 3 && !recordatorioEnviado) {
                 
                 if (planSaasGym === 'starter') {
-                    console.log(`🔒 Tenant en Plan Starter. Se omite WA para ${nombreCliente}.`);
+                    console.log(`🔒 [${zonaHorariaGym}] Tenant en Plan Starter. Se omite WA para ${nombreCliente}.`);
                     await adminSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
                     continue; 
                 }
 
-                console.log(`🔔 Enviando aviso de pago a ${nombreCliente} (${nombreGym})`);
+                console.log(`🔔 [${zonaHorariaGym} - 9:00 AM] Enviando aviso a ${nombreCliente} (${nombreGym})`);
                 
                 const diasPlan = sub.planes?.dias_duracion || 30;
-                // Pasamos las variables para decidir qué link crear
                 const linkPago = await generarLinkPago(tenant, nombreCliente, sub.precio_cobrado, renovacionAuto, diasPlan, sub.suscriptor_id, sub.plan_id);
                 
-                // Mantenemos los arreglos EXACTAMENTE como funcionaban en tu código original
                 const paramsHeaderAviso: string[] = [nombreGym]; 
                 const paramsBodyAviso = [nombreCliente, nombreGym, linkPago]; 
                 
@@ -1089,6 +1159,11 @@ export default {
 
     } catch (error: any) {
         console.error("❌ Error grave en el Motor de Cobros (Cron):", error.message);
+        // 🚨 GUARDAR EN CAJA NEGRA
+        await adminSupabase.from('errores_sistema').insert([{ 
+            origen: 'Motor de Cobros (Cron)', 
+            mensaje: error.message 
+        }]);
     }
   }
 };

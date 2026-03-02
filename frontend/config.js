@@ -3,10 +3,10 @@ const esLocal = window.location.hostname === 'localhost' || window.location.host
 
 const CONFIG = {
     // Si es local usa el puerto 8787, si es prod usa la URL de tu Worker en Cloudflare
-    BACKEND_URL: esLocal ? 'http://127.0.0.1:8787' : 'https://api-suscripciones.js-group.workers.dev',
+    BACKEND_URL: esLocal ? 'http://127.0.0.1:8787' : 'https://api.jsmemberly.com',
     
     // Si es local usa el puerto 5500, si es prod usa la URL de Cloudflare Pages
-    FRONTEND_URL: esLocal ? 'http://127.0.0.1:5500/frontend' : 'https://jsmemberly.pages.dev',
+    FRONTEND_URL: esLocal ? 'http://127.0.0.1:5500/frontend' : 'https://jsmemberly.com',
     
     // Cambia esto cuando crees tu proyecto PROD en Supabase
     SUPABASE_URL: 'https://kfqdefzuwejwmupgvelg.supabase.co',

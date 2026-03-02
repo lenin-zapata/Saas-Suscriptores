@@ -392,20 +392,33 @@
                 //const urlBackend = 'http://127.0.0.1:8787/api/suscripcion-saas/generar-link'; 
                 const urlBackend = `${CONFIG.BACKEND_URL}/api/suscripcion-saas/generar-link`;
 
+                // Capturamos la zona horaria exacta del navegador de forma invisible
+                const zonaHorariaCliente = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
                 const respuesta = await fetch(urlBackend, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         gym_nombre: nombreGym,
+                        pais: paisGym,         
+                        id_nacional: idNacional, 
                         admin_nombre: nombreAdmin,
                         plan_elegido: plan,
-                        precio_cobrar: precio
+                        precio_cobrar: precio,
+                        zona_horaria: zonaHorariaCliente // <-- NUEVO
                     })
                 });
 
                 const data = await respuesta.json();
 
-                if (data.exito && data.url_pago) {
+                if (data.exito && data.url_pago && data.tenant_id) {
+                    // Guardamos los datos de sesión temporal, INCLUYENDO EL TENANT ID generado
+                    const datosRegistroSaaS = {
+                        tenant_id: data.tenant_id, 
+                        nombreGym, nombreAdmin, emailAdmin: email, telefonoAdmin, passAdmin: pass
+                    };
+                    localStorage.setItem('js_memberly_registro_pendiente', JSON.stringify(datosRegistroSaaS));
+
                     // ¡Nos vamos a cobrar!
                     window.location.href = data.url_pago; 
                 } else {
@@ -630,7 +643,7 @@
 
                 try {
                                     
-                    // PASO A: Crear el Gimnasio
+                    /* // PASO A: Crear el Gimnasio
                     const { data: tenantData, error: tenantError } = await miSupabase
                         .from('tenants')
                         .insert([{ 
@@ -646,7 +659,7 @@
                     if (tenantError) throw tenantError;
 
                     // Capturamos el ID real que la base de datos acaba de generar
-                    const nuevoTenantId = tenantData.id;
+                    const nuevoTenantId = tenantData.id; */
 
                     // PASO B: Registrar al Administrador en Auth
                     const { data: authData, error: authError } = await miSupabase.auth.signUp({
@@ -662,19 +675,24 @@
                     
                     if (authError) throw authError;
 
-                    // 🛡️ EL NUEVO ESCUDO DE SEGURIDAD 🛡️
+                    /* // 🛡️ EL NUEVO ESCUDO DE SEGURIDAD 🛡️
                     if (!authData || !authData.user) {
                         // Borramos el tenant que acabamos de crear para no dejar basura
                         await miSupabase.from('tenants').delete().eq('id', nuevoTenantId);
                         throw new Error("El correo electrónico ingresado ya está registrado en nuestro sistema. Por favor, usa un correo diferente.");
+                    } */
+
+                    if (!authData || !authData.user) {
+                        // El cliente pagó, pero su email ya existía. No borramos el tenant porque ya cobramos.
+                        throw new Error("El correo ingresado ya estaba registrado. El pago se procesó exitosamente, usa la opción de 'Olvidé mi contraseña' o contacta a soporte para enlazar tu cuenta al nuevo gimnasio.");
                     }
 
-                    // PASO C: Vincular Staff usando el nuevoTenantId
+                    // PASO C: Vincular Staff usando el ID real que nos dio el Backend antes de ir a PayPal
                     const { error: staffError } = await miSupabase
                         .from('perfiles_staff')
                         .insert([{ 
                             id: authData.user.id, 
-                            tenant_id: nuevoTenantId, 
+                            tenant_id: datos.tenant_id, 
                             nombre: datos.nombreAdmin, 
                             email: datos.emailAdmin, 
                             telefono: datos.telefonoAdmin,
@@ -689,8 +707,8 @@
                     window.location.href = 'panel.html'; // Lo mandamos al login
                     
                 } catch (error) {
-                    console.error("Error crítico configurando el tenant:", error);
-                    alert("❌ El pago fue exitoso pero hubo un error creando la cuenta. Por favor contáctanos con soporte.\nError: " + error.message);
+                    console.error("Error vinculando el usuario:", error);
+                    alert("⚠️ Atención: " + error.message);
                     document.getElementById('pantallaCargando').remove();
                 }
             }
