@@ -464,7 +464,7 @@ export default {
 
             // --- 1. CREACIÓN DEL GIMNASIO EN ESTADO PENDIENTE ---
             const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
-            const limite = body.plan_elegido.includes('starter') ? 100 : (body.plan_elegido.includes('pro') ? 500 : 9999);
+            const limite = body.plan_elegido.includes('starter') ? 100 : (body.plan_elegido.includes('pro') ? 500 : 2000);
             const planLimpio = body.plan_elegido.replace(' anual', '').replace(' mensual', '').trim();
 
             const { data: nuevoTenant, error: errTenant } = await adminSupabase
@@ -1080,6 +1080,15 @@ export default {
                     await adminSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
                     continue; 
                 }
+
+                // --- 🛑 NUEVA VALIDACIÓN: ¿Tiene PayPal configurado? ---
+                if (!tenant.paypal_client_id || !tenant.paypal_secret) {
+                    console.log(`⚠️ [${zonaHorariaGym}] Gimnasio ${nombreGym} NO tiene PayPal. Se omite el envío de link a ${nombreCliente}.`);
+                    // Lo marcamos como "enviado" para que el robot no se quede atascado intentando cada hora
+                    await adminSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
+                    continue;
+                }
+                // -------------------------------------------------------
 
                 console.log(`🔔 [${zonaHorariaGym} - 9:00 AM] Enviando aviso a ${nombreCliente} (${nombreGym})`);
                 
