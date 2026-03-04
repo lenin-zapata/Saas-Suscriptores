@@ -261,8 +261,17 @@ export default {
         if (h.estado_pago === 'Pagado' && h.fecha_fin >= hoy) {
           res = { ...res, color: "#10B981", icono: "✅", msg: "Pase Autorizado" };
           
-          // Registramos la asistencia
-          await admin.from('asistencias').insert([{ tenant_id: h.tenant_id, suscriptor_id: id, metodo_acceso: 'QR' }]);
+          // ESCUDO ANTI-SPAM: Buscamos si ya se registró en los últimos 5 minutos
+          const hace5Min = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+          const { data: asistenciasRecientes } = await admin.from('asistencias')
+            .select('id')
+            .eq('suscriptor_id', id)
+            .gte('fecha_entrada', hace5Min);
+
+          // Solo insertamos si NO hay asistencias recientes (Evita que el QR marque doble)
+          if (!asistenciasRecientes || asistenciasRecientes.length === 0) {
+              await admin.from('asistencias').insert([{ tenant_id: h.tenant_id, suscriptor_id: id, metodo_acceso: 'QR' }]);
+          }
         }
       }
 
