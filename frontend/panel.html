@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg" href="favicon.svg">
     <link rel="apple-touch-icon" href="favicon.png">
+    <!-- <script src="https://www.paypal.com/sdk/js?client-id=AaNM0FuNl24BuXj-SdL8Nr5qXvqZte_TVfbCqh62A36h-TXN6YqXYJ9dfXEioXnLzIUvLoAKjxibB5ba&currency=USD"></script> -->
+    <!-- <script src="https://www.paypal.com/sdk/js?client-id=AUFAi7JAXcVHxzlTtl5A4staH3CGRQiqSqU7lWXGiWBFfmtKf7gKjFDuuaTf2NQhGFn-YBZd7LqV1nur&currency=USD"></script> -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -917,7 +919,99 @@
         </div>
     </div>
 
+    <div id="paywallModal" class="hidden fixed inset-0 z-[100] bg-gray-900 bg-opacity-95 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-4xl w-full shadow-2xl text-center relative overflow-hidden max-h-[95vh] overflow-y-auto">
+            <h2 class="text-3xl font-black text-gray-800 mb-2">Renueva tu Suscripción 🚀</h2>
+            <p class="text-gray-500 mb-8 max-w-xl mx-auto">Elige un plan para reactivar tu gimnasio y seguir usando JS MemberLy sin interrupciones.</p>
+
+            <div id="opcionesPlanesSaaS" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="border border-gray-200 rounded-2xl p-6 hover:border-emerald-500 transition text-left flex flex-col justify-between bg-white">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-700">Plan Starter</h3>
+                        <p class="text-[11px] text-gray-400 mt-1 mb-4">Hasta 150 clientes • Acceso QR</p>
+                    </div>
+                    <div class="space-y-3">
+                        <button onclick="iniciarPagoSaaS('starter', 1, parseFloat(document.getElementById('lbl_starter_m').innerText))" class="w-full bg-gray-50 hover:bg-gray-100 text-gray-800 font-bold py-3 rounded-xl transition border border-gray-200 text-sm flex justify-between px-4">
+                            <span>Mensual</span> <span class="text-emerald-600 font-black">$<span id="lbl_starter_m">29</span></span>
+                        </button>
+                        <button onclick="iniciarPagoSaaS('starter', 12, parseFloat(document.getElementById('lbl_starter_a').innerText))" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 rounded-xl transition text-sm flex justify-between px-4">
+                            <span>Anual (Ahorras)</span> <span class="text-emerald-600 font-black">$<span id="lbl_starter_a">290</span></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="border-2 border-emerald-500 rounded-2xl p-6 relative shadow-xl text-left flex flex-col justify-between bg-emerald-50/20 transform md:-translate-y-2">
+                    <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">Más Popular</div>
+                    <div>
+                        <h3 class="text-lg font-bold text-emerald-700">Plan Pro</h3>
+                        <p class="text-[11px] text-gray-500 mt-1 mb-4">Hasta 500 clientes • WhatsApp Robot</p>
+                    </div>
+                    <div class="space-y-3">
+                        <button onclick="iniciarPagoSaaS('pro', 1, parseFloat(document.getElementById('lbl_pro_m').innerText))" class="w-full bg-white hover:bg-gray-50 text-gray-800 font-bold py-3 rounded-xl transition border border-emerald-200 text-sm flex justify-between px-4">
+                            <span>Mensual</span> <span class="text-emerald-700 font-black">$<span id="lbl_pro_m">69</span></span>
+                        </button>
+                        <button onclick="iniciarPagoSaaS('pro', 12, parseFloat(document.getElementById('lbl_pro_a').innerText))" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition shadow-md shadow-emerald-200 text-sm flex justify-between px-4">
+                            <span>Anual (Ahorras)</span> <span class="text-white font-black">$<span id="lbl_pro_a">690</span></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-2xl p-6 hover:border-emerald-500 transition text-left flex flex-col justify-between bg-white">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-700">Plan Elite</h3>
+                        <p class="text-[11px] text-gray-400 mt-1 mb-4">Ilimitado • Reportes Financieros</p>
+                    </div>
+                    <div class="space-y-3">
+                        <button onclick="iniciarPagoSaaS('elite', 1, parseFloat(document.getElementById('lbl_elite_m').innerText))" class="w-full bg-gray-50 hover:bg-gray-100 text-gray-800 font-bold py-3 rounded-xl transition border border-gray-200 text-sm flex justify-between px-4">
+                            <span>Mensual</span> <span class="text-emerald-600 font-black">$<span id="lbl_elite_m">149</span></span>
+                        </button>
+                        <button onclick="iniciarPagoSaaS('elite', 12, parseFloat(document.getElementById('lbl_elite_a').innerText))" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 rounded-xl transition text-sm flex justify-between px-4">
+                            <span>Anual (Ahorras)</span> <span class="text-emerald-600 font-black">$<span id="lbl_elite_a">1490</span></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="checkoutSaaSContainer" class="hidden max-w-sm mx-auto mt-4">
+                <button onclick="cancelarPagoSaaS()" class="text-xs text-gray-400 font-bold mb-4 hover:text-gray-600 transition">⬅ Cambiar de Plan</button>
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <p class="text-sm font-bold text-gray-500 mb-1" id="resumenPlanTexto">Comprando Plan...</p>
+                    <h3 class="text-3xl font-black text-emerald-600 mb-6" id="resumenMontoTexto">$0</h3>
+                    
+                    <div id="paypal-button-container" class="relative z-50"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="config.js"></script>
+
+    <script>
+        // --- INYECCIÓN DINÁMICA DE PAYPAL (Sandbox vs Producción) ---
+        (function cargarPayPalSDK() {
+            // 1. Detectamos si estamos en local (127.0.0.1 o localhost)
+            const esLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            
+            // 2. Asignamos el ID correspondiente
+            const paypalClientId = esLocal 
+                ? 'AaNM0FuNl24BuXj-SdL8Nr5qXvqZte_TVfbCqh62A36h-TXN6YqXYJ9dfXEioXnLzIUvLoAKjxibB5ba' // ID de Pruebas (Sandbox)
+                : 'AUFAi7JAXcVHxzlTtl5A4staH3CGRQiqSqU7lWXGiWBFfmtKf7gKjFDuuaTf2NQhGFn-YBZd7LqV1nur'; // ID Real (Producción)
+
+            // 3. Creamos la etiqueta <script> dinámicamente
+            const scriptPayPal = document.createElement('script');
+            scriptPayPal.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=USD`;
+            scriptPayPal.async = true; // Para que no bloquee la carga de tu página
+            
+            // 4. Lo inyectamos en el <head> de la página
+            document.head.appendChild(scriptPayPal);
+
+            if (esLocal) {
+                console.log("🟡 Modo Local: PayPal cargado en modo SANDBOX");
+            } else {
+                console.log("🟢 Modo Producción: PayPal cargado en modo LIVE");
+            }
+        })();
+    </script>
 
     <script>
         //const SUPABASE_URL = 'https://kfqdefzuwejwmupgvelg.supabase.co'; 
@@ -982,6 +1076,24 @@
                         if (negocio.logo_url) document.getElementById('logoGymImg').src = negocio.logo_url;
                         planSaasActual = negocio.plan_saas || 'starter';
                         limiteClientesActual = negocio.limite_clientes || 100;
+
+                        // LÓGICA DE CONTROL DE ACCESO (PAYWALL POR TIEMPO) 🛑
+                        const fechaFinSaaS = new Date(negocio.fecha_fin_saas);
+                        const fechaActual = new Date();
+
+                        if (fechaActual > fechaFinSaaS) {
+                            // 1. Inyectamos los precios directamente desde la BD (Si el admin configuró una promo en SQL, saldrá esa)
+                            document.getElementById('lbl_starter_m').innerText = negocio.p_starter_m;
+                            document.getElementById('lbl_starter_a').innerText = negocio.p_starter_a;
+                            document.getElementById('lbl_pro_m').innerText = negocio.p_pro_m;
+                            document.getElementById('lbl_pro_a').innerText = negocio.p_pro_a;
+                            document.getElementById('lbl_elite_m').innerText = negocio.p_elite_m;
+                            document.getElementById('lbl_elite_a').innerText = negocio.p_elite_a;
+
+                            // 2. Bloqueamos la pantalla
+                            document.getElementById('paywallModal').classList.remove('hidden');
+                            document.body.style.overflow = 'hidden';
+                        }
                     }
 
                     // 4. Ocultamos el Login y mostramos el Panel
@@ -1036,8 +1148,23 @@
                         if (negocio.logo_url) document.getElementById('logoGymImg').src = negocio.logo_url;
                         planSaasActual = negocio.plan_saas || 'starter';
                         limiteClientesActual = negocio.limite_clientes || 100;
-                        if (negocio.estado_suscripcion !== 'activa') {
-                            alert("⚠️ La suscripción de tu gimnasio está inactiva. Funcionalidades limitadas.");
+
+                        // LÓGICA DE CONTROL DE ACCESO (PAYWALL POR TIEMPO) 🛑
+                        const fechaFinSaaS = new Date(negocio.fecha_fin_saas);
+                        const fechaActual = new Date();
+
+                        if (fechaActual > fechaFinSaaS) {
+                            // 1. Inyectamos los precios directamente desde la BD (Si el admin configuró una promo en SQL, saldrá esa)
+                            document.getElementById('lbl_starter_m').innerText = negocio.p_starter_m;
+                            document.getElementById('lbl_starter_a').innerText = negocio.p_starter_a;
+                            document.getElementById('lbl_pro_m').innerText = negocio.p_pro_m;
+                            document.getElementById('lbl_pro_a').innerText = negocio.p_pro_a;
+                            document.getElementById('lbl_elite_m').innerText = negocio.p_elite_m;
+                            document.getElementById('lbl_elite_a').innerText = negocio.p_elite_a;
+
+                            // 2. Bloqueamos la pantalla
+                            document.getElementById('paywallModal').classList.remove('hidden');
+                            document.body.style.overflow = 'hidden';
                         }
                     }
 
@@ -2578,6 +2705,53 @@
         // Poner la fecha de hoy por defecto en el registro
         if(document.getElementById('fechaInicioSocio')){
             document.getElementById('fechaInicioSocio').valueAsDate = new Date();
+        }
+
+        // --- MOTOR DE COBROS SAAS (PAYPAL INTEGRAD0) ---
+        function iniciarPagoSaaS(nombrePlan, mesesComprados, monto) {
+            // Escondemos los planes y mostramos la caja de cobro
+            document.getElementById('opcionesPlanesSaaS').classList.add('hidden');
+            document.getElementById('checkoutSaaSContainer').classList.remove('hidden');
+            document.getElementById('resumenPlanTexto').innerText = `Plan ${nombrePlan.toUpperCase()} (${mesesComprados === 12 ? 'Anual' : 'Mensual'})`;
+            document.getElementById('resumenMontoTexto').innerText = `$${monto}`;
+
+            document.getElementById('paypal-button-container').innerHTML = ''; 
+
+            paypal.Buttons({
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            description: `JS MemberLy - Suscripción ${nombrePlan.toUpperCase()}`,
+                            amount: { value: monto.toString() }
+                        }]
+                    });
+                },
+                onApprove: function(data, actions) {
+                    // Si PayPal aprueba, capturamos el dinero
+                    return actions.order.capture().then(async function(details) {
+                        alert('✅ Pago procesado exitosamente por ' + details.payer.name.given_name);
+                        
+                        // MAGIA: Llamamos a la base de datos para sumar los meses y activar la cuenta
+                        const { error } = await miSupabase.rpc('renovar_saas', { 
+                            p_tenant_id: miTenantId, 
+                            p_meses: mesesComprados,
+                            p_nuevo_plan: nombrePlan.toLowerCase()
+                        });
+                        
+                        if(!error) {
+                            alert('🎉 ¡Tu gimnasio ha sido reactivado! Bienvenido de nuevo.');
+                            location.reload(); // Refresca y lo deja entrar al panel
+                        } else {
+                            alert('⚠️ El pago se hizo pero ocurrió un error en la BD. Contáctanos.');
+                        }
+                    });
+                }
+            }).render('#paypal-button-container');
+        }
+
+        function cancelarPagoSaaS() {
+            document.getElementById('checkoutSaaSContainer').classList.add('hidden');
+            document.getElementById('opcionesPlanesSaaS').classList.remove('hidden');
         }
     </script>
 </body>
