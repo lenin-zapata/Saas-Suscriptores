@@ -229,6 +229,67 @@ export default {
       }
     }
 
+    // =========================================================================
+    // ESCANEO SEGURO (SOLO DESDE EL PANEL CON TOKEN)
+    // =========================================================================
+    if (url.pathname === '/api/escaneo-panel' && request.method === 'POST') {
+        try {
+            // 1. Validar seguridad (Solo personal logueado)
+            const token = request.headers.get('Authorization')?.split('Bearer ')[1];
+            if (!token) throw new Error("No autorizado");
+            const { data: userAuth, error: authErr } = await supabase.auth.getUser(token);
+            if (authErr || !userAuth.user) throw new Error("Token inválido");
+
+            const body = await request.json() as any;
+            const clienteId = body.suscriptor_id;
+            const tenantId = body.tenant_id;
+
+            // 2. Buscar al cliente
+            const { data: cliente, error: errC } = await supabase.from('suscriptores').select('*').eq('id', clienteId).eq('tenant_id', tenantId).single();
+            if (errC || !cliente) throw new Error("Cliente no encontrado");
+
+            // 3. Buscar la última suscripción
+            const { data: subs, error: errS } = await supabase.from('historial_suscripciones')
+                .select('*')
+                .eq('suscriptor_id', clienteId)
+                .order('fecha_fin', { ascending: false })
+                .limit(1);
+
+            if (errS || !subs || subs.length === 0) {
+                return new Response(JSON.stringify({ estado: 'Denegado', nombre: cliente.nombre_completo, motivo: 'No tiene planes registrados' }), { status: 200, headers: corsHeaders });
+            }
+
+            const sub = subs[0];
+            const hoy = new Date();
+            hoy.setHours(0,0,0,0);
+            const fFin = new Date(sub.fecha_fin);
+            fFin.setHours(0,0,0,0);
+
+            // 4. Verificar si está expirado
+            if (fFin < hoy) {
+                return new Response(JSON.stringify({ estado: 'Denegado', nombre: cliente.nombre_completo, motivo: 'Plan expirado' }), { status: 200, headers: corsHeaders });
+            }
+
+            // 5. Registrar la asistencia oficial
+            await supabase.from('asistencias').insert([{
+                tenant_id: tenantId,
+                suscriptor_id: clienteId,
+                historial_id: sub.id
+            }]);
+
+            // 6. Calcular alerta de los 3 días
+            const diffTime = fFin.getTime() - hoy.getTime();
+            const diasRestantes = Math.ceil(diffTime / (1000 * 3600 * 24));
+            let alerta = null;
+            if (diasRestantes <= 3 && diasRestantes > 0) alerta = diasRestantes;
+
+            return new Response(JSON.stringify({ estado: 'Autorizado', nombre: cliente.nombre_completo, alerta_dias: alerta }), { status: 200, headers: corsHeaders });
+
+        } catch (e: any) {
+            return new Response(JSON.stringify({ error: e.message }), { status: 400, headers: corsHeaders });
+        }
+    }
+
     // --- VALIDACIÓN DE QR (PANTALLA VERDE/ROJA) ---
     if (request.method === 'GET' && url.pathname.startsWith('/checkin/')) {
       const id = url.pathname.split('/')[2];

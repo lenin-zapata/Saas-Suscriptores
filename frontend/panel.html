@@ -229,6 +229,7 @@
         <main class="flex-1 flex flex-col overflow-y-auto bg-gray-50">
 
             <header class="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-40">
+                
                 <div>
                     <button onclick="toggleSidebar()" class="md:hidden p-2 mr-3 rounded-lg bg-gray-100 text-gray-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-width="2" stroke-linecap="round"/></svg>
@@ -451,6 +452,11 @@
                             </thead>
                             <tbody id="tablaCuerpo" class="divide-y divide-gray-50"></tbody>
                         </table>
+                        <div id="controlesPaginacion" class="flex justify-between items-center px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <button onclick="cambiarPagina(-1)" id="btnPrevPage" class="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-bold disabled:opacity-50 transition hover:bg-gray-100">Anterior</button>
+                                <span id="textoPaginacion" class="text-sm font-bold text-gray-500">Página 1</span>
+                                <button onclick="cambiarPagina(1)" id="btnNextPage" class="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-bold disabled:opacity-50 transition hover:bg-gray-100">Siguiente</button>
+                        </div>
                     </div>
                 </div>
 
@@ -537,7 +543,7 @@
                 </div>
             </div>
 
-            <div id="vistaPagos" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full"">
+            <div id="vistaPagos" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full">
                 <div id="paywallPagos" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
                     <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
                         <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🔒</div>
@@ -613,13 +619,14 @@
                     <div class="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-4xl mb-6">📷</div>
                     <h3 class="text-lg font-bold text-gray-800 mb-2">Lector de Accesos</h3>
                     <p class="text-sm text-gray-500 mb-8">Usa la cámara de tu dispositivo para leer el código QR del pase del cliente.</p>
+                    
                     <button onclick="abrirEscanner()" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100">
                         Activar Cámara y Escanear
                     </button>
                 </div>
             </div>
 
-            <div id="vistaFacturacion" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full"">
+            <div id="vistaFacturacion" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full">
                 <div id="paywallReporteFact" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
                     <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
                         <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🔒</div>
@@ -984,6 +991,47 @@
         </div>
     </div>
 
+    <div id="modalEditarPlan" class="hidden fixed inset-0 z-50 bg-gray-900 bg-opacity-50 flex justify-center items-center backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-1">Corregir Fecha de Inicio</h3>
+            <p class="text-sm text-gray-500 mb-4" id="nombreClienteEditar">Cliente</p>
+            
+            <input type="hidden" id="editSuscripcionId">
+            
+            <div class="mb-6">
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Nueva Fecha de Inicio</label>
+                <input type="date" id="editFechaInicio" class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none">
+                <p class="text-xs text-gray-400 mt-2">La fecha de fin se recalculará automáticamente respetando los días de duración del plan cobrado.</p>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('modalEditarPlan').classList.add('hidden')" class="flex-1 px-4 py-2 border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition">Cancelar</button>
+                <button onclick="guardarEdicionPlan()" class="flex-1 px-4 py-2 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition shadow-md">💾 Guardar Corrección</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pantallaResultadoEscaneo" class="hidden fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 text-white transition-colors duration-300">
+        
+        <div class="bg-white rounded-full w-40 h-40 flex items-center justify-center shadow-2xl mb-8">
+            <span id="iconoResultadoEscaneo" class="text-7xl">✅</span>
+        </div>
+        
+        <h2 id="tituloResultadoEscaneo" class="text-4xl md:text-5xl font-black mb-3 text-center tracking-tight">Pase Autorizado</h2>
+        <p id="mensajeResultadoEscaneo" class="text-xl md:text-2xl font-medium text-center mb-6 opacity-95">Nombre del Cliente</p>
+        
+        <p id="alertaResultadoEscaneo" class="text-lg font-bold text-center mb-10 bg-black bg-opacity-30 px-6 py-3 rounded-2xl hidden backdrop-blur-sm">
+            ⚠️ Caduca en 3 días
+        </p>
+        
+        <button onclick="cerrarPantallaEscaneo()" class="px-10 py-5 bg-white text-gray-900 font-black rounded-2xl shadow-xl hover:scale-105 transition transform text-xl w-full max-w-sm mb-4">
+            📷 Escanear Otro
+        </button>
+        <button onclick="document.getElementById('pantallaResultadoEscaneo').classList.add('hidden')" class="px-6 py-3 text-white font-semibold underline opacity-70 hover:opacity-100 transition">
+            Volver al Panel
+        </button>
+    </div>
+
     <script src="config.js"></script>
 
     <script>
@@ -1036,6 +1084,7 @@
             }
         });
         let tokenActual = null;
+        let rolUsuarioActual = 'recepcionista';
         let miTenantId = null; 
         let graficoInstancia = null;
         let modoRecuperacion = false;
@@ -1044,6 +1093,14 @@
         let limiteClientesActual = 100;
         let planSaasActual = 'starter';
         let totalClientesActual = 0;
+
+        let paisTenant = 'Ecuador'; // Por defecto
+        const prefijosPaises = {
+            'Ecuador': '593', 'México': '52', 'Mexico': '52', 
+            'Colombia': '57', 'Perú': '51', 'Peru': '51', 
+            'Argentina': '54', 'Chile': '56', 'Bolivia': '591', 
+            'España': '34', 'Estados Unidos': '1'
+        };
 
         // AUTO-LOGIN: Revisa si sobrevivió una sesión al recargar la página
         window.addEventListener('DOMContentLoaded', async () => {
@@ -1069,6 +1126,7 @@
                     document.getElementById('userNameDisplay').innerText = staffData.nombre;
                     document.getElementById('userInitialsCircle').innerText = staffData.nombre.charAt(0).toUpperCase();
                     aplicarPermisos(staffData.rol);
+                    rolUsuarioActual = staffData.rol; // En Login manual, pon: rolUsuarioActual = perfil.rol;
 
                     const { data: negocio } = await miSupabase.from('tenants').select('*').eq('id', miTenantId).single();
                     if (negocio) {
@@ -1076,6 +1134,7 @@
                         if (negocio.logo_url) document.getElementById('logoGymImg').src = negocio.logo_url;
                         planSaasActual = negocio.plan_saas || 'starter';
                         limiteClientesActual = negocio.limite_clientes || 100;
+                        paisTenant = negocio.pais || 'Ecuador';
 
                         // LÓGICA DE CONTROL DE ACCESO (PAYWALL POR TIEMPO) 🛑
                         const fechaFinSaaS = new Date(negocio.fecha_fin_saas);
@@ -1141,6 +1200,7 @@
                     document.getElementById('userNameDisplay').innerText = perfil.nombre;
                     document.getElementById('userInitialsCircle').innerText = perfil.nombre.charAt(0).toUpperCase();
                     aplicarPermisos(perfil.rol);
+                    rolUsuarioActual = perfil.rol
 
                     const { data: negocio } = await miSupabase.from('tenants').select('*').eq('id', miTenantId).single();
                     if (negocio) {
@@ -1148,6 +1208,7 @@
                         if (negocio.logo_url) document.getElementById('logoGymImg').src = negocio.logo_url;
                         planSaasActual = negocio.plan_saas || 'starter';
                         limiteClientesActual = negocio.limite_clientes || 100;
+                        paisTenant = negocio.pais || 'Ecuador';
 
                         // LÓGICA DE CONTROL DE ACCESO (PAYWALL POR TIEMPO) 🛑
                         const fechaFinSaaS = new Date(negocio.fecha_fin_saas);
@@ -1434,20 +1495,98 @@
             const cont = document.getElementById('contenedorQR'); 
             cont.innerHTML = '';
             //new QRCode(cont, { text: `https://wide-waves-shave.loca.lt/checkin/${id}`, width: 220, height: 220 });
-            new QRCode(cont, { text: `${CONFIG.BACKEND_URL}/checkin/${id}`, width: 220, height: 220 });
+            //new QRCode(cont, { text: `${CONFIG.BACKEND_URL}/checkin/${id}`, width: 220, height: 220 });
+            // AHORA:
+            new QRCode(cont, { text: id, width: 220, height: 220 });
 
-            document.getElementById('btnEnviarWA').onclick = () =>
-                window.open(`https://wa.me/${tel.replace(/\D/g,'')}?text=Hola ${nombre}, aquí tienes tu pase QR de acceso al gimnasio.`, '_blank');
+            document.getElementById('btnEnviarWA').onclick = () => {
+                let telLimpio = tel.replace(/\D/g,''); // Quitamos todo lo que no sea número
+                let prefijoLocal = prefijosPaises[paisTenant] || '593';
+
+                // Lógica inteligente de formateo:
+                // 1. Si empieza con '0' (ej. 098... en Ecuador), le quitamos el 0 y le pegamos el prefijo.
+                if (telLimpio.startsWith('0')) {
+                    telLimpio = prefijoLocal + telLimpio.substring(1);
+                } 
+                // 2. Si tiene 10 dígitos y NO empieza con el prefijo (ej. México o números crudos)
+                else if (telLimpio.length >= 10 && !telLimpio.startsWith(prefijoLocal)) {
+                    telLimpio = prefijoLocal + telLimpio;
+                }
+
+                window.open(`https://wa.me/${telLimpio}?text=Hola ${nombre}, aquí tienes tu pase QR de acceso al gimnasio.`, '_blank');
+            };
         }
 
         let html5QrCode;
         function abrirEscanner() {
             document.getElementById('lectorQRContainer').classList.remove('hidden');
             html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => {
-                html5QrCode.stop().then(() => window.location.href = txt);
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (txt) => {
+                await html5QrCode.stop();
+                document.getElementById('lectorQRContainer').classList.add('hidden');
+                procesarEscaneoSeguro(txt);
             });
         }
+
+        async function procesarEscaneoSeguro(clienteId) {
+            try {
+                const res = await fetch(`${CONFIG.BACKEND_URL}/api/escaneo-panel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokenActual}` },
+                    body: JSON.stringify({ suscriptor_id: clienteId, tenant_id: miTenantId })
+                });
+                const data = await res.json();
+                if(!res.ok) throw new Error(data.error || "Error al escanear");
+
+                // Capturamos los elementos de la pantalla gigante
+                const pantalla = document.getElementById('pantallaResultadoEscaneo');
+                const icono = document.getElementById('iconoResultadoEscaneo');
+                const titulo = document.getElementById('tituloResultadoEscaneo');
+                const mensaje = document.getElementById('mensajeResultadoEscaneo');
+                const alerta = document.getElementById('alertaResultadoEscaneo');
+
+                // Limpiamos colores anteriores
+                pantalla.classList.remove('hidden', 'bg-red-500', 'bg-emerald-500', 'bg-gray-800');
+                alerta.classList.add('hidden');
+
+                if(data.estado === 'Autorizado') {
+                    // PINTAR DE VERDE
+                    pantalla.classList.add('bg-emerald-500');
+                    icono.innerHTML = '✅';
+                    titulo.innerText = 'Pase Autorizado';
+                    mensaje.innerText = data.nombre;
+
+                    // Si quedan 3 días o menos, mostramos el aviso
+                    if(data.alerta_dias !== null) {
+                        alerta.innerText = `⚠️ Atención: Su plan caduca en ${data.alerta_dias} días`;
+                        alerta.classList.remove('hidden');
+                    }
+                } else {
+                    // PINTAR DE ROJO
+                    pantalla.classList.add('bg-red-500');
+                    icono.innerHTML = '❌';
+                    titulo.innerText = 'Acceso Denegado';
+                    mensaje.innerText = `${data.nombre}\nMotivo: ${data.motivo}`;
+                }
+            } catch(e) {
+                // PINTAR DE GRIS (Error de lectura)
+                const pantalla = document.getElementById('pantallaResultadoEscaneo');
+                pantalla.classList.remove('hidden', 'bg-emerald-500', 'bg-red-500');
+                pantalla.classList.add('bg-gray-800');
+                
+                document.getElementById('iconoResultadoEscaneo').innerHTML = '❓';
+                document.getElementById('tituloResultadoEscaneo').innerText = 'Error de Lectura';
+                document.getElementById('mensajeResultadoEscaneo').innerText = 'El código QR no pertenece a este gimnasio o no es válido.';
+                document.getElementById('alertaResultadoEscaneo').classList.add('hidden');
+            }
+        }
+
+        // Función para escanear a la siguiente persona sin tocar la pantalla
+        function cerrarPantallaEscaneo() {
+            document.getElementById('pantallaResultadoEscaneo').classList.add('hidden');
+            abrirEscanner(); // Vuelve a prender la cámara de inmediato
+        }
+
         function cerrarEscanner() {
             if (html5QrCode) html5QrCode.stop().then(() => document.getElementById('lectorQRContainer').classList.add('hidden'));
             else document.getElementById('lectorQRContainer').classList.add('hidden');
@@ -1607,10 +1746,17 @@
                         <td class="px-6 py-4 text-sm text-gray-400">${registrado}</td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex justify-end items-center gap-2">
+                                
                                 <button onclick="abrirModalRenovar('${c.id}', '${c.nombre_completo}')"
-                                    class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-100 transition shadow-sm" title="Renovar o Cambiar Plan">
+                                    class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition shadow-sm" title="Renovar Plan">
                                     🔄 Renovar
                                 </button>
+                                
+                                ${rolUsuarioActual === 'admin' && ultimaSub.id ? 
+                                `<button onclick="abrirModalEditarPlan('${ultimaSub.id}', '${ultimaSub.fecha_inicio}', '${c.nombre_completo}')"
+                                    class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-100 transition shadow-sm ml-2" title="Corregir Fecha de Plan">
+                                    ✏️ Editar
+                                </button>` : ''}
                                 
                                 <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}', '${c.foto_url || ''}')"
                                     class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition shadow-sm">
@@ -1623,46 +1769,59 @@
             }).join('');
         }
 
-        // FUNCIÓN DE FILTRADO (AHORA SOPORTA FILTRO DOBLE POR DEFECTO)
+        // --- SISTEMA DE PAGINACIÓN ---
+        let clientesFiltradosGlobal = [];
+        let paginaActual = 1;
+        const clientesPorPagina = 20;
+
         function filtrarClientes() {
             const texto = document.getElementById('inputBuscarCliente').value.toLowerCase();
             const filtroEstado = document.getElementById('filtroEstado') ? document.getElementById('filtroEstado').value : 'Activos y Atrasados';
 
-            const filtrados = listaClientesOriginal.filter(c => {
-                const coincideTexto = 
-                    (c.nombre_completo && c.nombre_completo.toLowerCase().includes(texto)) ||
-                    (c.email && c.email.toLowerCase().includes(texto));
-
+            clientesFiltradosGlobal = listaClientesOriginal.filter(c => {
+                const coincideTexto = (c.nombre_completo && c.nombre_completo.toLowerCase().includes(texto)) || (c.email && c.email.toLowerCase().includes(texto));
                 let coincideEstado = true; 
                 
                 if (filtroEstado !== 'Todos') {
                     const subs = c.historial_suscripciones || [];
                     const subsOrdenadas = [...subs].sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin));
                     const ultimaSub = subsOrdenadas[0] || {};
-                    
                     let estadoCalculado = ultimaSub.estado_pago || 'Sin plan';
                     
                     if (ultimaSub.fecha_fin) {
                         const diffTime = new Date() - new Date(ultimaSub.fecha_fin);
                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        
                         if (diffDays > 30) estadoCalculado = 'Inactivo';
                         else if (diffDays > 0 && diffDays <= 30) estadoCalculado = 'Atrasado';
                         else estadoCalculado = 'Activo';
                     }
 
-                    // APLICAMOS LA NUEVA REGLA (Permitir Activos OR Atrasados)
-                    if (filtroEstado === 'Activos y Atrasados') {
-                        coincideEstado = (estadoCalculado === 'Activo' || estadoCalculado === 'Atrasado');
-                    } else {
-                        coincideEstado = (estadoCalculado === filtroEstado);
-                    }
+                    if (filtroEstado === 'Activos y Atrasados') coincideEstado = (estadoCalculado === 'Activo' || estadoCalculado === 'Atrasado');
+                    else coincideEstado = (estadoCalculado === filtroEstado);
                 }
-
                 return coincideTexto && coincideEstado;
             });
 
-            renderizarTablaClientes(filtrados);
+            paginaActual = 1;
+            renderizarPaginaActual();
+        }
+
+        function renderizarPaginaActual() {
+            const inicio = (paginaActual - 1) * clientesPorPagina;
+            const fin = inicio + clientesPorPagina;
+            const paginaData = clientesFiltradosGlobal.slice(inicio, fin);
+            
+            renderizarTablaClientes(paginaData);
+
+            // Actualizar botones
+            document.getElementById('textoPaginacion').innerText = `Página ${paginaActual} de ${Math.ceil(clientesFiltradosGlobal.length / clientesPorPagina) || 1}`;
+            document.getElementById('btnPrevPage').disabled = paginaActual === 1;
+            document.getElementById('btnNextPage').disabled = fin >= clientesFiltradosGlobal.length;
+        }
+
+        function cambiarPagina(delta) {
+            paginaActual += delta;
+            renderizarPaginaActual();
         }
 
         // REGISTRO NUEVO SUSCRIPTOR
@@ -2752,6 +2911,54 @@
         function cancelarPagoSaaS() {
             document.getElementById('checkoutSaaSContainer').classList.add('hidden');
             document.getElementById('opcionesPlanesSaaS').classList.remove('hidden');
+        }
+
+        function iniciarPagoUpgrade() {
+            // Oculta el mensaje de aviso y muestra los planes de cobro
+            document.getElementById('modalUpgrade').classList.add('hidden');
+            document.getElementById('paywallModal').classList.remove('hidden');
+        }
+
+        function abrirModalEditarPlan(subId, fechaActual, nombre) {
+            document.getElementById('editSuscripcionId').value = subId;
+            document.getElementById('editFechaInicio').value = fechaActual.split('T')[0];
+            document.getElementById('nombreClienteEditar').innerText = nombre;
+            document.getElementById('modalEditarPlan').classList.remove('hidden');
+        }
+
+        async function guardarEdicionPlan() {
+            const subId = document.getElementById('editSuscripcionId').value;
+            const nuevaFechaInicioStr = document.getElementById('editFechaInicio').value;
+            
+            if (!nuevaFechaInicioStr) return alert("Selecciona una fecha válida");
+
+            try {
+                // 1. Buscamos cuántos días duraba este plan originalmente
+                const { data: subActual } = await miSupabase.from('historial_suscripciones')
+                    .select('planes(dias_duracion)').eq('id', subId).single();
+                
+                const diasDuracion = subActual?.planes?.dias_duracion || 30;
+
+                // 2. Calculamos la nueva fecha de fin
+                const fInicio = new Date(nuevaFechaInicioStr + 'T12:00:00');
+                const fFin = new Date(fInicio);
+                fFin.setDate(fFin.getDate() + diasDuracion);
+
+                // 3. Actualizamos en Supabase
+                const { error } = await miSupabase.from('historial_suscripciones')
+                    .update({ 
+                        fecha_inicio: fInicio.toISOString().split('T')[0], 
+                        fecha_fin: fFin.toISOString().split('T')[0] 
+                    }).eq('id', subId);
+
+                if (error) throw error;
+
+                alert("✅ Fecha corregida correctamente.");
+                document.getElementById('modalEditarPlan').classList.add('hidden');
+                cargarDatosYDashboard(); // Refrescamos la tabla
+            } catch (error) {
+                alert("❌ Error al guardar: " + error.message);
+            }
         }
     </script>
 </body>
