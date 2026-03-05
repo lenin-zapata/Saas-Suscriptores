@@ -336,7 +336,12 @@ export default {
 
           // Solo insertamos si NO hay asistencias recientes (Evita que el QR marque doble)
           if (!asistenciasRecientes || asistenciasRecientes.length === 0) {
-              await admin.from('asistencias').insert([{ tenant_id: h.tenant_id, suscriptor_id: id, metodo_acceso: 'QR' }]);
+              await admin.from('asistencias').insert([{ 
+                  tenant_id: h.tenant_id, 
+                  suscriptor_id: id, 
+                  metodo_acceso: 'QR',
+                  fecha_entrada: new Date().toISOString() // <-- Enviamos la fecha explícitamente
+              }]);
           }
         }
       }
