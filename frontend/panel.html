@@ -347,6 +347,12 @@
                             </div>
 
                             <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Fecha de Inicio de Plan</label>
+                                <input type="date" id="fechaInicioSocio" required
+                                    class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition">
+                            </div>
+
+                            <div>
                                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Plan</label>
                                 <select id="planElegido" required
                                     class="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none text-sm transition"></select>
@@ -1133,9 +1139,9 @@
             }
 
             if (data && data.length > 0) {
-                // Guardamos el precio en un data-attribute para usarlo al enviar el formulario
+                // Guardamos el precio y los días exactos en data-attributes
                 select.innerHTML = data.map(p => 
-                    `<option value="${p.id}" data-meses="${Math.max(1, Math.round(p.dias_duracion / 30))}" data-precio="${p.precio}">
+                    `<option value="${p.id}" data-dias="${p.dias_duracion}" data-precio="${p.precio}">
                         ${p.nombre_plan} - $${p.precio}
                     </option>`
                 ).join('');
@@ -1568,6 +1574,8 @@
                 }
 
                 const sel = document.getElementById('planElegido');
+                const opcionSeleccionada = sel.options[sel.selectedIndex];
+
                 const nuevoCliente = {
                     tenant_id: miTenantId,
                     nombre_completo: document.getElementById('nombre').value,
@@ -1576,11 +1584,13 @@
                     telefono: document.getElementById('telefono').value,
                     email: document.getElementById('email').value,
                     plan_id: sel.value,
-                    meses_duracion: sel.options[sel.selectedIndex].getAttribute('data-meses'),
+                    // NUEVOS CAMPOS AÑADIDOS AQUÍ 👇
+                    dias_duracion: parseInt(opcionSeleccionada.getAttribute('data-dias')),
+                    precio_cobrado: parseFloat(opcionSeleccionada.getAttribute('data-precio')),
+                    fecha_inicio: document.getElementById('fechaInicioSocio').value,
+                    // -----------------------------
                     foto_url: fotoUrl,
                     contacto_emergencia: document.getElementById('contactoEmergencia').value,
-
-                    // NUEVO: Capturamos si el switch está encendido (true/false)
                     renovacion_automatica: document.getElementById('renovacionAutoCliente').checked
                 };
 
@@ -2563,6 +2573,11 @@
             
             sidebar.classList.toggle('-translate-x-full');
             if (overlay) overlay.classList.toggle('hidden');
+        }
+
+        // Poner la fecha de hoy por defecto en el registro
+        if(document.getElementById('fechaInicioSocio')){
+            document.getElementById('fechaInicioSocio').valueAsDate = new Date();
         }
     </script>
 </body>

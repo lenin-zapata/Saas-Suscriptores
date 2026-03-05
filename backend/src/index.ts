@@ -204,17 +204,22 @@ export default {
 
         if (errC) throw errC;
 
-        const fechaFin = new Date();
-        fechaFin.setMonth(fechaFin.getMonth() + parseInt(body.meses_duracion));
+        // 🧠 MAGIA DE FECHAS: Tomamos la fecha enviada por el formulario
+        // Le sumamos 'T12:00:00' para anclarla al mediodía y evitar que reste 1 día por la zona horaria
+        const fechaInicio = new Date(body.fecha_inicio + 'T12:00:00');
+        
+        // Calculamos el vencimiento sumando los días exactos del plan
+        const fechaFin = new Date(fechaInicio);
+        fechaFin.setDate(fechaFin.getDate() + parseInt(body.dias_duracion));
 
         await supabase.from('historial_suscripciones').insert([{
             tenant_id: body.tenant_id,
             suscriptor_id: cliente.id,
             plan_id: body.plan_id,
-            fecha_inicio: new Date().toISOString().split('T')[0],
+            precio_cobrado: body.precio_cobrado, // 💰 BUG DE PRECIO ARREGLADO
+            fecha_inicio: fechaInicio.toISOString().split('T')[0], // 📅 FECHA HISTÓRICA
             fecha_fin: fechaFin.toISOString().split('T')[0],
             estado_pago: 'Pagado',
-            // NUEVO: Guardamos la preferencia del cliente
             renovacion_automatica: body.renovacion_automatica
         }]);
 
