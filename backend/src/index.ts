@@ -270,8 +270,9 @@ export default {
                 return new Response(JSON.stringify({ estado: 'Denegado', nombre: cliente.nombre_completo, motivo: 'Plan expirado', foto: cliente.foto_url }), { status: 200, headers: corsHeaders });
             }
 
-            // 5. Registrar la asistencia oficial
-            const { error: errAsistencia } = await supabase.from('asistencias').insert([{
+            // 5. Registrar la asistencia oficial (Usando Service Key para saltar el bloqueo RLS)
+            const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+            const { error: errAsistencia } = await adminSupabase.from('asistencias').insert([{
                 tenant_id: tenantId,
                 suscriptor_id: clienteId,
                 metodo_acceso: 'QR',
