@@ -362,7 +362,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Foto del Cliente</label>
-                                <input type="file" id="fotoInput" accept="image/*" required
+                                <input type="file" id="fotoInput" accept="image/*"
                                     class="w-full border border-gray-200 bg-gray-50 p-1.5 rounded-xl text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 transition cursor-pointer">
                             </div>
                             
@@ -1013,7 +1013,8 @@
 
     <div id="pantallaResultadoEscaneo" class="hidden fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 text-white transition-colors duration-300">
         
-        <div class="bg-white rounded-full w-40 h-40 flex items-center justify-center shadow-2xl mb-8">
+        <div class="bg-white rounded-full w-40 h-40 flex items-center justify-center shadow-2xl mb-8 overflow-hidden border-4 border-white">
+            <img id="fotoResultadoEscaneo" src="" class="w-full h-full object-cover hidden">
             <span id="iconoResultadoEscaneo" class="text-7xl">✅</span>
         </div>
         
@@ -1541,6 +1542,7 @@
                 // Capturamos los elementos de la pantalla gigante
                 const pantalla = document.getElementById('pantallaResultadoEscaneo');
                 const icono = document.getElementById('iconoResultadoEscaneo');
+                const imgFoto = document.getElementById('fotoResultadoEscaneo');
                 const titulo = document.getElementById('tituloResultadoEscaneo');
                 const mensaje = document.getElementById('mensajeResultadoEscaneo');
                 const alerta = document.getElementById('alertaResultadoEscaneo');
@@ -1555,6 +1557,16 @@
                     icono.innerHTML = '✅';
                     titulo.innerText = 'Pase Autorizado';
                     mensaje.innerText = data.nombre;
+                    // Lógica de la Foto (Verde)
+                    if (data.foto) {
+                        imgFoto.src = data.foto;
+                        imgFoto.classList.remove('hidden');
+                        icono.classList.add('hidden');
+                    } else {
+                        imgFoto.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.nombre)}&background=10B981&color=fff&size=150`;
+                        imgFoto.classList.remove('hidden');
+                        icono.classList.add('hidden');
+                    }
 
                     // Si quedan 3 días o menos, mostramos el aviso
                     if(data.alerta_dias !== null) {
@@ -1567,6 +1579,17 @@
                     icono.innerHTML = '❌';
                     titulo.innerText = 'Acceso Denegado';
                     mensaje.innerText = `${data.nombre}\nMotivo: ${data.motivo}`;
+
+                    // Lógica de la Foto (Rojo)
+                    if (data.foto) {
+                        imgFoto.src = data.foto;
+                        imgFoto.classList.remove('hidden');
+                        icono.classList.add('hidden');
+                    } else {
+                        imgFoto.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.nombre)}&background=EF4444&color=fff&size=150`;
+                        imgFoto.classList.remove('hidden');
+                        icono.classList.add('hidden');
+                    }
                 }
             } catch(e) {
                 // PINTAR DE GRIS (Error de lectura)

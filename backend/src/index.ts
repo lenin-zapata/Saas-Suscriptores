@@ -267,7 +267,7 @@ export default {
 
             // 4. Verificar si está expirado
             if (fFin < hoy) {
-                return new Response(JSON.stringify({ estado: 'Denegado', nombre: cliente.nombre_completo, motivo: 'Plan expirado' }), { status: 200, headers: corsHeaders });
+                return new Response(JSON.stringify({ estado: 'Denegado', nombre: cliente.nombre_completo, motivo: 'Plan expirado', foto: cliente.foto_url }), { status: 200, headers: corsHeaders });
             }
 
             // 5. Registrar la asistencia oficial
@@ -283,7 +283,7 @@ export default {
             let alerta = null;
             if (diasRestantes <= 3 && diasRestantes > 0) alerta = diasRestantes;
 
-            return new Response(JSON.stringify({ estado: 'Autorizado', nombre: cliente.nombre_completo, alerta_dias: alerta }), { status: 200, headers: corsHeaders });
+            return new Response(JSON.stringify({ estado: 'Autorizado', nombre: cliente.nombre_completo, alerta_dias: alerta, foto: cliente.foto_url }), { status: 200, headers: corsHeaders });
 
         } catch (e: any) {
             return new Response(JSON.stringify({ error: e.message }), { status: 400, headers: corsHeaders });
@@ -305,7 +305,7 @@ export default {
       // 2. Valores por defecto (Asumimos Pantalla Roja inicialmente)
       let res = { 
         color: "#EF4444", 
-        icono: "❌", 
+        icono: "", 
         msg: "Acceso Denegado", 
         nombre: "Cliente Desconocido", 
         foto: "https://via.placeholder.com/150?text=Sin+Foto" 
@@ -325,7 +325,7 @@ export default {
 
         // 3. Validamos si está al día (Cambiamos a Pantalla Verde)
         if (h.estado_pago === 'Pagado' && h.fecha_fin >= hoy) {
-          res = { ...res, color: "#10B981", icono: "✅", msg: "Pase Autorizado" };
+          res = { ...res, color: "#10B981", icono: "", msg: "Pase Autorizado" };
           
           // ESCUDO ANTI-SPAM: Buscamos si ya se registró en los últimos 5 minutos
           const hace5Min = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -352,7 +352,9 @@ export default {
         </head>
         <body style="background-color: ${res.color}; color: white; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center;">
             <div style="background: rgba(0,0,0,0.2); padding: 40px 20px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 350px;">
+                
                 <img src="${res.foto}" alt="Foto del Socio" style="width: 160px; height: 160px; border-radius: 50%; border: 6px solid white; object-fit: cover; margin: 15px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background-color: white;">
+                
                 <h2 style="font-size: 1.8rem; margin: 10px 0; font-weight: bold;">${res.msg}</h2>
                 <p style="font-size: 1.4rem; margin: 0; font-weight: 500;">${res.nombre}</p>
             </div>
