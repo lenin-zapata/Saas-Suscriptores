@@ -271,11 +271,16 @@ export default {
             }
 
             // 5. Registrar la asistencia oficial
-            await supabase.from('asistencias').insert([{
+            const { error: errAsistencia } = await supabase.from('asistencias').insert([{
                 tenant_id: tenantId,
                 suscriptor_id: clienteId,
-                historial_id: sub.id
+                metodo_acceso: 'QR',
+                fecha_entrada: new Date().toISOString()
             }]);
+
+            if (errAsistencia) {
+                console.error("Error al registrar asistencia en BD:", errAsistencia.message);
+            }
 
             // 6. Calcular alerta de los 3 días
             const diffTime = fFin.getTime() - hoy.getTime();

@@ -931,7 +931,7 @@
             <button id="btnCerrarPaywallVoluntario" onclick="cerrarPaywallVoluntario()" class="hidden absolute top-4 right-6 text-gray-400 hover:text-gray-900 text-3xl font-bold transition">&times;</button>
 
             <h2 class="text-3xl font-black text-gray-800 mb-2">Renueva tu Suscripción 🚀</h2>
-            <p class="text-gray-500 mb-8 max-w-xl mx-auto">Elige un plan para reactivar tu gimnasio y seguir usando JS MemberLy sin interrupciones.</p>
+            <p class="text-gray-500 mb-8 max-w-xl mx-auto">Elige un plan para tu gimnasio y usar JS MemberLy sin interrupciones.</p>
 
             <div id="opcionesPlanesSaaS" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="border border-gray-200 rounded-2xl p-6 hover:border-emerald-500 transition text-left flex flex-col justify-between bg-white">
@@ -997,6 +997,11 @@
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <h3 class="text-lg font-bold text-gray-800 mb-1">Corregir Fecha de Inicio</h3>
             <p class="text-sm text-gray-500 mb-4" id="nombreClienteEditar">Cliente</p>
+            
+            <div class="mb-5 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                <p class="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold mb-0.5">Plan Actual a Editar</p>
+                <p class="text-sm font-bold text-emerald-700" id="infoPlanEditar">Cargando...</p>
+            </div>
             
             <input type="hidden" id="editSuscripcionId">
             
@@ -1351,7 +1356,7 @@
                 // 2. Traer Historial de Pagos (Supabase)
                 const { data: historial, error: histError } = await miSupabase
                     .from('historial_suscripciones')
-                    .select('*')
+                    .select('*, planes(nombre_plan, dias_duracion)') // <-- CAMBIO AQUÍ
                     .eq('tenant_id', miTenantId);
 
                 // 3. LA MAGIA: Unir el historial con los clientes y calcular estado
@@ -1777,11 +1782,15 @@
                                     🔄 Renovar
                                 </button>
                                 
-                                ${rolUsuarioActual === 'admin' && ultimaSub.id ? 
-                                `<button onclick="abrirModalEditarPlan('${ultimaSub.id}', '${ultimaSub.fecha_inicio}', '${c.nombre_completo}')"
-                                    class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-100 transition shadow-sm ml-2" title="Corregir Fecha de Plan">
-                                    ✏️ Editar
-                                </button>` : ''}
+                               ${rolUsuarioActual === 'admin' && ultimaSub.id ? `
+                                ${(() => {
+                                    const textoPlan = ultimaSub.planes ? `${ultimaSub.planes.nombre_plan} (${ultimaSub.planes.dias_duracion} días)` : 'Plan Desconocido';
+                                    return `<button onclick="abrirModalEditarPlan('${ultimaSub.id}', '${ultimaSub.fecha_inicio}', '${c.nombre_completo}', '${textoPlan}')"
+                                        class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-100 transition shadow-sm ml-2" title="Corregir Fecha de Plan">
+                                        ✏️ Editar
+                                    </button>`;
+                                })()}
+                                ` : ''}
                                 
                                 <button onclick="mostrarPaseQR('${c.id}', '${c.nombre_completo}', '${c.telefono}', '${c.foto_url || ''}')"
                                     class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition shadow-sm">
@@ -2957,10 +2966,14 @@
             }
         }
 
-        function abrirModalEditarPlan(subId, fechaActual, nombre) {
+        function abrirModalEditarPlan(subId, fechaActual, nombre, infoPlan) {
             document.getElementById('editSuscripcionId').value = subId;
             document.getElementById('editFechaInicio').value = fechaActual.split('T')[0];
             document.getElementById('nombreClienteEditar').innerText = nombre;
+            
+            // Pintamos la info del plan
+            document.getElementById('infoPlanEditar').innerText = infoPlan || 'Plan no especificado';
+            
             document.getElementById('modalEditarPlan').classList.remove('hidden');
         }
 
