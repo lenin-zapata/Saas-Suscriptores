@@ -1508,6 +1508,32 @@
             new QRCode(cont, { text: id, width: 220, height: 220 });
 
             document.getElementById('btnEnviarWA').onclick = () => {
+                // --- 1. LÓGICA DE DESCARGA AUTOMÁTICA DEL QR ---
+                const cont = document.getElementById('contenedorQR');
+                const qrImg = cont.querySelector('img');
+                const qrCanvas = cont.querySelector('canvas');
+                // 1. Capturamos el nombre del gimnasio desde la barra lateral
+                const nombreGym = document.getElementById('nombreGymSidebar').innerText;
+                let imgUrl = null;
+
+                // qrcode.js crea un canvas o una imagen, buscamos cuál de los dos tiene el dato
+                if (qrImg && qrImg.src && qrImg.src.startsWith('data:image')) {
+                    imgUrl = qrImg.src;
+                } else if (qrCanvas) {
+                    imgUrl = qrCanvas.toDataURL("image/png");
+                }
+
+                if (imgUrl) {
+                    const enlaceDescarga = document.createElement('a');
+                    enlaceDescarga.href = imgUrl;
+                    // Limpiamos los espacios del nombre para el archivo (Ej: QR_Maria_Perez.png)
+                    enlaceDescarga.download = `QR_${nombre.replace(/\s+/g, '_')}_${nombreGym.replace(/\s+/g, '_')}.png`; 
+                    document.body.appendChild(enlaceDescarga);
+                    enlaceDescarga.click();
+                    document.body.removeChild(enlaceDescarga);
+                }
+
+                // --- 2. LÓGICA DE WHATSAPP (Inteligente por País y Personalizada) ---
                 let telLimpio = tel.replace(/\D/g,''); // Quitamos todo lo que no sea número
                 let prefijoLocal = prefijosPaises[paisTenant] || '593';
 
@@ -1521,7 +1547,11 @@
                     telLimpio = prefijoLocal + telLimpio;
                 }
 
-                window.open(`https://wa.me/${telLimpio}?text=Hola ${nombre}, aquí tienes tu pase QR de acceso al gimnasio.`, '_blank');
+                // 2. Armamos el mensaje incluyendo el nombre del gym
+                const textoWA = `Hola ${nombre}, aquí tienes tu pase QR de acceso a ${nombreGym}. Por favor descárgalo para tu ingreso.`;
+
+                // 3. Usamos encodeURIComponent para que los espacios y tildes no rompan el enlace
+                window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(textoWA)}`, '_blank');
             };
         }
 
