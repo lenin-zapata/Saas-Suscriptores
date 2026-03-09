@@ -199,17 +199,20 @@
                     class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
                     <span class="text-base">👥</span> Gestionar Staff
                 </a>
-                <a href="#" onclick="cambiarVista('finanzas')" id="btnMenuFinanzas" class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
-                    <span>📊</span> <span class="font-medium">Finanzas</span>
-                    <span class="ml-auto text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded-full uppercase">Elite</span>
-                </a>
                 
                 <a href="#" id="btnMenuPagos" onclick="cambiarVista('pagos')" class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
                     <span class="text-base">💳</span> <span class="font-medium">Integración de Pagos</span>
+                    <span class="ml-auto text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded-full uppercase">Pro</span>
                 </a>
                 
                 <a href="#" id="btnMenuFacturacion" onclick="cambiarVista('facturacion')" class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
                     <span class="text-base">🧾</span> <span class="font-medium">Exportar Facturación</span>
+                    <span class="ml-auto text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded-full uppercase">Pro</span>
+                </a>
+
+                <a href="#" onclick="cambiarVista('finanzas')" id="btnMenuFinanzas" class="solo-admin nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
+                    <span>📊</span> <span class="font-medium">Finanzas</span>
+                    <span class="ml-auto text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded-full uppercase">Elite</span>
                 </a>
 
                 <a onclick="cambiarVista('escanear')"
@@ -219,24 +222,31 @@
             </nav>
 
             <div class="p-4 border-t border-white/10">
-                <button onclick="cerrarSesion()"
-                    class="w-full flex items-center justify-center gap-2 text-white/50 hover:text-white px-4 py-2 rounded-xl text-sm transition font-medium">
-                    <span>🚪</span> Cerrar Sesión
-                </button>
+                <a href="#" id="btnNavTutoriales" onclick="cambiarVista('tutoriales')" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
+                    <span class="text-base">📺</span> <span class="font-medium">Tutoriales</span>
+                </a>
+
+                <a href="#" id="btnNavTutoriales" onclick="cerrarSesion()" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70">
+                    <span class="text-base">🚪</span> <span class="font-medium">Cerrar Sesión</span>
+                </a>
             </div>
         </aside>
 
         <main class="flex-1 flex flex-col overflow-y-auto bg-gray-50">
 
-            <header class="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-40">
+            <header class="bg-white border-b border-gray-100 px-6 md:px-8 py-4 flex justify-between items-center sticky top-0 z-40">
                 
-                <div>
-                    <button onclick="toggleSidebar()" class="md:hidden p-2 mr-3 rounded-lg bg-gray-100 text-gray-600">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="md:hidden p-2.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 transition shrink-0 shadow-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-width="2" stroke-linecap="round"/></svg>
                     </button>
-                    <h1 class="text-xl font-extrabold text-gray-900 tracking-tight">Resumen General</h1>
-                    <p class="text-xs text-gray-400 font-medium mt-0.5">Panel de control de tu gimnasio</p>
+                    
+                    <div class="flex flex-col justify-center mt-1">
+                        <h1 id="headerTituloPrincipal" class="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight leading-none mb-1">Resumen General</h1>
+                        <p id="headerSubtituloPrincipal" class="text-xs text-gray-400 font-medium leading-none">Panel de control de tu gimnasio</p>
+                    </div>
                 </div>
+
                 <div class="relative group">
                     <button class="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-2xl transition">
                         <div id="userInitialsCircle"
@@ -465,14 +475,14 @@
             <div id="vistaFinanzas" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full">
 
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h2 class="text-2xl font-bold text-gray-800 text-center md:text-left">Reportes Financieros Avanzados</h2>
+                    <!-- <h2 class="text-2xl font-bold text-gray-800 text-center md:text-left">Reportes Financieros Avanzados</h2> -->
                     
                     <!-- <button onclick="simularMotorCobros()" class="bg-indigo-600 text-white font-bold py-2.5 px-5 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-100 flex items-center gap-2 text-sm">
                         🤖 Ejecutar Motor de Cobros (Simulador)
                     </button> -->
                 </div>
 
-                <div id="paywallFinanzas" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
+                <div id="paywallFinanzas" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
                     <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
                         <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🔒</div>
                         <h3 class="text-xl font-bold text-gray-900 mb-2">Exclusivo del Plan Elite</h3>
@@ -521,8 +531,8 @@
             <div id="vistaStaff" class="hidden p-8 w-full max-w-6xl mx-auto">
                 <div class="flex justify-between items-center mb-8">
                     <div>
-                        <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">Gestionar Personal</h2>
-                        <p class="text-xs text-gray-400 font-medium mt-1">Administra los accesos de tu equipo</p>
+                        <!-- <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">Gestionar Personal</h2>
+                        <p class="text-xs text-gray-400 font-medium mt-1">Administra los accesos de tu equipo</p> -->
                     </div>
                     <button onclick="document.getElementById('modalNuevoStaff').classList.remove('hidden')"
                         class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition text-sm">
@@ -544,7 +554,7 @@
             </div>
 
             <div id="vistaPagos" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full">
-                <div id="paywallPagos" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
+                <div id="paywallPagos" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
                     <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
                         <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🔒</div>
                         <h3 class="text-xl font-bold text-gray-900 mb-2">Exclusivo del Plan Pro / Elite</h3>
@@ -555,10 +565,10 @@
                     </div>
                 </div>
 
-                <div class="mb-6">
+                <!-- <div class="mb-6">
                     <h2 class="text-3xl font-bold text-gray-800">Integración de Pagos</h2>
                     <p class="text-gray-500">Configura tu pasarela para recibir los pagos directamente en tu cuenta.</p>
-                </div>
+                </div> -->
 
                 <div class="max-w-3xl bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
                     
@@ -612,8 +622,8 @@
             </div>
 
             <div id="vistaEscanear" class="hidden p-8 w-full max-w-6xl mx-auto">
-                <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Escanear Pase</h2>
-                <p class="text-xs text-gray-400 font-medium mb-8">Verifica el acceso de tus clientes con código QR</p>
+                <!-- <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Escanear Pase</h2>
+                <p class="text-xs text-gray-400 font-medium mb-8">Verifica el acceso de tus clientes con código QR</p> -->
                 
                 <div class="bg-white p-10 rounded-3xl border border-gray-100 shadow-sm text-center max-w-lg mx-auto flex flex-col items-center">
                     <div class="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-4xl mb-6">📷</div>
@@ -627,7 +637,7 @@
             </div>
 
             <div id="vistaFacturacion" class="hidden px-8 pb-8 pt-2 relative min-h-[600px] max-w-5xl mx-auto w-full">
-                <div id="paywallReporteFact" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
+                <div id="paywallReporteFact" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-2xl">
                     <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md border border-indigo-50 mx-4">
                         <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🔒</div>
                         <h3 class="text-xl font-bold text-gray-900 mb-2">Exclusivo del Plan Pro / Elite</h3>
@@ -640,8 +650,8 @@
 
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <div>
-                        <h2 class="text-3xl font-bold text-gray-800">Reporte para Facturación</h2>
-                        <p class="text-gray-500 text-sm mt-1">Descarga los pagos recibidos para enviarlos a tu contador o sistema del SRI.</p>
+                        <!-- <h2 class="text-3xl font-bold text-gray-800">Reporte para Facturación</h2>
+                        <p class="text-gray-500 text-sm mt-1">Descarga los pagos recibidos para enviarlos a tu contador o sistema del SRI.</p> -->
                     </div>
                     
                     <div class="flex gap-3">
@@ -673,6 +683,55 @@
                             <tbody id="tablaFacturacion" class="divide-y divide-gray-50">
                                 </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="vistaTutoriales" class="hidden p-8 w-full max-w-6xl mx-auto">
+                
+                <!-- <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">Centro de Ayuda y Tutoriales</h2>
+                <p class="text-xs text-gray-400 font-medium mb-8">Aprende a sacar el máximo provecho de JS MemberLy con estos videos cortos.</p> -->
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <div class="solo-admin bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition">
+                        <div class="relative w-full pt-[56.25%] bg-gray-100">
+                            <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/ScMzIvxBSi4" title="Tutorial JS MemberLy" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-gray-800 mb-1">1. Primeros Pasos y Planes</h3>
+                            <p class="text-xs text-gray-500 leading-relaxed">Aprende a configurar los precios de tu gimnasio y crear membresías.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition">
+                        <div class="relative w-full pt-[56.25%] bg-gray-100">
+                            <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/ScMzIvxBSi4" title="Tutorial JS MemberLy" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-gray-800 mb-1">2. Registrar Socios y QR</h3>
+                            <p class="text-xs text-gray-500 leading-relaxed">Añade clientes y mándales su pase inteligente por WhatsApp.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition">
+                        <div class="relative w-full pt-[56.25%] bg-gray-100">
+                            <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/ScMzIvxBSi4" title="Tutorial JS MemberLy" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-gray-800 mb-1">3. Escáner de Accesos</h3>
+                            <p class="text-xs text-gray-500 leading-relaxed">Cómo debe usar tu equipo la cámara para validar los ingresos.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="solo-admin bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition">
+                        <div class="relative w-full pt-[56.25%] bg-gray-100">
+                            <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/ScMzIvxBSi4" title="Tutorial JS MemberLy" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-gray-800 mb-1">4. Conectar PayPal</h3>
+                            <p class="text-xs text-gray-500 leading-relaxed">Instrucciones para activar los cobros automáticos con tu cuenta.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -968,7 +1027,7 @@
                 <div class="border border-gray-200 rounded-2xl p-6 hover:border-emerald-500 transition text-left flex flex-col justify-between bg-white">
                     <div>
                         <h3 class="text-lg font-bold text-gray-700">Plan Elite</h3>
-                        <p class="text-[11px] text-gray-400 mt-1 mb-4">Ilimitado • Reportes Financieros</p>
+                        <p class="text-[11px] text-gray-400 mt-1 mb-4">Hasta 2000 clientes • Reportes Financieros</p>
                     </div>
                     <div class="space-y-3">
                         <button onclick="iniciarPagoSaaS('elite', 1, parseFloat(document.getElementById('lbl_elite_m').innerText))" class="w-full bg-gray-50 hover:bg-gray-100 text-gray-800 font-bold py-3 rounded-xl transition border border-gray-200 text-sm flex justify-between px-4">
@@ -1039,6 +1098,10 @@
             Volver al Panel
         </button>
     </div>
+
+    
+
+
 
     <script src="config.js"></script>
 
@@ -2009,7 +2072,8 @@
                 'staff': document.getElementById('vistaStaff'),
                 'pagos': document.getElementById('vistaPagos'), 
                 'escanear': document.getElementById('vistaEscanear'),
-                'facturacion': document.getElementById('vistaFacturacion')
+                'facturacion': document.getElementById('vistaFacturacion'),
+                'tutoriales': document.getElementById('vistaTutoriales')
             };
 
             // 2. Apagar todas las pantallas
@@ -2033,7 +2097,8 @@
                 'staff': 'btnNavStaff',
                 'finanzas': 'btnMenuFinanzas',
                 'pagos': 'btnMenuPagos',
-                'facturacion': 'btnMenuFacturacion'
+                'facturacion': 'btnMenuFacturacion',
+                'tutoriales': 'btnNavTutoriales'
             };
             
             const btnActivo = document.getElementById(mapaBotones[vistaDestino]);
@@ -2062,23 +2127,52 @@
             }
 
             else if (vistaDestino === 'pagos') {
-                // Al usar varias líneas, las llaves {} son obligatorias
                 const paywall = document.getElementById('paywallPagos');
-                const premiumPlans = ['elite', 'pro']; // Solo Pro y Elite tienen acceso
+                const contenidoPagos = document.querySelector('#vistaPagos .max-w-3xl');
+                const premiumPlans = ['elite', 'pro'];
 
-                // Validamos si existe el elemento en el HTML para evitar errores
                 if (paywall) {
                     if (!premiumPlans.includes(planSaasActual.toLowerCase())) {
-                        paywall.classList.remove('hidden'); // Mostramos el bloqueo
-                        return; // Detenemos la ejecución para que no cargue los datos
+                        paywall.classList.remove('hidden');
+                        // 🔒 BLOQUEO TOTAL: Difuminado, sin clics y recortado para matar el scroll
+                        if(contenidoPagos) contenidoPagos.classList.add('opacity-20', 'pointer-events-none', 'blur-sm', 'h-[300px]', 'overflow-hidden');
+                        return; 
                     } else {
-                        paywall.classList.add('hidden'); // Ocultamos el bloqueo
+                        paywall.classList.add('hidden');
+                        // 🔓 DESBLOQUEO
+                        if(contenidoPagos) contenidoPagos.classList.remove('opacity-20', 'pointer-events-none', 'blur-sm', 'h-[300px]', 'overflow-hidden');
                     }
                 }
+            }
+
+            // --- ACTUALIZAR TEXTOS DEL ENCABEZADO ---
+            const tituloH = document.getElementById('headerTituloPrincipal');
+            const subH = document.getElementById('headerSubtituloPrincipal');
+            
+            if (tituloH && subH) {
+                const textosHeader = {
+                    'resumen': { t: 'Resumen General', s: 'Panel de control de tu gimnasio' },
+                    'staff': { t: 'Gestión de Personal', s: 'Administra los accesos de tu equipo' },
+                    'finanzas': { t: 'Reportes Financieros', s: 'Métricas avanzadas para tu negocio' },
+                    'pagos': { t: 'Integración de Pagos', s: 'Configura tu pasarela para recibir los pagos de tus clientes directamente en tu cuenta' },
+                    'facturacion': { t: 'Exportar Facturación', s: 'Descarga los pagos recibidos para enviarlos a tu contador o sistema de facturación' },
+                    'escanear': { t: 'Escanear Pase', s: 'Verifica el acceso de tus clientes con código QR' },
+                    'tutoriales': { t: 'Centro de Ayuda', s: 'Aprende a sacar el máximo provecho de JS MemberLy con estos videos cortos' }
+                };
+
+                if (textosHeader[vistaDestino]) {
+                    tituloH.innerText = textosHeader[vistaDestino].t;
+                    subH.innerText = textosHeader[vistaDestino].s;
+                }
                 
-                // Si pasó el Paywall (o si es Pro/Elite), cargamos los datos
-                if (typeof cargarReporteFacturacion === 'function') {
-                    cargarReporteFacturacion(); 
+            }
+
+            // --- NUEVO: CERRAR SIDEBAR EN MÓVIL AUTOMÁTICAMENTE ---
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                // Si el sidebar está abierto (no tiene la clase que lo oculta), lo cerramos
+                if (!sidebar.classList.contains('-translate-x-full')) {
+                    toggleSidebar();
                 }
             }
         }
@@ -2090,13 +2184,16 @@
         // --- LÓGICA DEL DASHBOARD FINANCIERO ---
         async function cargarDashboardFinanciero() {
             const paywall = document.getElementById('paywallFinanzas');
+            const contenidoFinanzas = document.querySelector('#vistaFinanzas .grid');
             
             // 1. GATEKEEPER SAAS
             if (planSaasActual.toLowerCase() !== 'elite') {
                 paywall.classList.remove('hidden');
+                if(contenidoFinanzas) contenidoFinanzas.classList.add('opacity-20', 'pointer-events-none', 'blur-sm', 'h-[300px]', 'overflow-hidden');
                 return; 
             } else {
                 paywall.classList.add('hidden');
+                if(contenidoFinanzas) contenidoFinanzas.classList.remove('opacity-20', 'pointer-events-none', 'blur-sm', 'h-[300px]', 'overflow-hidden');
             }
 
             try {
@@ -2811,12 +2908,19 @@
         async function cargarReporteFacturacion() {
             const paywall = document.getElementById('paywallReporteFact');
             const premiumPlans = ['elite', 'pro'];
+            const contenidosBloquear = document.querySelectorAll('#vistaFacturacion > div:not(#paywallReporteFact)');
 
             if (!premiumPlans.includes(planSaasActual.toLowerCase())) {
-                paywall.classList.remove('hidden');
+                if (paywall) paywall.classList.remove('hidden');
+                
+                // Aplicamos el bloqueo a los botones superiores y a la tabla al mismo tiempo
+                contenidosBloquear.forEach(el => el.classList.add('opacity-20', 'pointer-events-none', 'blur-sm', 'max-h-[150px]', 'overflow-hidden'));
                 return; 
             } else {
-                paywall.classList.add('hidden');
+                if (paywall) paywall.classList.add('hidden');
+                
+                // Desbloqueamos todo si tiene acceso
+                contenidosBloquear.forEach(el => el.classList.remove('opacity-20', 'pointer-events-none', 'blur-sm', 'max-h-[150px]', 'overflow-hidden'));
             }
 
             const tbody = document.getElementById('tablaFacturacion');
