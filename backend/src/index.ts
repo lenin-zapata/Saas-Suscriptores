@@ -1111,7 +1111,8 @@ export default {
                 }
             } catch (e: any) {
                 console.error("Error PayPal:", e.message);
-                return "https://www.jsmemberly.com/error-pago";
+                //return "https://www.jsmemberly.com/error-pago";
+                return null; // Retornamos null para detectar que está mal configurado
             }
         };
 
@@ -1182,6 +1183,14 @@ export default {
                 const diasPlan = sub.planes?.dias_duracion || 30;
                 const linkPago = await generarLinkPago(tenant, nombreCliente, sub.precio_cobrado, renovacionAuto, diasPlan, sub.suscriptor_id, sub.plan_id);
                 
+                // --- 🛑 VALIDACIÓN 2: ¿PayPal rechazó las credenciales (Mal configurado)? ---
+                if (!linkPago) {
+                    console.log(`❌ [${zonaHorariaGym}] Gimnasio ${nombreGym} tiene PayPal MAL CONFIGURADO. Se cancela el mensaje a ${nombreCliente}.`);
+                    // Lo marcamos como enviado para que el robot no se quede atascado intentando cada hora
+                    await adminSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
+                    continue;
+                }
+
                 const paramsHeaderAviso: string[] = [nombreGym]; 
                 const paramsBodyAviso = [nombreCliente, nombreGym, linkPago]; 
                 
