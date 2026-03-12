@@ -11,6 +11,7 @@ export interface Env {
   PAYPAL_API_URL: string;      // <-- NUEVO
   PAYPAL_SAAS_CLIENT_ID: string; // <-- NUEVO
   PAYPAL_SAAS_SECRET: string;  // <-- NUEVO
+  BREVO_API_KEY: string;
 }
 
 export default {
@@ -1116,6 +1117,13 @@ export default {
             }
         };
 
+        // Memoria para agrupar los reportes por gimnasio ---
+        const reportesPorGym: Record<string, {
+            tenant: any;
+            vencenHoy: any[];
+            vencidos15: any[];
+        }> = {};
+
         // 3. Procesamos cada suscripción
         for (const sub of suscripciones) {
             if (!sub.fecha_fin || !sub.suscriptores || !sub.tenants) continue;
@@ -1157,6 +1165,22 @@ export default {
             const recordatorioEnviado = sub.recordatorio_enviado === true; 
             const nombreGym = tenant.nombre_negocio;
             const planSaasGym = tenant.plan_saas?.toLowerCase() || 'starter';
+
+            // RECOLECTAR DATOS PARA EL REPORTE DE EMAIL ---
+            if (diffDays === 0 || diffDays === -15) {
+                if (!reportesPorGym[tenant.id]) {
+                    reportesPorGym[tenant.id] = { tenant, vencenHoy: [], vencidos15: [] };
+                }
+                
+                const datosCliente = { 
+                    nombre: nombreCliente, 
+                    telefono: telefono, 
+                    plan: sub.planes?.nombre_plan || 'Desconocido' 
+                };
+
+                if (diffDays === 0) reportesPorGym[tenant.id].vencenHoy.push(datosCliente);
+                else if (diffDays === -15) reportesPorGym[tenant.id].vencidos15.push(datosCliente);
+            }
 
             // =========================================================================
             // REGLA: Avisar 3 días ANTES a TODOS (Con Link Dinámico)
@@ -1258,6 +1282,94 @@ export default {
                     await enviarWA(telefono, 'recibo_pago_gym', paramsHeaderRecibo, paramsBodyRecibo);
                 }
             } */
+        }
+
+        // =========================================================================
+        // 📧 ENVÍO DE REPORTES A ADMINISTRADORES (TEXTO + EXCEL CSV)
+        // =========================================================================
+        for (const tenantId in reportesPorGym) {
+            const reporte = reportesPorGym[tenantId];
+            
+            // Si no hay nada que reportar hoy, saltamos este gimnasio
+            if (reporte.vencenHoy.length === 0 && reporte.vencidos15.length === 0) continue;
+
+            try {
+                // 1. Buscamos a los administradores de este gimnasio
+                const { data: admins } = await adminSupabase
+                    .from('perfiles_staff')
+                    .select('email, nombre')
+                    .eq('tenant_id', tenantId)
+                    .eq('rol', 'admin');
+
+                if (!admins || admins.length === 0) continue;
+                const correosDestino = admins.map(a => a.email);
+
+                // 2. Armamos el archivo Excel (CSV)
+                let csvContent = "\ufeffEstado,Cliente,WhatsApp,Plan\n"; // \ufeff arregla las tildes en Excel
+                
+                reporte.vencenHoy.forEach(c => csvContent += `VENCE HOY,"${c.nombre}","${c.telefono}","${c.plan}"\n`);
+                reporte.vencidos15.forEach(c => csvContent += `SIN RENOVAR (15 Días),"${c.nombre}","${c.telefono}","${c.plan}"\n`);
+
+                // Convertimos el CSV a Base64 de forma segura para evitar errores con tildes/eñes
+                const bytes = new TextEncoder().encode(csvContent);
+                let base64Csv = btoa(String.fromCharCode(...bytes));
+
+                // 3. Armamos el cuerpo del correo en texto/HTML
+                let htmlCuerpo = `
+                    <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px;">
+                        <h2 style="color: #059669;">Reporte Diario - ${reporte.tenant.nombre_negocio}</h2>
+                        <p>Hola equipo, adjunto encontrarán el reporte de estado de membresías para el día de hoy (${hoyStr}).</p>
+                `;
+
+                if (reporte.vencenHoy.length > 0) {
+                    htmlCuerpo += `<h3 style="color: #D97706;">🔴 Vencen Hoy (${reporte.vencenHoy.length})</h3><ul>`;
+                    reporte.vencenHoy.forEach(c => htmlCuerpo += `<li><strong>${c.nombre}</strong> (${c.plan}) - WA: ${c.telefono}</li>`);
+                    htmlCuerpo += `</ul>`;
+                }
+
+                if (reporte.vencidos15.length > 0) {
+                    htmlCuerpo += `<h3 style="color: #DC2626;">❌ 15 Días Sin Renovar (${reporte.vencidos15.length})</h3><ul>`;
+                    reporte.vencidos15.forEach(c => htmlCuerpo += `<li><strong>${c.nombre}</strong> (${c.plan}) - WA: ${c.telefono}</li>`);
+                    htmlCuerpo += `</ul><p style="font-size: 12px; color: #666;">Te sugerimos contactar a estos clientes para ofrecerles una promoción de regreso.</p>`;
+                }
+
+                htmlCuerpo += `
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                        <p style="font-size: 12px; color: #999;">Este es un mensaje automático generado por tu asistente <strong>JS MemberLy</strong>. El reporte completo en Excel está adjunto a este correo.</p>
+                    </div>
+                `;
+
+                // 4. Enviamos el correo usando BREVO
+                if (env.BREVO_API_KEY) {
+                    
+                    // Brevo exige que la lista de correos tenga este formato: [{ email: "a@b.com" }, { email: "c@d.com" }]
+                    const destinatariosBrevo = correosDestino.map(correo => ({ email: correo }));
+
+                    await fetch('https://api.brevo.com/v3/smtp/email', {
+                        method: 'POST',
+                        headers: { 
+                            'api-key': env.BREVO_API_KEY, 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            sender: { name: 'JS MemberLy', email: 'reportes@tu-dominio.com' }, // ⚠️ Pon aquí tu correo verificado en Brevo
+                            to: destinatariosBrevo,
+                            subject: `📊 Reporte Diario de Membresías - ${reporte.tenant.nombre_negocio}`,
+                            htmlContent: htmlCuerpo, // Brevo usa 'htmlContent' en lugar de 'html'
+                            attachment: [
+                                { name: `Reporte_${hoyStr}.csv`, content: base64Csv }
+                            ]
+                        })
+                    });
+                    console.log(`✅ Reporte enviado por Brevo a los admins de ${reporte.tenant.nombre_negocio}`);
+                } else {
+                    console.log(`⚠️ Faltan credenciales de BREVO_API_KEY. Reporte generado pero no enviado a ${reporte.tenant.nombre_negocio}`);
+                }
+
+            } catch (err: any) {
+                console.error(`❌ Error enviando reporte a ${tenantId}:`, err.message);
+            }
         }
 
         console.log("✅ Motor de cobros automático finalizado con éxito.");

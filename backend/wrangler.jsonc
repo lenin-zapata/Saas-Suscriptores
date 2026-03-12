@@ -46,5 +46,8 @@
   	},
 
 	"workers_dev": false,
-  	"route": "api.jsmemberly.com/*",
+    "routes": [
+        { "pattern": "api.jsmemberly.com", "custom_domain": true, "zone_name": "jsmemberly.com" },
+        { "pattern": "api.jsmemberly.com/*", "zone_name": "jsmemberly.com" }
+    ]
 }
