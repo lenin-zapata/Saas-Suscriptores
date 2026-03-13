@@ -1353,7 +1353,7 @@ export default {
                         },
                         body: JSON.stringify({
                             // ⚠️ IMPORTANTE: Pon aquí el correo que validaste en Brevo
-                            sender: { name: 'JS MemberLy', email: 'contacto@jsmemberly.com' }, 
+                            sender: { name: 'Reportes JS MemberLy', email: 'reportes@jsmemberly.com' }, 
                             to: destinatariosBrevo,
                             subject: `📊 JS MemberLy - Reporte Diario de Membresías - ${reporte.tenant.nombre_negocio}`,
                             htmlContent: htmlCuerpo, 
