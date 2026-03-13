@@ -926,7 +926,7 @@ export default {
             .from('tenants')
             .delete()
             .eq('estado_suscripcion', 'pendiente_pago')
-            .lt('created_at', anteayer);
+            .lt('fecha_creacion', anteayer);
         
         if (errBorrado) console.error("⚠️ Error en recolector de basura:", errBorrado.message);
         else console.log("🧹 Limpieza de registros pendientes completada.");
@@ -1323,13 +1323,13 @@ export default {
 
                 if (reporte.vencenHoy.length > 0) {
                     htmlCuerpo += `<h3 style="color: #D97706;">🔴 Vencen Hoy (${reporte.vencenHoy.length})</h3><ul>`;
-                    reporte.vencenHoy.forEach(c => htmlCuerpo += `<li><strong>${c.nombre}</strong> (${c.plan}) - WA: ${c.telefono}</li>`);
+                    reporte.vencenHoy.forEach(c => htmlCuerpo += `<li><strong>${c.nombre}</strong> (Plan: ${c.plan}) - WhatsApp: ${c.telefono}</li>`);
                     htmlCuerpo += `</ul>`;
                 }
 
                 if (reporte.vencidos15.length > 0) {
                     htmlCuerpo += `<h3 style="color: #DC2626;">❌ 15 Días Sin Renovar (${reporte.vencidos15.length})</h3><ul>`;
-                    reporte.vencidos15.forEach(c => htmlCuerpo += `<li><strong>${c.nombre}</strong> (${c.plan}) - WA: ${c.telefono}</li>`);
+                    reporte.vencidos15.forEach(c => htmlCuerpo += `<li><strong>${c.nombre}</strong> (Plan: ${c.plan}) - WhatsApp: ${c.telefono}</li>`);
                     htmlCuerpo += `</ul><p style="font-size: 12px; color: #666;">Te sugerimos contactar a estos clientes para ofrecerles una promoción de regreso.</p>`;
                 }
 
@@ -1342,10 +1342,9 @@ export default {
                 // 4. Enviamos el correo usando BREVO
                 if (env.BREVO_API_KEY) {
                     
-                    // Brevo exige que la lista de correos tenga este formato: [{ email: "a@b.com" }, { email: "c@d.com" }]
                     const destinatariosBrevo = correosDestino.map(correo => ({ email: correo }));
 
-                    await fetch('https://api.brevo.com/v3/smtp/email', {
+                    const resBrevo = await fetch('https://api.brevo.com/v3/smtp/email', {
                         method: 'POST',
                         headers: { 
                             'api-key': env.BREVO_API_KEY, 
@@ -1353,18 +1352,27 @@ export default {
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({
-                            sender: { name: 'JS MemberLy', email: 'reportes@tu-dominio.com' }, // ⚠️ Pon aquí tu correo verificado en Brevo
+                            // ⚠️ IMPORTANTE: Pon aquí el correo que validaste en Brevo
+                            sender: { name: 'JS MemberLy', email: 'contacto@jsmemberly.com' }, 
                             to: destinatariosBrevo,
-                            subject: `📊 Reporte Diario de Membresías - ${reporte.tenant.nombre_negocio}`,
-                            htmlContent: htmlCuerpo, // Brevo usa 'htmlContent' en lugar de 'html'
+                            subject: `📊 JS MemberLy - Reporte Diario de Membresías - ${reporte.tenant.nombre_negocio}`,
+                            htmlContent: htmlCuerpo, 
                             attachment: [
                                 { name: `Reporte_${hoyStr}.csv`, content: base64Csv }
                             ]
                         })
                     });
+
+                    const dataBrevo = await resBrevo.json() as any;
+
+                    // 🛑 NUEVO: Si Brevo nos rechaza el correo, lanzamos el error a la consola
+                    if (!resBrevo.ok) {
+                        throw new Error(`Rechazo de Brevo: ${dataBrevo.message || JSON.stringify(dataBrevo)}`);
+                    }
+
                     console.log(`✅ Reporte enviado por Brevo a los admins de ${reporte.tenant.nombre_negocio}`);
                 } else {
-                    console.log(`⚠️ Faltan credenciales de BREVO_API_KEY. Reporte generado pero no enviado a ${reporte.tenant.nombre_negocio}`);
+                    console.log(`⚠️ Faltan credenciales de BREVO_API_KEY. Reporte generado pero no enviado.`);
                 }
 
             } catch (err: any) {
