@@ -1082,14 +1082,14 @@
                 <div class="border border-gray-200 rounded-2xl p-6 hover:border-emerald-500 transition text-left flex flex-col justify-between bg-white">
                     <div>
                         <h3 class="text-lg font-bold text-gray-700">Plan Starter</h3>
-                        <p class="text-[11px] text-gray-400 mt-1 mb-4">Hasta 150 clientes • Acceso QR</p>
+                        <p class="text-[11px] text-gray-400 mt-1 mb-4">Hasta 100 clientes • Acceso QR</p>
                     </div>
                     <div class="space-y-3">
                         <button onclick="iniciarPagoSaaS('starter', 1, parseFloat(document.getElementById('lbl_starter_m').innerText))" class="w-full bg-gray-50 hover:bg-gray-100 text-gray-800 font-bold py-3 rounded-xl transition border border-gray-200 text-sm flex justify-between px-4">
-                            <span>Mensual</span> <span class="text-emerald-600 font-black">$<span id="lbl_starter_m">29</span></span>
+                            <span>Mensual</span> <span class="text-emerald-600 font-black">$<span id="lbl_starter_m">20</span></span>
                         </button>
                         <button onclick="iniciarPagoSaaS('starter', 12, parseFloat(document.getElementById('lbl_starter_a').innerText))" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 rounded-xl transition text-sm flex justify-between px-4">
-                            <span>Anual (Ahorras)</span> <span class="text-emerald-600 font-black">$<span id="lbl_starter_a">290</span></span>
+                            <span>Anual (Ahorras)</span> <span class="text-emerald-600 font-black">$<span id="lbl_starter_a">200</span></span>
                         </button>
                     </div>
                 </div>
@@ -1102,10 +1102,10 @@
                     </div>
                     <div class="space-y-3">
                         <button onclick="iniciarPagoSaaS('pro', 1, parseFloat(document.getElementById('lbl_pro_m').innerText))" class="w-full bg-white hover:bg-gray-50 text-gray-800 font-bold py-3 rounded-xl transition border border-emerald-200 text-sm flex justify-between px-4">
-                            <span>Mensual</span> <span class="text-emerald-700 font-black">$<span id="lbl_pro_m">69</span></span>
+                            <span>Mensual</span> <span class="text-emerald-700 font-black">$<span id="lbl_pro_m">45</span></span>
                         </button>
                         <button onclick="iniciarPagoSaaS('pro', 12, parseFloat(document.getElementById('lbl_pro_a').innerText))" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition shadow-md shadow-emerald-200 text-sm flex justify-between px-4">
-                            <span>Anual (Ahorras)</span> <span class="text-white font-black">$<span id="lbl_pro_a">690</span></span>
+                            <span>Anual (Ahorras)</span> <span class="text-white font-black">$<span id="lbl_pro_a">450</span></span>
                         </button>
                     </div>
                 </div>
@@ -1117,10 +1117,10 @@
                     </div>
                     <div class="space-y-3">
                         <button onclick="iniciarPagoSaaS('elite', 1, parseFloat(document.getElementById('lbl_elite_m').innerText))" class="w-full bg-gray-50 hover:bg-gray-100 text-gray-800 font-bold py-3 rounded-xl transition border border-gray-200 text-sm flex justify-between px-4">
-                            <span>Mensual</span> <span class="text-emerald-600 font-black">$<span id="lbl_elite_m">149</span></span>
+                            <span>Mensual</span> <span class="text-emerald-600 font-black">$<span id="lbl_elite_m">125</span></span>
                         </button>
                         <button onclick="iniciarPagoSaaS('elite', 12, parseFloat(document.getElementById('lbl_elite_a').innerText))" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 rounded-xl transition text-sm flex justify-between px-4">
-                            <span>Anual (Ahorras)</span> <span class="text-emerald-600 font-black">$<span id="lbl_elite_a">1490</span></span>
+                            <span>Anual (Ahorras)</span> <span class="text-emerald-600 font-black">$<span id="lbl_elite_a">1250</span></span>
                         </button>
                     </div>
                 </div>
@@ -3397,7 +3397,7 @@
         // --- TOUR INTERACTIVO PARA LA PESTAÑA DE STAFF ---
         function iniciarTourStaff() {
             // 1. Verificamos si ya hizo este tour específico
-            if (localStorage.getItem('tour_staff_completado') === 'false') {
+            if (localStorage.getItem('tour_staff_completado') === 'true') {
                 return; 
             }
 

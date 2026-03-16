@@ -645,6 +645,43 @@ export default {
         }
     }
 
+    // --- NUEVO: CREAR GIMNASIO CON 14 DÍAS DE PRUEBA ---
+    if (url.pathname === '/api/registro-trial' && request.method === 'POST') {
+        try {
+            const body = await request.json() as any;
+            const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+            
+            // Lógica de límites
+            const limite = body.plan_elegido.includes('starter') ? 100 : (body.plan_elegido.includes('pro') ? 500 : 2000);
+            const planLimpio = body.plan_elegido.replace(' anual', '').replace(' mensual', '').trim();
+
+            // 🧠 MAGIA: Calculamos exactamente 14 días a partir de hoy
+            const fechaFinTrial = new Date();
+            fechaFinTrial.setDate(fechaFinTrial.getDate() + 14);
+
+            const { data: nuevoTenant, error: errTenant } = await adminSupabase
+                .from('tenants')
+                .insert([{
+                    nombre_negocio: body.gym_nombre,
+                    pais: body.pais,
+                    identificacion_fiscal: body.id_nacional,
+                    plan_saas: planLimpio,
+                    limite_clientes: limite,
+                    estado_suscripcion: 'prueba', // Lo marcamos como prueba
+                    fecha_fin_saas: fechaFinTrial.toISOString(), // ⏰ CADUCA EN 14 DÍAS
+                    zona_horaria: body.zona_horaria || 'America/Guayaquil'
+                }])
+                .select().single();
+
+            if (errTenant) throw errTenant;
+
+            return new Response(JSON.stringify({ exito: true, tenant_id: nuevoTenant.id }), { status: 200, headers: corsHeaders });
+        } catch (error: any) {
+            console.error("Error en trial:", error);
+            return new Response(JSON.stringify({ exito: false, mensaje: error.message }), { status: 500, headers: corsHeaders });
+        }
+    }
+
     // --- ENVÍO SEGURO DE WHATSAPP (OCULTO DEL FRONTEND) ---
     if (url.pathname === '/api/whatsapp' && request.method === 'POST') {
         try {

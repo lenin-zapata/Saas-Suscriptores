@@ -45,9 +45,16 @@
             Controla accesos, gestiona pagos y fideliza a tus clientes en una plataforma unificada. Deja el papeleo y enfócate en transformar vidas.
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="#precios" class="w-full sm:w-auto bg-emerald-600 text-white px-8 py-4 rounded-xl font-bold shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all duration-300 text-lg">Ver Planes y Precios</a>
-            <a href="#contacto" class="w-full sm:w-auto bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl font-bold hover:bg-gray-50 transition-all text-lg">Agendar una Demo</a>
+            <a href="#precios" class="w-full sm:w-auto bg-emerald-600 text-white px-8 py-4 rounded-xl font-bold shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all duration-300 text-lg flex items-center justify-center gap-2">
+                🚀 Iniciar 14 Días Gratis
+            </a>
+            <a href="#contacto" class="w-full sm:w-auto bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl font-bold hover:bg-gray-50 transition-all text-lg">
+                Agendar una Demo
+            </a>
         </div>
+        <p class="mt-5 text-sm text-gray-500 font-bold flex items-center justify-center gap-2">
+            <span>✅</span> Sin tarjeta de crédito <span>•</span> Cancelas cuando quieras
+        </p>
     </header>
 
     <section class="py-20 bg-white">
@@ -163,7 +170,8 @@
                 <div class="bg-gray-50 rounded-3xl p-8 border border-gray-200 hover:border-emerald-300 transition-all hover:shadow-xl flex flex-col">
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Starter</h3>
                     <p class="text-gray-500 text-sm mb-6">Para estudios pequeños y entrenadores independientes.</p>
-                    <div id="precioStarter" class="text-4xl font-extrabold text-gray-900 mb-8">$29<span class="text-lg text-gray-500 font-normal">/mes</span></div>
+                    <div id="precioStarter" class="text-4xl font-extrabold text-gray-900 mb-8">$20<span class="text-lg text-gray-500 font-normal">/mes</span></div>
+                    
                     
                     <ul class="space-y-4 mb-8 flex-1 text-gray-600">
                         <li class="flex items-center gap-3">✅ <span>Hasta <strong>100 clientes</strong> activos</span></li>
@@ -171,14 +179,14 @@
                         <li class="flex items-center gap-3">✅ <span>Pases con Código QR</span></li>
                         <li class="flex items-center gap-3">✅ <span>Dashboard de métricas</span></li>
                     </ul>
-                    <button id="btnElegirStarter" onclick="abrirModalRegistro('Starter', 29)" class="w-full py-3 px-4 bg-white border-2 border-emerald-600...">Elegir Starter</button>
+                    <button id="btnElegirStarter" onclick="abrirModalRegistro('Starter Mensual', 20)" class="w-full py-3 px-4 bg-white border-2 border-emerald-600 text-emerald-700 font-bold rounded-xl hover:bg-emerald-50 transition">Comenzar Prueba Gratis</button>
                 </div>
 
                 <div class="bg-emerald-600 rounded-3xl p-8 shadow-2xl transform md:-translate-y-4 flex flex-col relative text-white">
                     <div class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-3xl uppercase tracking-wider">Más Popular</div>
                     <h3 class="text-xl font-bold mb-2">Pro</h3>
                     <p class="text-emerald-100 text-sm mb-6">Para gimnasios establecidos en fase de crecimiento.</p>
-                    <div id="precioPro" class="text-4xl font-extrabold mb-8">$69<span class="text-lg text-emerald-200 font-normal">/mes</span></div>
+                    <div id="precioPro" class="text-4xl font-extrabold mb-8">$45<span class="text-lg text-emerald-200 font-normal">/mes</span></div>
                     
                     <ul class="space-y-4 mb-8 flex-1 text-emerald-50">
                         <li class="flex items-center gap-3">✨ <span>Hasta <strong>500 clientes</strong> activos</span></li>
@@ -186,13 +194,13 @@
                         <li class="flex items-center gap-3">✨ <span>Recordatorios de pago a clientes por WhatsApp</span></li>
                         <li class="flex items-center gap-3">✨ <span>Todo lo del plan Starter</span></li>
                     </ul>
-                    <button id="btnElegirPro" onclick="abrirModalRegistro('Pro', 69)" class="w-full py-3 px-4 bg-white text-emerald-700 font-bold...">Elegir Pro</button>
+                    <button id="btnElegirPro" onclick="abrirModalRegistro('Pro Mensual', 45)" class="w-full py-3 px-4 bg-white text-emerald-700 font-bold rounded-xl hover:bg-gray-50 transition shadow-lg">Comenzar Prueba Gratis</button>
                 </div>
 
                 <div class="bg-gray-50 rounded-3xl p-8 border border-gray-200 hover:border-emerald-300 transition-all hover:shadow-xl flex flex-col">
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Elite</h3>
                     <p class="text-gray-500 text-sm mb-6">Para franquicias y negocios sin límites.</p>
-                    <div id="precioElite" class="text-4xl font-extrabold text-gray-900 mb-8">$149<span class="text-lg text-gray-500 font-normal">/mes</span></div>
+                    <div id="precioElite" class="text-4xl font-extrabold text-gray-900 mb-8">$125<span class="text-lg text-gray-500 font-normal">/mes</span></div>
                     
                     <ul class="space-y-4 mb-8 flex-1 text-gray-600">
                         <li class="flex items-center gap-3">🔥 <span>Hasta <strong>2,000 clientes</strong> activos</span></li>
@@ -200,7 +208,7 @@
                         <li class="flex items-center gap-3">🔥 <span>Soporte prioritario 24/7</span></li>
                         <li class="flex items-center gap-3">🔥 <span>Todo lo del plan Pro</span></li>
                     </ul>
-                    <button id="btnElegirElite" onclick="abrirModalRegistro('Elite', 149)" class="w-full py-3 px-4 bg-white border-2 border-gray-300...">Elegir Elite</button>
+                    <button id="btnElegirElite" onclick="abrirModalRegistro('Elite Mensual', 125)" class="w-full py-3 px-4 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition">Comenzar Prueba Gratis</button>
                 </div>
             </div>
 
@@ -347,13 +355,21 @@
                     </div>
 
                     <div class="pt-6 border-t border-gray-100 mt-2">
-                        <button type="submit" id="btnPagarSaaS" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md flex justify-center items-center gap-2.5 border border-gray-800">
+                        <!-- <button type="submit" id="btnPagarSaaS" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md flex justify-center items-center gap-2.5 border border-gray-800">
                             <span class="text-sm tracking-wide">Completar pago seguro con</span>
                             <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" class="h-4 brightness-0 invert opacity-90">
                         </button>
                         <div class="flex justify-center items-center gap-2 mt-4 text-xs text-gray-400">
                             <span>🔒</span>
                             <p>Pago 100% seguro y encriptado.</p>
+                        </div> -->
+
+                        <button type="submit" id="btnPagarSaaS" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md flex justify-center items-center gap-2.5">
+                            <span class="text-sm tracking-wide">🚀 Comenzar mis 14 días gratis</span>
+                        </button>
+                        <div class="flex justify-center items-center gap-2 mt-4 text-xs text-gray-400">
+                            <span>✅</span>
+                            <p>No se requiere tarjeta de crédito.</p>
                         </div>
                     </div>
                 </form>
@@ -540,7 +556,7 @@
             const plan = document.getElementById('inputPlanElegido').value;
             const precio = document.getElementById('inputPrecioElegido').value;
 
-            try {
+            /* try {
                 // --- NUEVO: 1. GUARDAR DATOS TEMPORALES ---
                 // Guardamos todo en memoria local antes de irnos a PayPal para no perderlo
                 const datosRegistroSaaS = {
@@ -590,7 +606,51 @@
                 alert("❌ Ocurrió un error: " + error.message);
                 btn.innerHTML = textoOriginal;
                 btn.disabled = false;
+            } */
+        
+            try {
+                const zonaHorariaCliente = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+                // 1. Creamos el Gimnasio en el backend (Con 14 días gratis)
+                const urlBackend = `${CONFIG.BACKEND_URL}/api/registro-trial`;
+                const resTenant = await fetch(urlBackend, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        gym_nombre: nombreGym, pais: paisGym, id_nacional: idNacional, 
+                        plan_elegido: plan, zona_horaria: zonaHorariaCliente
+                    })
+                });
+                const dataTenant = await resTenant.json();
+                
+                if (!dataTenant.exito) throw new Error(dataTenant.mensaje);
+
+                // 2. Registramos al Usuario en Supabase Auth
+                const { data: authData, error: authError } = await miSupabase.auth.signUp({
+                    email: email, password: pass,
+                    options: { data: { nombre_usuario: nombreAdmin, nombre_gimnasio: nombreGym } }
+                });
+                if (authError) throw authError;
+                if (!authData || !authData.user) throw new Error("El correo ya estaba registrado.");
+
+                // 3. Vinculamos al usuario con el Gimnasio (Staff)
+                const { error: staffError } = await miSupabase.from('perfiles_staff').insert([{ 
+                    id: authData.user.id, tenant_id: dataTenant.tenant_id, 
+                    nombre: nombreAdmin, email: email, telefono: telefonoAdmin, rol: 'admin' 
+                }]);
+                if (staffError) throw staffError;
+
+                // 4. Éxito y Redirección al Panel (¡Sin pasar por PayPal!)
+                alert(`🎉 ¡Bienvenido! Tu gimnasio "${nombreGym}" está listo.\nTienes 14 días gratis para probar la plataforma.\n\nPor favor, confirma tu correo e inicia sesión.`);
+                window.location.href = 'panel.html';
+
+            } catch (error) {
+                console.error("Error iniciando trial SaaS:", error);
+                alert("❌ Ocurrió un error: " + error.message);
+                btn.innerHTML = textoOriginal;
+                btn.disabled = false;
             }
+        
         });
 
         let facturacionAnual = false;
@@ -612,14 +672,14 @@
                 labelMensual.classList.remove('font-bold');
                 
                 // Cambiar textos a precios anuales
-                document.getElementById('precioStarter').innerHTML = '$290<span class="text-lg text-gray-500 font-normal">/año</span>';
-                document.getElementById('precioPro').innerHTML = '$690<span class="text-lg text-emerald-200 font-normal">/año</span>';
-                document.getElementById('precioElite').innerHTML = '$1490<span class="text-lg text-gray-500 font-normal">/año</span>';
+                document.getElementById('precioStarter').innerHTML = '$200<span class="text-lg text-gray-500 font-normal">/año</span>';
+                document.getElementById('precioPro').innerHTML = '$450<span class="text-lg text-emerald-200 font-normal">/año</span>';
+                document.getElementById('precioElite').innerHTML = '$1250<span class="text-lg text-gray-500 font-normal">/año</span>';
 
-                // Actualizar los botones para que pasen el precio anual al modal
-                document.getElementById('btnElegirStarter').setAttribute('onclick', "abrirModalRegistro('Starter Anual', 290)");
-                document.getElementById('btnElegirPro').setAttribute('onclick', "abrirModalRegistro('Pro Anual', 690)");
-                document.getElementById('btnElegirElite').setAttribute('onclick', "abrirModalRegistro('Elite Anual', 1490)");
+                // Actualizar los botones
+                document.getElementById('btnElegirStarter').setAttribute('onclick', "abrirModalRegistro('Starter Anual', 200)");
+                document.getElementById('btnElegirPro').setAttribute('onclick', "abrirModalRegistro('Pro Anual', 450)");
+                document.getElementById('btnElegirElite').setAttribute('onclick', "abrirModalRegistro('Elite Anual', 1250)");
                 
             } else {
                 toggleBtn.classList.remove('translate-x-7');
@@ -629,14 +689,14 @@
                 labelAnual.classList.remove('font-bold');
                 
                 // Regresar a precios mensuales
-                document.getElementById('precioStarter').innerHTML = '$29<span class="text-lg text-gray-500 font-normal">/mes</span>';
-                document.getElementById('precioPro').innerHTML = '$69<span class="text-lg text-emerald-200 font-normal">/mes</span>';
-                document.getElementById('precioElite').innerHTML = '$149<span class="text-lg text-gray-500 font-normal">/mes</span>';
+                document.getElementById('precioStarter').innerHTML = '$20<span class="text-lg text-gray-500 font-normal">/mes</span>';
+                document.getElementById('precioPro').innerHTML = '$45<span class="text-lg text-emerald-200 font-normal">/mes</span>';
+                document.getElementById('precioElite').innerHTML = '$125<span class="text-lg text-gray-500 font-normal">/mes</span>';
 
                 // Regresar botones a mensual
-                document.getElementById('btnElegirStarter').setAttribute('onclick', "abrirModalRegistro('Starter Mensual', 29)");
-                document.getElementById('btnElegirPro').setAttribute('onclick', "abrirModalRegistro('Pro Mensual', 69)");
-                document.getElementById('btnElegirElite').setAttribute('onclick', "abrirModalRegistro('Elite Mensual', 149)");
+                document.getElementById('btnElegirStarter').setAttribute('onclick', "abrirModalRegistro('Starter Mensual', 20)");
+                document.getElementById('btnElegirPro').setAttribute('onclick', "abrirModalRegistro('Pro Mensual', 45)");
+                document.getElementById('btnElegirElite').setAttribute('onclick', "abrirModalRegistro('Elite Mensual', 125)");
             }
         }
 
