@@ -2174,14 +2174,14 @@
             const btn = document.getElementById('btnPagarUpgrade');
 
             if (planSaasActual.toLowerCase() === 'starter') {
-                titulo.innerText = 'Plan Pro — $69/mes';
+                titulo.innerText = 'Plan Pro — $45/mes';
                 lista.innerHTML = `
                     <li class="flex items-center gap-2">✅ <span class="font-semibold">Hasta 500 clientes activos</span></li>
                     <li class="flex items-center gap-2">✅ Usuarios de Staff ilimitados</li>
                     <li class="flex items-center gap-2">✅ Recordatorios automáticos por WhatsApp</li>`;
                 btn.innerHTML = 'Mejorar a Plan Pro <span>💳</span>';
             } else if (planSaasActual.toLowerCase() === 'pro') {
-                titulo.innerText = 'Plan Elite — $149/mes';
+                titulo.innerText = 'Plan Elite — $125/mes';
                 lista.innerHTML = `
                     <li class="flex items-center gap-2">✅ <span class="font-semibold">Clientes y Staff Ilimitados</span></li>
                     <li class="flex items-center gap-2">✅ Reportes avanzados de retención</li>
