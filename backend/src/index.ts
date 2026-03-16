@@ -689,6 +689,72 @@ export default {
         }
     }
 
+    // --- ENVÍO DE CORREO DE INVITACIÓN A STAFF (VÍA BREVO) ---
+    if (url.pathname === '/api/enviar-invitacion' && request.method === 'POST') {
+        try {
+            const body = await request.json() as any;
+            
+            if (!env.BREVO_API_KEY) {
+                throw new Error("La llave de Brevo no está configurada.");
+            }
+
+            // Diseño del correo en HTML
+            let htmlCuerpo = `
+                <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <div style="background-color: #059669; padding: 30px; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">¡Bienvenido al Equipo!</h1>
+                    </div>
+                    <div style="padding: 30px; background-color: #ffffff; color: #374151;">
+                        <p style="font-size: 16px;">Hola <strong>${body.nombre_staff}</strong>,</p>
+                        <p style="font-size: 16px;">Has sido invitado para unirte como <strong>${body.rol.toUpperCase()}</strong> al sistema de gestión de <strong>${body.nombre_gym}</strong>.</p>
+                        
+                        <div style="background-color: #f3f4f6; border-left: 4px solid #059669; padding: 15px; margin: 25px 0;">
+                            <p style="margin: 0; font-size: 14px; color: #4b5563;">
+                                Para activar tu cuenta, ingresa a la plataforma y selecciona la opción <strong>"Crear mi cuenta de acceso"</strong> utilizando exactamente este correo electrónico: <br>
+                                <strong style="color: #111827; display: block; margin-top: 5px;">${body.email_staff}</strong>
+                            </p>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            // <a href="https://www.jsmemberly.com/panel.html" style="background-color: #059669; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Aceptar Invitación y Registrarme</a>
+                            <a href="https://www.jsmemberly.com/panel.html?action=activar_cuenta&email=${encodeURIComponent(body.email_staff)}" style="background-color: #059669; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Aceptar Invitación y Registrarme</a>
+                        </div>
+                    </div>
+                    <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+                        <p style="margin: 0; font-size: 12px; color: #9ca3af;">Enviado automáticamente por JS MemberLy.</p>
+                    </div>
+                </div>
+            `;
+
+            // Enviamos la orden a Brevo
+            const resBrevo = await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: { 
+                    'api-key': env.BREVO_API_KEY, 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    // ⚠️ RECUERDA: Cambiar este correo por el tuyo verificado en Brevo
+                    sender: { name: 'Equipo JS MemberLy', email: 'equipo@jsmemberly.com' }, 
+                    to: [{ email: body.email_staff }],
+                    subject: `Invitación a JS MemberLy - ${body.nombre_gym}`,
+                    htmlContent: htmlCuerpo 
+                })
+            });
+
+            if (!resBrevo.ok) {
+                const dataError = await resBrevo.json();
+                throw new Error(dataError.message || "Error al enviar correo por Brevo");
+            }
+
+            return new Response(JSON.stringify({ exito: true }), { status: 200, headers: corsHeaders });
+        } catch (error: any) {
+            console.error("Error enviando invitación:", error);
+            return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
+        }
+    }
+
     // =========================================================================
     // 🎧 WEBHOOK DE PAYPAL (Suscripciones y Pagos Únicos)
     // =========================================================================

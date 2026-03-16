@@ -46,7 +46,81 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #d1fae5; border-radius: 99px; }
+
+        /* --- ESTILOS PERSONALIZADOS PARA EL TOUR (Driver.js) --- */
+        .driver-popover {
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            border-radius: 1.5rem !important; /* Bordes muy redondeados (3xl de Tailwind) */
+            padding: 1.5rem !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+            border: 1px solid #d1fae5 !important; /* Borde esmeralda muy clarito */
+        }
+
+        .driver-popover-title {
+            font-weight: 800 !important;
+            color: #111827 !important; /* text-gray-900 */
+            font-size: 1.125rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .driver-popover-description {
+            color: #6b7280 !important; /* text-gray-500 */
+            font-size: 0.875rem !important;
+            line-height: 1.5 !important;
+        }
+
+        /* --- Ajuste del pie del Tour (Para que no se amontone) --- */
+        .driver-popover-footer {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important; /* Separación limpia entre elementos */
+        }
+
+        /* Evitar que el contador "4 of 4" se parta en dos líneas */
+        .driver-popover-progress {
+            white-space: nowrap !important;
+            margin-right: auto !important; /* Empuja los botones a la derecha */
+        }
+
+        /* Botones del Tour (Proporcionados y en una sola línea) */
+        .driver-popover-footer button {
+            border-radius: 0.5rem !important; /* Un borde un poco más sutil */
+            font-weight: 600 !important; 
+            padding: 0.4rem 0.8rem !important; /* Botón menos alto, más estilizado */
+            font-size: 0.875rem !important;
+            white-space: nowrap !important; /* 🔥 LA MAGIA: Prohíbe que el texto salte de línea */
+            text-shadow: none !important;
+        }
+
+        /* Botón "Siguiente" y "¡Empezar a usar!" (Primario) */
+        .driver-popover-next-btn {
+            background-color: #059669 !important; 
+            color: #ffffff !important;
+            border: none !important;
+        }
+        .driver-popover-next-btn:hover {
+            background-color: #047857 !important; 
+        }
+
+        /* Botones "Atrás" y "Cerrar" (Secundarios) */
+        .driver-popover-prev-btn, .driver-popover-close-btn {
+            background-color: #f3f4f6 !important; 
+            color: #4b5563 !important; 
+            border: 1px solid #e5e7eb !important; 
+        }
+        .driver-popover-prev-btn:hover, .driver-popover-close-btn:hover {
+            background-color: #e5e7eb !important; 
+            color: #1f2937 !important;
+        }
+        
+        /* Ocultar el botoncito de cerrar "X" por defecto para forzar que usen los botones grandes */
+        .driver-popover-close-btn {
+            display: none !important;
+        }
     </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
 </head>
 <body class="bg-gray-50 text-gray-800 h-screen flex overflow-hidden">
 
@@ -215,7 +289,7 @@
                     <span class="ml-auto text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded-full uppercase">Elite</span>
                 </a>
 
-                <a onclick="cambiarVista('escanear')"
+                <a onclick="cambiarVista('escanear')" id="btnNavEscanear"
                     class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/70 cursor-pointer">
                     <span class="text-base">📷</span> Escanear Pase
                 </a>
@@ -534,7 +608,7 @@
                         <!-- <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">Gestionar Personal</h2>
                         <p class="text-xs text-gray-400 font-medium mt-1">Administra los accesos de tu equipo</p> -->
                     </div>
-                    <button onclick="document.getElementById('modalNuevoStaff').classList.remove('hidden')"
+                    <button id="btnNuevoStaff" onclick="document.getElementById('modalNuevoStaff').classList.remove('hidden')"
                         class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition text-sm">
                         + Nuevo Miembro
                     </button>
@@ -770,7 +844,7 @@
     <div id="modalNuevoStaff" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
         <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md border border-gray-100">
             <h2 class="text-lg font-extrabold mb-1 text-gray-900">➕ Agregar Personal</h2>
-            <p class="text-xs text-gray-400 mb-6">Se enviará una invitación por WhatsApp.</p>
+            <p class="text-xs text-gray-400 mb-6">Se enviará una invitación al correo electrónico registrado.</p>
             <form id="formNuevoStaff" class="flex flex-col gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre</label>
@@ -1187,6 +1261,30 @@
 
         // AUTO-LOGIN: Revisa si sobrevivió una sesión al recargar la página
         window.addEventListener('DOMContentLoaded', async () => {
+
+            // --- NUEVA MAGIA: REVISAR SI VIENE DESDE EL CORREO DE INVITACIÓN ---
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('action') === 'activar_cuenta') {
+                const emailInvitado = urlParams.get('email');
+                
+                // 1. Abrimos el modal de registro automáticamente
+                abrirRegistro(); 
+                
+                // 2. Pre-llenamos los campos de correo para ahorrarle trabajo
+                if (emailInvitado) {
+                    document.getElementById('emailRegistro').value = emailInvitado;
+                    document.getElementById('emailRegistroConfirm').value = emailInvitado;
+                    
+                    // Opcional: Le ponemos el foco a la contraseña para que solo escriba eso
+                    setTimeout(() => document.getElementById('passRegistro').focus(), 500);
+                }
+                
+                // 3. Limpiamos la URL de arriba para que quede limpia y profesional
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            // ----------------------------------------------------------------------
+
+
             const { data: { session } } = await miSupabase.auth.getSession();
             
             if (session) {
@@ -1358,7 +1456,7 @@
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
-            btn.innerHTML = 'Guardando...'; btn.disabled = true;
+            btn.innerHTML = 'Guardando y Enviando... ⏳'; btn.disabled = true;
 
             const nombre = document.getElementById('nombreStaff').value;
             const email = document.getElementById('emailStaff').value;
@@ -1374,11 +1472,30 @@
                 // 1. Extraemos el nombre del gimnasio que ya está cargado en la barra lateral
                 const nombreGym = document.getElementById('nombreGymSidebar').innerText;
                 const urlRegistro = window.location.href.split('#')[0]; 
-                const mensaje = `Hola ${nombre}, te he agregado al equipo de ${nombreGym} en JS MemberLy. \n\nPor favor, ingresa a ${urlRegistro} y haz clic en "Crear mi cuenta de acceso" usando exactamente este correo: ${email}`;
+                const mensaje = `Hola ${nombre}, te he agregado al equipo de ${nombreGym} en JS MemberLy. \n\nPor favor, revisar tu correo electrónico: ${email} (Revisa tu carpeta de spam), y sigue los pasos para activar tu cuenta y configurar tu contraseña. \n\nSi tienes alguna duda, contáctame. ¡Bienvenido al equipo!`;
                 const numeroWA = telefono.replace(/\D/g, ''); 
+
+                const urlBackend = `${CONFIG.BACKEND_URL}/api/enviar-invitacion`;
+                const respuestaEmail = await fetch(urlBackend, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombre_staff: nombre,
+                        email_staff: email,
+                        rol: rol,
+                        nombre_gym: nombreGym
+                    })
+                });
 
                 alert("✅ Perfil creado. Se abrirá WhatsApp para enviar las instrucciones.");
                 window.open(`https://wa.me/${numeroWA}?text=${encodeURIComponent(mensaje)}`, '_blank');
+
+                if (!respuestaEmail.ok) {
+                    console.error("No se pudo enviar el correo, pero el usuario se guardó en BD.");
+                    alert("✅ Perfil creado. Hubo un retraso enviando el correo, pero ya puede registrarse.");
+                } else {
+                    alert(`✅ ¡Listo! Se ha enviado un correo de invitación oficial a ${email}.`);
+                }
 
                 document.getElementById('modalNuevoStaff').classList.add('hidden');
                 e.target.reset();
@@ -1508,6 +1625,9 @@
                 if (elementoAtrasados) elementoAtrasados.innerText = contAtrasados;
                 
                 actualizarGrafico(contAlDia, contAtrasados);
+
+                // Disparamos el tour (solo saltará si es su primera vez)
+                iniciarTourResumen();
 
             } catch (error) { 
                 console.error("Error al cargar el dashboard:", error); 
@@ -2132,6 +2252,7 @@
             } 
             else if (vistaDestino === 'staff') {
                 cargarStaff();
+                iniciarTourStaff();
             } 
 
             else if (vistaDestino === 'facturacion') {
@@ -3157,6 +3278,157 @@
                 alert("❌ Error al guardar: " + error.message);
             }
         }
+
+        /* // --- TOUR INTERACTIVO DE BIENVENIDA ---
+        function iniciarTourResumen() {
+            // 1. EL TRUCO: Preguntamos a la memoria del navegador si ya hizo este tour
+            if (localStorage.getItem('tour_resumen_completado') === 'true') {
+                return; // Si ya lo hizo, nos detenemos y no mostramos nada
+            }
+
+            // 2. Configuramos el Tour
+            const driver = window.driver.js.driver;
+            const driverObj = driver({
+                showProgress: true,
+                doneBtnText: '¡Empezar a usar!',
+                nextBtnText: 'Siguiente',
+                prevBtnText: 'Atrás',
+                allowClose: false, // Obligamos a que lo lea (opcional)
+                steps: [
+                    { 
+                        popover: { 
+                            title: '¡Bienvenido a JS MemberLy! 🚀', 
+                            description: 'Te daremos un paseo súper rápido de 3 pasos para que aprendas a usar tu nuevo panel de control.' 
+                        } 
+                    },
+                    { 
+                        element: '#kpiTotal', 
+                        popover: { 
+                            title: 'Tus Clientes Activos', 
+                            description: 'Aquí verás en tiempo real cuántos clientes tienes frente al límite de tu plan actual.', 
+                            side: "bottom", align: 'start' 
+                        } 
+                    },
+                    { 
+                        element: '#formSuscriptor', 
+                        popover: { 
+                            title: 'Registra a tus socios', 
+                            description: 'Llena este formulario. ¡Al guardarlo, podrás enviar su Pase QR por WhatsApp!', 
+                            side: "left", align: 'start' 
+                        } 
+                    },
+                    { 
+                        element: '#inputBuscarCliente', 
+                        popover: { 
+                            title: 'Tu Directorio', 
+                            description: 'Busca a cualquier cliente rápidamente y mira si está 🟢 Activo o 🔴 Inactivo. ¡Desde aquí también podrás renovarles el plan!', 
+                            side: "bottom", align: 'start' 
+                        } 
+                    }
+                ],
+                // 3. Cuando termine el tour, guardamos en la memoria que ya lo hizo
+                onDestroyStarted: () => {
+                    if (!driverObj.hasNextStep() || confirm("¿Seguro que quieres saltar el tutorial?")) {
+                        localStorage.setItem('tour_resumen_completado', 'true');
+                        driverObj.destroy();
+                    }
+                }
+            });
+
+            // 4. Arrancamos el tour
+            driverObj.drive();
+        }    
+        */
+
+        // --- TOUR INTERACTIVO DINÁMICO (BASADO EN ROLES) ---
+        function iniciarTourResumen() {
+            // 1. Verificamos si ya hizo el tour en este navegador (CORREGIDO a 'true')
+            if (localStorage.getItem('tour_resumen_completado') === 'true') {
+                return; 
+            }
+
+            // 2. DETECTAMOS EL ROL DEL USUARIO usando la variable global
+            const rolUsuario = rolUsuarioActual; 
+
+            // 3. ARMAMOS LOS PASOS DEPENDIENDO DEL ROL
+            let pasosDelTour = [];
+
+            if (rolUsuario === 'admin') {
+                // --- TOUR PARA EL DUEÑO DEL GIMNASIO ---
+                pasosDelTour = [
+                    { popover: { title: '¡Bienvenido a JS MemberLy! 🚀', description: 'Te daremos un paseo súper rápido para que aprendas a usar tu nuevo panel de control.' } },
+                    { element: '#kpiTotal', popover: { title: 'Tus Clientes Activos', description: 'Aquí verás en tiempo real cuántos clientes tienes frente al límite de tu plan actual.', side: "bottom", align: 'start' } },
+                    { element: '#formSuscriptor', popover: { title: 'Registra a tus socios', description: 'Llena este formulario. ¡Al guardarlo, podrás enviar su Pase QR por WhatsApp!', side: "left", align: 'start' } },
+                    { element: '#inputBuscarCliente', popover: { title: 'Tu Directorio', description: 'Busca a cualquier cliente rápidamente y mira si está 🟢 Activo o 🔴 Inactivo.', side: "bottom", align: 'start' } },
+                    { element: '#btnNavStaff', popover: { title: 'Tu Equipo de Trabajo 👥', description: '¡No trabajes solo! Entra aquí para crearle cuentas a tus recepcionistas. Ellos tendrán un panel especial solo para escanear pases y registrar a tus nuevos socios sin ver tus finanzas.', side: "right", align: 'start' } }
+                ];
+
+            } else if (rolUsuario === 'recepcionista') {
+                // --- TOUR PARA EL RECEPCIONISTA ---
+                pasosDelTour = [
+                    { popover: { title: '¡Hola, equipo! 👋', description: 'Bienvenido a tu panel de recepción. Te mostraré rápidamente tus herramientas de trabajo de hoy.' } },
+                    // Apuntamos al botón del menú lateral que acabamos de nombrar
+                    { element: '#btnNavEscanear', popover: { title: 'Control de Acceso', description: 'Haz clic aquí para abrir la cámara y escanear los pases QR de los clientes en la puerta.', side: "right", align: 'start' } },
+                    { element: '#formSuscriptor', popover: { title: 'Registra a nuevos socios', description: 'Llena este formulario. ¡Al guardarlo, podrás enviar su Pase QR por WhatsApp!', side: "left", align: 'start' } },
+                    { element: '#inputBuscarCliente', popover: { title: 'Directorio', description: 'Si un cliente olvidó su celular, búscalo por su nombre o correo aquí para darle acceso manualmente.', side: "bottom", align: 'start' } }
+                ];
+            }
+
+            // 4. INICIALIZAMOS DRIVER.JS CON LOS PASOS CORRECTOS
+            const driver = window.driver.js.driver;
+            const driverObj = driver({
+                showProgress: true,
+                doneBtnText: '¡Entendido!',
+                nextBtnText: 'Siguiente',
+                prevBtnText: 'Atrás',
+                allowClose: false,
+                steps: pasosDelTour, 
+                onDestroyStarted: () => {
+                    if (!driverObj.hasNextStep() || confirm("¿Seguro que quieres saltar el tutorial?")) {
+                        localStorage.setItem('tour_resumen_completado', 'true');
+                        driverObj.destroy();
+                    }
+                }
+            });
+
+            driverObj.drive();
+        }
+    
+        // --- TOUR INTERACTIVO PARA LA PESTAÑA DE STAFF ---
+        function iniciarTourStaff() {
+            // 1. Verificamos si ya hizo este tour específico
+            if (localStorage.getItem('tour_staff_completado') === 'false') {
+                return; 
+            }
+
+            // 2. Configuramos los pasos
+            const driver = window.driver.js.driver;
+            const driverObj = driver({
+                showProgress: true,
+                doneBtnText: '¡Entendido!',
+                nextBtnText: 'Siguiente',
+                prevBtnText: 'Atrás',
+                allowClose: false,
+                steps: [
+                    { popover: { title: 'Tu Equipo de Trabajo 👥', description: 'Aquí puedes administrar quién tiene acceso al sistema para ayudarte a gestionar el gimnasio.' } },
+                    { element: '#btnNuevoStaff', popover: { title: 'Agrega a tu equipo', description: 'Haz clic aquí para crear una cuenta para tu recepcionista o socio. ¡El sistema le enviará su acceso directamente por el correo electrónico que lo registres!', side: "left", align: 'start' } },
+                    { element: '#vistaStaff table', popover: { title: 'Control Total', description: 'En esta tabla verás a todo tu personal. Recuerda que los recepcionistas no pueden ver tus reportes financieros ni borrar clientes.', side: "top", align: 'start' } }
+                ],
+                onDestroyStarted: () => {
+                    if (!driverObj.hasNextStep() || confirm("¿Seguro que quieres saltar este tutorial?")) {
+                        localStorage.setItem('tour_staff_completado', 'true');
+                        driverObj.destroy();
+                    }
+                }
+            });
+
+            // Le damos un pequeño retraso de 300ms para asegurar que la pantalla de Staff 
+            // ya esté 100% visible y renderizada antes de que salte la luz
+            setTimeout(() => {
+                driverObj.drive();
+            }, 300);
+        }
+
     </script>
 </body>
 </html>
