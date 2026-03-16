@@ -540,6 +540,22 @@
                 alert("⚠️ Las contraseñas no coinciden.");
                 return;
             }
+
+            // --- FILTRO ANTI CORREOS TEMPORALES ---
+            const dominiosBloqueados = [
+                'yopmail.com', '10minutemail.com', 'temp-mail.org', 'guerrillamail.com', 
+                'mailinator.com', 'trashmail.com', 'throwawaymail.com', 'tempmail.com',
+                'maildrop.cc', 'dispostable.com', 'sharklasers.com', 'nada.ltd',
+                'jephy-webmail.com'
+            ];
+
+            const dominioEmail = email.split('@')[1].toLowerCase();
+
+            if (dominiosBloqueados.includes(dominioEmail)) {
+                alert("⚠️ Por seguridad, no se permiten correos temporales o desechables.\nPor favor, utiliza un correo real (Gmail, Outlook, Yahoo o tu correo corporativo).");
+                return; // Detenemos el registro inmediatamente
+            }
+            // ------------------------------------------
             
             const btn = document.getElementById('btnPagarSaaS');
             const textoOriginal = btn.innerHTML;
