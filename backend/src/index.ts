@@ -892,10 +892,13 @@ export default {
                     }]);
 
                     // C. Extraemos datos para enviar el recibo por WhatsApp
-                    const { data: gymData } = await adminSupabase.from('tenants').select('nombre_negocio').eq('id', tenantId).single();
+                    const { data: gymData } = await adminSupabase.from('tenants').select('nombre_negocio, plan_saas, estado_suscripcion').eq('id', tenantId).single();
                     const { data: clienteData } = await adminSupabase.from('suscriptores').select('nombre_completo, telefono').eq('id', suscriptorId).single();
 
-                    if (gymData && clienteData && clienteData.telefono) {
+                    // 🛑 REGLA DE NEGOCIO: Solo enviamos recibo si NO están en prueba y NO son plan Starter
+                    const puedeEnviarWA = gymData && gymData.estado_suscripcion !== 'prueba' && gymData.plan_saas !== 'starter';
+
+                    if (puedeEnviarWA && clienteData && clienteData.telefono) {
                         const telefonoLimpio = clienteData.telefono.replace(/\D/g, '');
                         const nombreGym = gymData.nombre_negocio;
                         
@@ -1052,7 +1055,7 @@ export default {
                 *,
                 planes ( nombre_plan, dias_duracion ),
                 suscriptores ( nombre_completo, telefono ),
-                tenants ( id, nombre_negocio, paypal_client_id, paypal_secret, plan_saas )
+                tenants ( id, nombre_negocio, paypal_client_id, paypal_secret, plan_saas, estado_suscripcion )
             `)
             .eq('estado_pago', 'Pagado');
 
@@ -1290,6 +1293,14 @@ export default {
             // =========================================================================
             if (diffDays === 3 && !recordatorioEnviado) {
                 
+                // 🛑 NUEVO: BLOQUEO DE WHATSAPP EN FASE DE PRUEBA (Ahorro de costos)
+                if (tenant.estado_suscripcion === 'prueba') {
+                    console.log(`🔒 [${zonaHorariaGym}] Gimnasio en Prueba. Se omite WA a ${nombreCliente} para ahorrar costos.`);
+                    // Lo marcamos como "enviado" para que el robot no se quede atascado intentando cada hora
+                    await adminSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
+                    continue; 
+                }
+
                 if (planSaasGym === 'starter') {
                     console.log(`🔒 [${zonaHorariaGym}] Tenant en Plan Starter. Se omite WA para ${nombreCliente}.`);
                     await adminSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
@@ -1321,7 +1332,7 @@ export default {
                 const paramsHeaderAviso: string[] = [nombreGym]; 
                 const paramsBodyAviso = [nombreCliente, nombreGym, linkPago]; 
                 
-                await enviarWA(telefono, 'recordatorio_pago_gym', paramsHeaderAviso, paramsBodyAviso);
+                await enviarWA(telefono, 'recordatorio_pago', paramsHeaderAviso, paramsBodyAviso);
                 await adminSupabase.from('historial_suscripciones').update({ recordatorio_enviado: true }).eq('id', sub.id);
             }
 
