@@ -895,6 +895,10 @@ export default {
                     const { data: gymData } = await adminSupabase.from('tenants').select('nombre_negocio, plan_saas, estado_suscripcion').eq('id', tenantId).single();
                     const { data: clienteData } = await adminSupabase.from('suscriptores').select('nombre_completo, telefono').eq('id', suscriptorId).single();
 
+                    // 🛑 NUEVO: Buscamos el teléfono del administrador (dueño) de este gimnasio
+                    const { data: adminGym } = await adminSupabase.from('perfiles_staff').select('telefono').eq('tenant_id', tenantId).eq('rol', 'admin').limit(1).single();
+                    const telefonoSoporteGym = adminGym && adminGym.telefono ? adminGym.telefono : "nuestra recepción";
+
                     // 🛑 REGLA DE NEGOCIO: Solo enviamos recibo si NO están en prueba y NO son plan Starter
                     const puedeEnviarWA = gymData && gymData.estado_suscripcion !== 'prueba' && gymData.plan_saas !== 'starter';
 
@@ -917,7 +921,8 @@ export default {
                                         { type: "text", text: clienteData.nombre_completo },
                                         { type: "text", text: nombreGym },
                                         { type: "text", text: precioCobrado.toString() },
-                                        { type: "text", text: nuevaFechaFin.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) }
+                                        { type: "text", text: nuevaFechaFin.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) },
+                                        { type: "text", text: telefonoSoporteGym }
                                     ]}
                                 ]
                             }
