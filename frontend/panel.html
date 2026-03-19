@@ -1918,18 +1918,19 @@
             btn.innerHTML = 'Verificando...'; btn.disabled = true;
 
             try {
-                const { data: estaAutorizado, error: rpcError } = await miSupabase.rpc('verificar_invitacion', { correo: email });
-                if (rpcError) throw new Error("Error al consultar el directorio de invitaciones.");
-                if (!estaAutorizado) throw new Error("Acceso denegado: Un administrador debe registrar este correo en el sistema primero.");
-
                 btn.innerHTML = 'Creando cuenta...';
-                const { data, error } = await miSupabase.auth.signUp({
-                    email, password,
-                    options: { emailRedirectTo: window.location.href }
+                const urlBackend = `${CONFIG.BACKEND_URL}/api/registrar-staff`;
+                
+                const res = await fetch(urlBackend, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, password: password })
                 });
-                if (error) throw error;
+                
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Error al crear la cuenta");
 
-                alert("✅ ¡Cuenta creada con éxito! Revisa tu bandeja de entrada/spam y confirma tu correo.");
+                alert("✅ ¡Cuenta activada con éxito! Ya puedes iniciar sesión con tu correo y contraseña.");
                 e.target.reset();
                 cerrarRegistro();
                 document.getElementById('emailLogin').value = email;

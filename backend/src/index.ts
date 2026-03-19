@@ -753,7 +753,6 @@ export default {
                         </div>
                         
                         <div style="text-align: center; margin-top: 30px;">
-                            // <a href="https://www.jsmemberly.com/panel.html" style="background-color: #059669; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Aceptar Invitación y Registrarme</a>
                             <a href="https://www.jsmemberly.com/panel.html?action=activar_cuenta&email=${encodeURIComponent(body.email_staff)}" style="background-color: #059669; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">Aceptar Invitación y Registrarme</a>
                         </div>
                     </div>
@@ -789,6 +788,38 @@ export default {
         } catch (error: any) {
             console.error("Error enviando invitación:", error);
             return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
+        }
+    }
+
+    // --- CREACIÓN DIRECTA DE STAFF (SIN DOBLE CORREO) ---
+    if (url.pathname === '/api/registrar-staff' && request.method === 'POST') {
+        try {
+            const body = await request.json() as any;
+            const adminSupabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+
+            // 1. Verificamos que el admin lo haya invitado (que exista en perfiles_staff)
+            const { data: perfil } = await adminSupabase.from('perfiles_staff').select('id').eq('email', body.email).single();
+            
+            if (!perfil) {
+                throw new Error("Acceso denegado: No tienes una invitación activa.");
+            }
+
+            // 2. Creamos el usuario en Auth saltándonos el correo de confirmación
+            const { data: authData, error: authError } = await adminSupabase.auth.admin.createUser({
+                email: body.email,
+                password: body.password,
+                email_confirm: true // 🛑 EL TRUCO DE MAGIA ESTÁ AQUÍ
+            });
+
+            if (authError) throw authError;
+
+            // 3. Actualizamos el ID temporal en perfiles_staff por el ID real de Auth
+            await adminSupabase.from('perfiles_staff').update({ id: authData.user.id }).eq('email', body.email);
+
+            return new Response(JSON.stringify({ exito: true }), { status: 200, headers: corsHeaders });
+        } catch (error: any) {
+            console.error("Error registrando staff:", error);
+            return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: corsHeaders });
         }
     }
 
