@@ -1137,7 +1137,13 @@ export default {
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json() as any;
-                if (data.error) console.error(`❌ Meta rechazó WA para ${telLimpio}:`, data.error.message);
+                if (data.error) {
+                    const componenteBody = componentesPlantilla.find((c: any) => c.type === 'body');
+                    const linkPago = componenteBody?.parameters?.[2]?.text;
+                    if (linkPago) console.log(`Link de pago: ${linkPago}`);
+                    else console.log(`Link de pago no encontrado en componentesPlantilla: ${JSON.stringify(componentesPlantilla)}`);
+                    console.error(`❌ Meta rechazó WA para ${telLimpio}:`, data.error.message);
+                }
                 else console.log(`✅ WA enviado con éxito a ${telLimpio}`);
             } catch (err: any) {
                 console.error("❌ Error de red conectando con Meta:", err.message);
