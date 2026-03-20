@@ -10,152 +10,819 @@
     <meta property="og:image" content="https://www.jsmemberly.com/assets/portada_web.png" />
     <meta property="og:url" content="https://www.jsmemberly.com" />
     <meta property="og:type" content="website" />
-    
+
     <meta name="twitter:card" content="summary_large_image" />
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="icon" type="image/png" href="assets/logo.png">
     <link rel="apple-touch-icon" href="assets/logo.png">
-</head>
-<body class="bg-gray-50 font-sans text-gray-800 antialiased selection:bg-emerald-200">
 
-    <nav class="container mx-auto px-4 md:px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex items-center gap-3">
-            <img src="assets/logo.png" alt="JS Logo" class="w-10 h-10 md:w-12 md:h-12 rounded-xl object-contain shrink-0">
-            <span class="text-2xl font-black text-gray-900 tracking-tight whitespace-nowrap">JS MemberLy</span>
-        </div>
-        <div class="flex items-center gap-4 mt-2 md:mt-0">
-            <a href="panel.html" class="text-gray-500 font-bold hover:text-emerald-700 transition whitespace-nowrap text-sm md:text-base">Iniciar Sesión</a>
-            <a href="#precios" class="bg-gray-900 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-gray-200 hover:bg-black hover:-translate-y-0.5 transition-all whitespace-nowrap text-sm md:text-base">Comenzar Ahora</a>
+    <!-- Typography: Syne (headings) + DM Sans (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+
+    <style>
+        /* ── CSS Custom Properties ── */
+        :root {
+            --em-600: #059669;
+            --em-700: #047857;
+            --em-50:  #ecfdf5;
+            --em-100: #d1fae5;
+            --em-200: #a7f3d0;
+            --radius-card: 20px;
+            --shadow-card: 0 4px 24px rgba(0,0,0,.06);
+            --shadow-card-hover: 0 16px 48px rgba(0,0,0,.10);
+            --shadow-cta: 0 8px 32px rgba(5,150,105,.28);
+        }
+
+        /* ── Base Reset ── */
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #fafafa;
+            color: #1a1a2e;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ── Selection color ── */
+        ::selection { background: var(--em-200); color: #064e3b; }
+
+        /* ── Typography ── */
+        h1, h2, h3, .syne { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            letter-spacing: -0.02em; /* Mantiene las letras compactas para no empujar el texto a otra línea */
+            line-height: 1.2; /* Congela la altura para que no afecte el Grid o Flexbox de tus tarjetas */
+        }
+
+        /* ── Entrance Animations ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(.96); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        .anim-fade-up  { animation: fadeUp .6s cubic-bezier(.22,.68,0,1.2) both; }
+        .anim-scale-in { animation: scaleIn .5s cubic-bezier(.22,.68,0,1.2) both; }
+        .delay-100 { animation-delay: .10s; }
+        .delay-200 { animation-delay: .20s; }
+        .delay-300 { animation-delay: .30s; }
+        .delay-400 { animation-delay: .40s; }
+        .delay-500 { animation-delay: .50s; }
+
+        /* ── Hero Gradient Background ── */
+        .hero-bg {
+            background: 
+                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(5,150,105,.12) 0%, transparent 70%),
+                #fafafa;
+        }
+        
+        /* ── Subtle dot-grid texture ── */
+        .dot-grid {
+            background-image: radial-gradient(circle, rgba(0,0,0,.06) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(250,250,250,.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,.06);
+        }
+
+        /* ── Pill Badge ── */
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .375rem 1rem;
+            border-radius: 999px;
+            background: var(--em-50);
+            border: 1px solid var(--em-100);
+            color: var(--em-700);
+            font-size: .8125rem;
+            font-weight: 700;
+            letter-spacing: .01em;
+        }
+
+        /* ── CTA Buttons ── */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            padding: .875rem 2rem;
+            border-radius: 14px;
+            background: var(--em-600);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            box-shadow: var(--shadow-cta);
+            transition: background .2s, transform .2s, box-shadow .2s;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .btn-primary:hover {
+            background: var(--em-700);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(5,150,105,.38);
+        }
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            padding: .875rem 2rem;
+            border-radius: 14px;
+            background: #fff;
+            color: #374151;
+            font-weight: 700;
+            font-size: 1rem;
+            border: 1.5px solid #e5e7eb;
+            transition: background .2s, transform .2s, border-color .2s;
+            text-decoration: none;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+            transform: translateY(-1px);
+        }
+        .btn-dark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            padding: .625rem 1.5rem;
+            border-radius: 12px;
+            background: #111827;
+            color: #fff;
+            font-weight: 700;
+            font-size: .9rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,.15);
+            transition: background .2s, transform .2s;
+            text-decoration: none;
+        }
+        .btn-dark:hover { background: #000; transform: translateY(-1px); }
+
+        /* ── Feature Cards ── */
+        .feature-card {
+            background: #fff;
+            border: 1.5px solid #f0f0f0;
+            border-radius: var(--radius-card);
+            padding: 2rem;
+            box-shadow: var(--shadow-card);
+            transition: box-shadow .3s, border-color .3s, transform .3s;
+        }
+        .feature-card:hover {
+            box-shadow: var(--shadow-card-hover);
+            border-color: var(--em-200);
+            transform: translateY(-4px);
+        }
+        .icon-box {
+            width: 56px; height: 56px;
+            background: var(--em-50);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.25rem;
+            transition: transform .3s;
+        }
+        .feature-card:hover .icon-box { transform: scale(1.1) rotate(-4deg); }
+
+        /* ── Step number circles ── */
+        .step-circle {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid var(--em-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--em-600);
+            box-shadow: 0 4px 20px rgba(5,150,105,.2);
+            margin-bottom: 1.25rem;
+        }
+
+        /* ── Testimonial cards ── */
+        .testimonial-card {
+            background: rgba(255,255,255,.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: background .3s, transform .3s;
+        }
+        .testimonial-card:hover {
+            background: rgba(255,255,255,.15);
+            transform: translateY(-4px);
+        }
+
+        /* ── Pricing cards ── */
+        .price-card {
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 24px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-card);
+            transition: box-shadow .3s, border-color .3s;
+        }
+        .price-card:hover {
+            box-shadow: var(--shadow-card-hover);
+            border-color: var(--em-200);
+        }
+        .price-card.featured {
+            background: var(--em-600);
+            border-color: var(--em-600);
+            box-shadow: 0 20px 60px rgba(5,150,105,.35);
+            transform: translateY(-8px);
+            color: #fff;
+        }
+        .price-card.featured:hover {
+            box-shadow: 0 28px 70px rgba(5,150,105,.45);
+        }
+
+        /* ── FAQ accordion ── */
+        .faq-item {
+            background: #fff;
+            border: 1.5px solid #f0f0f0;
+            border-radius: 16px;
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            transition: border-color .2s;
+        }
+        .faq-item[open] { border-color: var(--em-200); }
+        .faq-item summary {
+            padding: 1.25rem 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            list-style: none;
+            color: #111827;
+            transition: color .2s;
+            font-size: .9375rem;
+        }
+        .faq-item summary::-webkit-details-marker { display: none; }
+        .faq-item summary:hover { color: var(--em-600); }
+        .faq-chevron { transition: transform .3s; flex-shrink: 0; margin-left: 1rem; }
+        .faq-item[open] .faq-chevron { transform: rotate(180deg); }
+        .faq-body {
+            padding: 0 1.5rem 1.25rem;
+            color: #6b7280;
+            font-size: .9rem;
+            line-height: 1.7;
+            border-top: 1px solid #f3f4f6;
+            padding-top: 1rem;
+        }
+
+        /* ── Section titles ── */
+        .section-eyebrow {
+            font-size: .78rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--em-600);
+            margin-bottom: .75rem;
+        }
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            color: #111827;
+            line-height: 1.2;
+        }
+        .section-sub {
+            color: #6b7280;
+            font-size: 1.0625rem;
+            margin-top: .75rem;
+            line-height: 1.65;
+        }
+
+        /* ── Stats strip ── */
+        .stat-pill {
+            text-align: center;
+            padding: 1.25rem 2rem;
+        }
+        .stat-number {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #111827;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: .875rem;
+            color: #9ca3af;
+            margin-top: .25rem;
+            font-weight: 500;
+        }
+
+        /* ── Contact form ── */
+        .contact-form {
+            background: #fff;
+            border: 1.5px solid #f0f0f0;
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+        }
+        .contact-form::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--em-600), #14b8a6);
+        }
+        .form-label {
+            display: block;
+            font-size: .78rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            margin-bottom: .5rem;
+        }
+        .form-input {
+            width: 100%;
+            border: 1.5px solid #e5e7eb;
+            background: #f9fafb;
+            padding: .75rem 1rem;
+            border-radius: 12px;
+            outline: none;
+            font-size: .9rem;
+            font-family: 'DM Sans', sans-serif;
+            color: #111827;
+            transition: border-color .2s, background .2s, box-shadow .2s;
+        }
+        .form-input:focus {
+            border-color: var(--em-600);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(5,150,105,.1);
+        }
+        .form-input::placeholder { color: #c4c4c4; }
+
+        /* ── Chat widget ── */
+        .chat-bubble-ai {
+            background: #fff;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            border-top-left-radius: 4px;
+            padding: .75rem 1rem;
+            color: #374151;
+            font-size: .85rem;
+            align-self: flex-start;
+            max-width: 85%;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .chat-bubble-user {
+            background: var(--em-600);
+            color: #fff;
+            border-radius: 12px;
+            border-top-right-radius: 4px;
+            padding: .75rem 1rem;
+            font-size: .85rem;
+            align-self: flex-end;
+            max-width: 85%;
+        }
+
+        /* ── Scroll connector line ── */
+        .step-connector {
+            display: none;
+        }
+        @media (min-width: 768px) {
+            .step-connector {
+                display: block;
+                position: absolute;
+                top: 36px;
+                left: calc(16.66% + 36px);
+                right: calc(16.66% + 36px);
+                height: 2px;
+                background: linear-gradient(90deg, var(--em-200), var(--em-600), var(--em-200));
+                z-index: 0;
+            }
+        }
+
+        /* ── Footer ── */
+        footer {
+            background: #111827;
+            color: #9ca3af;
+        }
+
+        /* ── Mobile Responsive helpers ── */
+        @media (max-width: 640px) {
+            .price-card.featured { transform: none; }
+            .section-title { font-size: 1.75rem; }
+        }
+
+        /* ── Toggle switch ── */
+        .billing-toggle-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 999px;
+            padding: .5rem 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+
+        /* ── Modal polish ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 1rem;
+        }
+        .modal-box {
+            background: #fff;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 32px 80px rgba(0,0,0,.25);
+        }
+        .modal-header {
+            background: var(--em-600);
+            padding: 1.75rem 2rem;
+            color: #fff;
+            text-align: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .modal-input {
+            width: 100%;
+            border: 1.5px solid #e5e7eb;
+            background: #f9fafb;
+            padding: .7rem .9rem;
+            border-radius: 10px;
+            outline: none;
+            font-size: .9rem;
+            font-family: 'DM Sans', sans-serif;
+            color: #111827;
+            transition: border-color .2s, box-shadow .2s;
+            margin-top: .35rem;
+        }
+        .modal-input:focus {
+            border-color: var(--em-600);
+            box-shadow: 0 0 0 4px rgba(5,150,105,.1);
+            background: #fff;
+        }
+        .modal-label {
+            font-size: .8rem;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        /* ── Policies modal ── */
+        #modalPoliticas .modal-header-policies {
+            background: var(--em-700);
+            padding: 1.5rem 2rem;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* ── MODAL VISIBILITY FIX ──
+           The JS uses classList.add/remove('hidden') to toggle modals.
+           Inline display:flex would override Tailwind's .hidden (display:none),
+           so we keep inline styles without display and control it here.
+        ── */
+        .hidden { display: none !important; }
+
+        #modalRegistroSaaS:not(.hidden),
+        #modalPoliticas:not(.hidden) {
+            display: flex !important;
+        }
+        #chatIaPanel:not(.hidden) {
+            display: flex !important;
+            flex-direction: column;
+        }
+
+        /* ── Smooth underline hover on links ── */
+        a.nav-link {
+            position: relative;
+            text-decoration: none;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: .9375rem;
+            transition: color .2s;
+        }
+        a.nav-link::after {
+            content: '';
+            position: absolute;
+            left: 0; bottom: -2px;
+            width: 0; height: 2px;
+            background: var(--em-600);
+            transition: width .25s;
+        }
+        a.nav-link:hover { color: var(--em-600); }
+        a.nav-link:hover::after { width: 100%; }
+
+        /* ── Green text gradient ── */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--em-600), #14b8a6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── Video mockup frame ── */
+        .video-frame {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 32px 80px rgba(5,150,105,.18), 0 8px 24px rgba(0,0,0,.12);
+            border: 1px solid rgba(255,255,255,.12);
+        }
+        .video-chrome {
+            background: #1e2532;
+            padding: .75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-r { background: #ff5f57; }
+        .dot-y { background: #febc2e; }
+        .dot-g { background: #28c840; }
+
+        /* ── Trust strip ── */
+        .trust-strip {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            padding: 1.25rem 2rem;
+            background: #fff;
+            border-radius: 16px;
+            border: 1.5px solid #f0f0f0;
+            box-shadow: var(--shadow-card);
+        }
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .875rem;
+            font-weight: 600;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+        .trust-icon { color: var(--em-600); font-size: 1.1rem; }
+    </style>
+</head>
+
+<body>
+
+    <!-- ════════════════════ NAVBAR ════════════════════ -->
+    <nav class="navbar">
+        <div style="max-width:1200px;margin:auto;padding:.9rem 1.5rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:.75rem;">
+                <img src="assets/logo.png" alt="JS Logo" style="width:40px;height:40px;border-radius:10px;object-fit:contain;flex-shrink:0;">
+                <span class="syne" style="font-size:1.25rem;font-weight:800;color:#111827;letter-spacing:-.02em;white-space:nowrap;">JS MemberLy</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:1.25rem;">
+                <a href="panel.html" class="nav-link">Iniciar Sesión</a>
+                <a href="#precios" class="btn-dark" style="padding:.6rem 1.25rem;font-size:.875rem;">Comenzar Ahora →</a>
+            </div>
         </div>
     </nav>
 
-    <header class="container mx-auto px-6 pt-20 pb-16 text-center max-w-5xl relative overflow-hidden">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100/40 via-transparent to-transparent -z-10"></div>
-        
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs md:text-sm font-bold mb-8">
-            ⭐ Calificado 4.9/5 por dueños de gimnasios
-        </div>
-        
-        <h1 class="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6 leading-tight tracking-tight">
-            El sistema inteligente para <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">escalar tu gimnasio</span>
-        </h1>
-        <p class="text-xl md:text-2xl text-gray-500 mb-10 leading-relaxed max-w-3xl mx-auto font-medium">
-            Controla accesos, gestiona pagos y fideliza a tus clientes en una plataforma unificada. Deja el papeleo y enfócate en transformar vidas.
-        </p>
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="#precios" class="w-full sm:w-auto bg-emerald-600 text-white px-8 py-4 rounded-xl font-bold shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all duration-300 text-lg flex items-center justify-center gap-2">
-                🚀 Iniciar 14 Días Gratis
-            </a>
-            <a href="#contacto" class="w-full sm:w-auto bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl font-bold hover:bg-gray-50 transition-all text-lg">
-                Agendar una Demo
-            </a>
-        </div>
-        <p class="mt-5 text-sm text-gray-500 font-bold flex items-center justify-center gap-2">
-            <span>✅</span> Sin tarjeta de crédito <span>•</span> Cancelas cuando quieras
-        </p>
+    <!-- ════════════════════ HERO ════════════════════ -->
+    <header class="hero-bg" style="padding:5rem 1.5rem 4rem;">
+        <div style="max-width:860px;margin:auto;text-align:center;">
 
-        <div class="mt-16 relative max-w-4xl mx-auto rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-900/20 border border-gray-200/60 bg-black">
-            
-            <div class="bg-gray-800 px-4 py-3 flex items-center gap-2 border-b border-gray-700">
-                <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
-                <div class="ml-2 text-xs font-semibold text-gray-400">Cómo funciona JS MemberLy</div>
+            <div class="badge-pill anim-fade-up" style="margin-bottom:1.75rem;">
+                ⭐ Calificado 4.9/5 por dueños de gimnasios
             </div>
 
-            <video controls class="w-full aspect-video object-cover" poster="assets/portada_web.png">
-                <source src="assets/demo.mp4" type="video/mp4">
-                Tu navegador no soporta el elemento de video.
-            </video>
+            <h1 class="anim-fade-up delay-100" style="font-family:'Syne',sans-serif;font-size:clamp(2.4rem,6vw,4.25rem);font-weight:800;color:#111827;line-height:1.1;letter-spacing:-.03em;margin-bottom:1.25rem;">
+                El sistema inteligente para<br>
+                <span class="gradient-text">escalar tu gimnasio</span>
+            </h1>
+
+            <p class="anim-fade-up delay-200" style="font-size:clamp(1rem,2.5vw,1.2rem);color:#6b7280;max-width:640px;margin:0 auto 2.25rem;line-height:1.65;font-weight:500;">
+                Controla accesos, gestiona pagos y fideliza a tus clientes en una plataforma unificada. Deja el papeleo y enfócate en transformar vidas.
+            </p>
+
+            <div class="anim-fade-up delay-300" style="display:flex;flex-wrap:wrap;gap:.875rem;justify-content:center;margin-bottom:1.25rem;">
+                <a href="#precios" class="btn-primary" style="font-size:1rem;">
+                    🚀 Iniciar 14 Días Gratis
+                </a>
+                <a href="#contacto" class="btn-secondary" style="font-size:1rem;">
+                    Agendar una Demo
+                </a>
+            </div>
+
+            <p class="anim-fade-up delay-400" style="font-size:.875rem;color:#9ca3af;font-weight:600;display:flex;align-items:center;justify-content:center;gap:.5rem;flex-wrap:wrap;">
+                <span style="color:var(--em-600);">✅</span> Sin tarjeta de crédito
+                <span style="color:#e5e7eb;">•</span>
+                Cancelas cuando quieras
+            </p>
+        </div>
+
+        <!-- Trust strip -->
+        <div class="anim-fade-up delay-500" style="max-width:700px;margin:2.5rem auto 3rem;">
+            <div class="trust-strip">
+                <div class="trust-item"><span class="trust-icon">🔒</span> Datos 100% seguros</div>
+                <div class="trust-item"><span class="trust-icon">⚡</span> Setup en 2 minutos</div>
+                <div class="trust-item"><span class="trust-icon">🤖</span> WhatsApp automatizado</div>
+                <div class="trust-item"><span class="trust-icon">📱</span> Acceso QR sin hardware</div>
+            </div>
+        </div>
+
+        <!-- Video mockup -->
+        <div class="anim-scale-in delay-400" style="max-width:960px;margin:4rem auto 0;position:relative;">
+            
+            <div style="text-align:center;margin-bottom:2rem;">
+                <h2 style="font-family:'Syne',sans-serif;font-size:clamp(1.5rem, 3vw, 2.25rem);font-weight:800;color:#111827;margin-bottom:.75rem;letter-spacing:-0.02em;">
+                    Mira cómo automatizamos tu gimnasio en 2 minutos 👇
+                </h2>
+                <div style="display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;font-size:.95rem;color:#4b5563;font-weight:600;">
+                    <span style="display:flex;align-items:center;gap:.3rem;"><span style="color:var(--em-600);">✅</span> Cero hardware extra</span>
+                    <span style="display:flex;align-items:center;gap:.3rem;"><span style="color:var(--em-600);">✅</span> Configuración instantánea</span>
+                    <span style="display:flex;align-items:center;gap:.3rem;"><span style="color:var(--em-600);">✅</span> Muy fácil para tus clientes</span>
+                </div>
+            </div>
+
+            <div style="position:relative;">
+                <div style="position:absolute;inset:-15px;background:var(--em-600);filter:blur(40px);opacity:0.15;border-radius:30px;z-index:0;"></div>
+                
+                <div class="video-frame" style="position:relative;z-index:1;background:#fff;">
+                    <div class="video-chrome">
+                        <div class="dot dot-r"></div>
+                        <div class="dot dot-y"></div>
+                        <div class="dot dot-g"></div>
+                        <span style="margin-left:.5rem;font-size:.8rem;font-weight:600;color:#9ca3af;font-family:'DM Sans',sans-serif;letter-spacing:0.02em;">Demo: Panel de Administración JS MemberLy</span>
+                    </div>
+                    <video controls style="width:100%;aspect-ratio:16/9;display:block;background:#000;" poster="assets/portada_web.png">
+                        <source src="assets/demo.mp4" type="video/mp4">
+                        Tu navegador no soporta el elemento de video.
+                    </video>
+                </div>
+            </div>
         </div>
     </header>
 
-    <section class="py-20 bg-white">
-        <div class="container mx-auto px-6 max-w-6xl">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Todo lo que necesitas, en un solo lugar</h2>
-                <p class="text-gray-500 text-lg">Automatiza el 80% de las tareas administrativas de tu centro deportivo.</p>
+    <!-- ════════════════════ STATS STRIP ════════════════════ -->
+    <section style="background:#fff;border-top:1.5px solid #f0f0f0;border-bottom:1.5px solid #f0f0f0;padding:2.5rem 1.5rem;">
+        <div style="max-width:900px;margin:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0;">
+            <div class="stat-pill" style="border-right:1.5px solid #f0f0f0;">
+                <div class="stat-number">4.9<span style="color:var(--em-600);font-size:1.5rem;">★</span></div>
+                <div class="stat-label">Calificación promedio</div>
             </div>
-            
-            <div class="grid md:grid-cols-3 gap-8">
-                <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 hover:shadow-xl hover:border-emerald-200 transition-all group">
-                    <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm mb-6 group-hover:scale-110 transition-transform">📱</div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Accesos con Código QR</h3>
-                    <p class="text-gray-500 leading-relaxed">Dile adiós a las tarjetas físicas. Tus clientes ingresan mostrando su código QR dinámico desde su celular. Pantalla verde o roja al instante.</p>
+            <div class="stat-pill" style="border-right:1.5px solid #f0f0f0;">
+                <div class="stat-number">+300</div>
+                <div class="stat-label">Gimnasios activos</div>
+            </div>
+            <div class="stat-pill" style="border-right:1.5px solid #f0f0f0;">
+                <div class="stat-number">80%</div>
+                <div class="stat-label">Tareas automatizadas</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-number">2 min</div>
+                <div class="stat-label">Para configurar</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════════ FEATURES ════════════════════ -->
+    <section style="padding:5rem 1.5rem;background:#fafafa;">
+        <div style="max-width:1120px;margin:auto;">
+            <div style="text-align:center;margin-bottom:3.5rem;">
+                <p class="section-eyebrow">Funcionalidades</p>
+                <h2 class="section-title">Todo lo que necesitas, en un solo lugar</h2>
+                <p class="section-sub">Automatiza el 80% de las tareas administrativas de tu centro deportivo.</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;">
+                <div class="feature-card">
+                    <div class="icon-box">📱</div>
+                    <h3 style="font-family:'Syne',sans-serif;font-size:1.125rem;font-weight:700;color:#111827;margin-bottom:.625rem;">Accesos con Código QR</h3>
+                    <p style="color:#6b7280;font-size:.9rem;line-height:1.7;">Dile adiós a las tarjetas físicas. Tus clientes ingresan mostrando su código QR dinámico desde su celular. Pantalla verde o roja al instante.</p>
                 </div>
-                <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 hover:shadow-xl hover:border-emerald-200 transition-all group">
-                    <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm mb-6 group-hover:scale-110 transition-transform">🤖</div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">WhatsApp Automático</h3>
-                    <p class="text-gray-500 leading-relaxed">Nuestro robot envía recordatorios amigables 3 días antes de que venza la membresía y entrega comprobantes automáticos cuando pagan.</p>
+
+                <div class="feature-card">
+                    <div class="icon-box">🤖</div>
+                    <h3 style="font-family:'Syne',sans-serif;font-size:1.125rem;font-weight:700;color:#111827;margin-bottom:.625rem;">WhatsApp Automático</h3>
+                    <p style="color:#6b7280;font-size:.9rem;line-height:1.7;">Nuestro robot envía recordatorios amigables 3 días antes de que venza la membresía y entrega comprobantes automáticos cuando pagan.</p>
                 </div>
-                <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 hover:shadow-xl hover:border-emerald-200 transition-all group">
-                    <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm mb-6 group-hover:scale-110 transition-transform">💳</div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Cobros con PayPal Integrado</h3>
-                    <p class="text-gray-500 leading-relaxed">Conecta tu cuenta comercial y recibe pagos únicos o por suscripción recurrente directo a tu billetera, sin comisiones ocultas.</p>
+
+                <div class="feature-card">
+                    <div class="icon-box">💳</div>
+                    <h3 style="font-family:'Syne',sans-serif;font-size:1.125rem;font-weight:700;color:#111827;margin-bottom:.625rem;">Cobros con PayPal Integrado</h3>
+                    <p style="color:#6b7280;font-size:.9rem;line-height:1.7;">Conecta tu cuenta comercial y recibe pagos únicos o por suscripción recurrente directo a tu billetera, sin comisiones ocultas.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="py-24 bg-gray-50 border-t border-gray-100">
-        <div class="container mx-auto px-6 max-w-6xl">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Tu gimnasio en piloto automático en 3 pasos</h2>
-                <p class="text-gray-500 text-lg">Sin instalaciones complejas ni equipos costosos. Todo funciona en la nube.</p>
+    <!-- ════════════════════ HOW IT WORKS ════════════════════ -->
+    <section style="padding:5rem 1.5rem;background:#fff;border-top:1.5px solid #f0f0f0;">
+        <div style="max-width:1000px;margin:auto;">
+            <div style="text-align:center;margin-bottom:3.5rem;">
+                <p class="section-eyebrow">Proceso</p>
+                <h2 class="section-title">Tu gimnasio en piloto automático en 3 pasos</h2>
+                <p class="section-sub">Sin instalaciones complejas ni equipos costosos. Todo funciona en la nube.</p>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-12 relative">
-                <div class="hidden md:block absolute top-12 left-[15%] right-[15%] h-0.5 bg-gradient-to-r from-emerald-200 via-emerald-400 to-emerald-200 z-0"></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:2rem;position:relative;">
+                <div class="step-connector"></div>
 
-                <div class="relative z-10 flex flex-col items-center text-center">
-                    <div class="w-24 h-24 bg-white rounded-full border-4 border-emerald-500 shadow-xl flex items-center justify-center text-3xl font-black text-emerald-600 mb-6">1</div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Crea tu cuenta</h3>
-                    <p class="text-gray-500 leading-relaxed">Regístrate en 2 minutos, configura tus propios planes de membresía y conecta tu cuenta bancaria o PayPal.</p>
+                <div style="display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;z-index:1;">
+                    <div class="step-circle">1</div>
+                    <h3 style="font-family:'Syne',sans-serif;font-size:1.0625rem;font-weight:700;color:#111827;margin-bottom:.5rem;">Crea tu cuenta</h3>
+                    <p style="color:#6b7280;font-size:.9rem;line-height:1.65;">Regístrate en 2 minutos, configura tus propios planes de membresía y conecta tu cuenta bancaria o PayPal.</p>
                 </div>
 
-                <div class="relative z-10 flex flex-col items-center text-center">
-                    <div class="w-24 h-24 bg-white rounded-full border-4 border-emerald-500 shadow-xl flex items-center justify-center text-3xl font-black text-emerald-600 mb-6">2</div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Registra a tus clientes</h3>
-                    <p class="text-gray-500 leading-relaxed">Añade a tus socios y nuestro sistema les enviará instantáneamente su pase de acceso con Código QR por WhatsApp.</p>
+                <div style="display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;z-index:1;">
+                    <div class="step-circle">2</div>
+                    <h3 style="font-family:'Syne',sans-serif;font-size:1.0625rem;font-weight:700;color:#111827;margin-bottom:.5rem;">Registra a tus clientes</h3>
+                    <p style="color:#6b7280;font-size:.9rem;line-height:1.65;">Añade a tus socios y nuestro sistema les enviará instantáneamente su pase de acceso con Código QR por WhatsApp.</p>
                 </div>
 
-                <div class="relative z-10 flex flex-col items-center text-center">
-                    <div class="w-24 h-24 bg-white rounded-full border-4 border-emerald-500 shadow-xl flex items-center justify-center text-3xl font-black text-emerald-600 mb-6">3</div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Cobros automáticos</h3>
-                    <p class="text-gray-500 leading-relaxed">El robot avisará a tus clientes cuando su mes esté por vencer y gestionará los pagos sin que muevas un dedo.</p>
+                <div style="display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;z-index:1;">
+                    <div class="step-circle">3</div>
+                    <h3 style="font-family:'Syne',sans-serif;font-size:1.0625rem;font-weight:700;color:#111827;margin-bottom:.5rem;">Cobros automáticos</h3>
+                    <p style="color:#6b7280;font-size:.9rem;line-height:1.65;">El robot avisará a tus clientes cuando su mes esté por vencer y gestionará los pagos sin que muevas un dedo.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="py-20 bg-emerald-900 text-center overflow-hidden relative">
-        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-luminosity"></div>
-        <div class="container mx-auto px-6 max-w-4xl relative z-10">
-            <h2 class="text-3xl font-extrabold text-white mb-10">Los dueños de gimnasios recuperan su tiempo libre</h2>
-            
-            <div class="grid md:grid-cols-2 gap-8 text-left">
-                <div class="bg-white/10 backdrop-blur-md p-8 rounded-3xl border border-white/20">
-                    <div class="flex text-yellow-400 mb-4">★★★★★</div>
-                    <p class="text-emerald-50 text-lg italic mb-6">"Antes perdía horas persiguiendo a la gente para que pagara. Desde que JS MemberLy envía los WhatsApps automáticos, mis ingresos subieron un 30% y no tengo discusiones incómodas."</p>
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-gray-300 rounded-full bg-[url('https://i.pravatar.cc/150?img=11')] bg-cover"></div>
+    <!-- ════════════════════ TESTIMONIALS ════════════════════ -->
+    <section style="padding:5rem 1.5rem;background:#064e3b;overflow:hidden;position:relative;">
+        <div style="position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop');background-size:cover;background-position:center;opacity:.07;"></div>
+        <!-- subtle dot overlay -->
+        <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);background-size:28px 28px;"></div>
+
+        <div style="max-width:960px;margin:auto;position:relative;z-index:1;">
+            <div style="text-align:center;margin-bottom:3rem;">
+                <p style="font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6ee7b7;margin-bottom:.75rem;">Testimonios</p>
+                <h2 style="font-family:'Syne',sans-serif;font-size:clamp(1.75rem,4vw,2.25rem);font-weight:800;color:#fff;">Los dueños de gimnasios recuperan su tiempo libre</h2>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;">
+                <div class="testimonial-card">
+                    <div style="color:#fbbf24;font-size:1.1rem;margin-bottom:1rem;letter-spacing:.1em;">★★★★★</div>
+                    <p style="color:#d1fae5;font-size:.9625rem;line-height:1.7;font-style:italic;margin-bottom:1.5rem;">"Antes perdía horas persiguiendo a la gente para que pagara. Desde que JS MemberLy envía los WhatsApps automáticos, mis ingresos subieron un 30% y no tengo discusiones incómodas."</p>
+                    <div style="display:flex;align-items:center;gap:.875rem;">
+                        <div style="width:44px;height:44px;border-radius:50%;background-image:url('https://i.pravatar.cc/150?img=11');background-size:cover;flex-shrink:0;"></div>
                         <div>
-                            <h4 class="text-white font-bold">Carlos M.</h4>
-                            <p class="text-emerald-200 text-sm">Dueño de IronFit Center</p>
+                            <p style="color:#fff;font-weight:700;font-size:.9rem;">Carlos M.</p>
+                            <p style="color:#6ee7b7;font-size:.8rem;">Dueño de IronFit Center</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white/10 backdrop-blur-md p-8 rounded-3xl border border-white/20">
-                    <div class="flex text-yellow-400 mb-4">★★★★★</div>
-                    <p class="text-emerald-50 text-lg italic mb-6">"La función del código QR es increíble. La recepcionista escanea desde el celular y la pantalla se pone roja si deben el mes. Nos quitó un dolor de cabeza gigante de administración."</p>
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-gray-300 rounded-full bg-[url('https://i.pravatar.cc/150?img=44')] bg-cover"></div>
+                <div class="testimonial-card">
+                    <div style="color:#fbbf24;font-size:1.1rem;margin-bottom:1rem;letter-spacing:.1em;">★★★★★</div>
+                    <p style="color:#d1fae5;font-size:.9625rem;line-height:1.7;font-style:italic;margin-bottom:1.5rem;">"La función del código QR es increíble. La recepcionista escanea desde el celular y la pantalla se pone roja si deben el mes. Nos quitó un dolor de cabeza gigante de administración."</p>
+                    <div style="display:flex;align-items:center;gap:.875rem;">
+                        <div style="width:44px;height:44px;border-radius:50%;background-image:url('https://i.pravatar.cc/150?img=44');background-size:cover;flex-shrink:0;"></div>
                         <div>
-                            <h4 class="text-white font-bold">Andrea S.</h4>
-                            <p class="text-emerald-200 text-sm">Gerente de CrossFit Box Elite</p>
+                            <p style="color:#fff;font-weight:700;font-size:.9rem;">Andrea S.</p>
+                            <p style="color:#6ee7b7;font-size:.8rem;">Gerente de CrossFit Box Elite</p>
                         </div>
                     </div>
                 </div>
@@ -163,151 +830,237 @@
         </div>
     </section>
 
-    <section id="precios" class="bg-white py-20 border-t border-gray-100">
-        <div class="container mx-auto px-6 max-w-6xl">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">Planes que se adaptan y crecen contigo</h2>
-                <p class="text-gray-500">Paga usando tarjetas de crédito o débito a través de PayPal.</p>
+    <!-- ════════════════════ PRICING ════════════════════ -->
+    <section id="precios" style="padding:5rem 1.5rem;background:#fafafa;border-top:1.5px solid #f0f0f0;">
+        <div style="max-width:1120px;margin:auto;">
+            <div style="text-align:center;margin-bottom:2rem;">
+                <p class="section-eyebrow">Precios</p>
+                <h2 class="section-title">Planes que se adaptan y crecen contigo</h2>
+                <p class="section-sub">Paga usando tarjetas de crédito o débito a través de PayPal.</p>
             </div>
 
-            <div class="text-center mb-12">
-                <div class="inline-flex items-center gap-4 bg-white p-2 rounded-full border border-gray-200 shadow-sm">
-                    <span id="labelMensual" class="font-bold text-emerald-700 px-4">Mensual</span>
-                    <button id="toggleFacturacion" onclick="cambiarFacturacion()" class="w-14 h-7 bg-emerald-600 rounded-full relative transition-colors duration-300 focus:outline-none">
-                        <div id="toggleBoton" class="w-5 h-5 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300"></div>
+            <!-- Billing toggle -->
+            <div style="text-align:center;margin-bottom:3rem;">
+                <div class="billing-toggle-wrapper">
+                    <span id="labelMensual" style="font-weight:700;color:var(--em-600);font-size:.9rem;padding:.25rem .5rem;">Mensual</span>
+                    <button id="toggleFacturacion" onclick="cambiarFacturacion()" style="width:52px;height:28px;background:var(--em-600);border-radius:999px;border:none;position:relative;cursor:pointer;transition:background .3s;flex-shrink:0;">
+                        <div id="toggleBoton" style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:4px;left:4px;transition:transform .3s;box-shadow:0 1px 4px rgba(0,0,0,.2);"></div>
                     </button>
-                    <span id="labelAnual" class="text-gray-500 font-medium px-4">Anual <span class="text-[10px] bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full ml-1 font-bold uppercase tracking-wider -translate-y-2 absolute">2 Meses Gratis</span></span>
+                    <span id="labelAnual" style="color:#9ca3af;font-weight:500;font-size:.9rem;padding:.25rem .5rem;position:relative;">
+                        Anual
+                        <span style="position:absolute;top:-22px;left:50%;transform:translateX(-50%);background:#fbbf24;color:#78350f;font-size:.65rem;font-weight:800;padding:.15rem .5rem;border-radius:999px;white-space:nowrap;letter-spacing:.04em;text-transform:uppercase;">2 Meses Gratis</span>
+                    </span>
                 </div>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-8">
-                
-                <div class="bg-gray-50 rounded-3xl p-8 border border-gray-200 hover:border-emerald-300 transition-all hover:shadow-xl flex flex-col">
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Starter</h3>
-                    <p class="text-gray-500 text-sm mb-6">Para estudios pequeños y entrenadores independientes.</p>
-                    <div id="precioStarter" class="text-4xl font-extrabold text-gray-900 mb-8">$20<span class="text-lg text-gray-500 font-normal">/mes</span></div>
-                    
-                    
-                    <ul class="space-y-4 mb-8 flex-1 text-gray-600">
-                        <li class="flex items-center gap-3">✅ <span>Hasta <strong>100 clientes</strong> activos</span></li>
-                        <li class="flex items-center gap-3">✅ <span>Cuentas de personal <strong>ilimitadas</strong></span></li>
-                        <li class="flex items-center gap-3">✅ <span>Pases con Código QR</span></li>
-                        <li class="flex items-center gap-3">✅ <span>Dashboard de métricas</span></li>
+            <!-- Cards -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;align-items:start;">
+
+                <!-- Starter -->
+                <div class="price-card">
+                    <p style="font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:.375rem;">Starter</p>
+                    <h3 style="font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;color:#111827;margin-bottom:.375rem;">Para estudios pequeños</h3>
+                    <p style="color:#9ca3af;font-size:.875rem;margin-bottom:1.25rem;">Y entrenadores independientes.</p>
+                    <div id="precioStarter" style="font-family:'Syne',sans-serif;font-size:2.75rem;font-weight:800;color:#111827;line-height:1;margin-bottom:2rem;">$20<span style="font-size:1rem;color:#9ca3af;font-weight:400;font-family:'DM Sans',sans-serif;">/mes</span></div>
+
+                    <ul style="list-style:none;padding:0;margin:0 0 2rem;display:flex;flex-direction:column;gap:.875rem;flex:1;">
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:#374151;"><span style="color:var(--em-600);font-size:1rem;flex-shrink:0;">✓</span> Hasta <strong>100 clientes</strong> activos</li>
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:#374151;"><span style="color:var(--em-600);font-size:1rem;flex-shrink:0;">✓</span> Cuentas de personal <strong>ilimitadas</strong></li>
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:#374151;"><span style="color:var(--em-600);font-size:1rem;flex-shrink:0;">✓</span> Pases con Código QR</li>
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:#374151;"><span style="color:var(--em-600);font-size:1rem;flex-shrink:0;">✓</span> Dashboard de métricas</li>
                     </ul>
-                    <button id="btnElegirStarter" onclick="abrirModalRegistro('Starter Mensual', 20)" class="w-full py-3 px-4 bg-white border-2 border-emerald-600 text-emerald-700 font-bold rounded-xl hover:bg-emerald-50 transition">Comenzar Prueba Gratis</button>
+                    <button id="btnElegirStarter" onclick="abrirModalRegistro('Starter Mensual', 20)" class="btn-secondary" style="width:100%;padding:.875rem;font-family:'DM Sans',sans-serif;border-color:var(--em-600);color:var(--em-600);">Comenzar Prueba Gratis</button>
                 </div>
 
-                <div class="bg-emerald-600 rounded-3xl p-8 shadow-2xl transform md:-translate-y-4 flex flex-col relative text-white">
-                    <div class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-3xl uppercase tracking-wider">Más Popular</div>
-                    <h3 class="text-xl font-bold mb-2">Pro</h3>
-                    <p class="text-emerald-100 text-sm mb-6">Para gimnasios establecidos en fase de crecimiento.</p>
-                    <div id="precioPro" class="text-4xl font-extrabold mb-8">$45<span class="text-lg text-emerald-200 font-normal">/mes</span></div>
-                    
-                    <ul class="space-y-4 mb-8 flex-1 text-emerald-50">
-                        <li class="flex items-center gap-3">✨ <span>Hasta <strong>500 clientes</strong> activos</span></li>
-                        <li class="flex items-center gap-3">✨ <span>Cuentas de personal <strong>ilimitadas</strong></span></li>
-                        <li class="flex items-center gap-3">✨ <span>Recordatorios de pago a clientes por WhatsApp</span></li>
-                        <li class="flex items-center gap-3">✨ <span>Todo lo del plan Starter</span></li>
+                <!-- Pro (featured) -->
+                <div class="price-card featured" style="position:relative;">
+                    <div style="position:absolute;top:0;right:0;background:#fbbf24;color:#78350f;font-size:.7rem;font-weight:800;padding:.35rem .875rem;border-bottom-left-radius:12px;border-top-right-radius:22px;text-transform:uppercase;letter-spacing:.05em;">Más Popular</div>
+
+                    <p style="font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:.375rem;">Pro</p>
+                    <h3 style="font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;color:#fff;margin-bottom:.375rem;">Para gimnasios en crecimiento</h3>
+                    <p style="color:rgba(255,255,255,.7);font-size:.875rem;margin-bottom:1.25rem;">Fase de escalamiento acelerado.</p>
+                    <div id="precioPro" style="font-family:'Syne',sans-serif;font-size:2.75rem;font-weight:800;color:#fff;line-height:1;margin-bottom:2rem;">$45<span style="font-size:1rem;color:rgba(255,255,255,.6);font-weight:400;font-family:'DM Sans',sans-serif;">/mes</span></div>
+
+                    <ul style="list-style:none;padding:0;margin:0 0 2rem;display:flex;flex-direction:column;gap:.875rem;flex:1;">
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:rgba(255,255,255,.9);"><span style="color:#6ee7b7;font-size:1rem;flex-shrink:0;">✓</span> Hasta <strong>500 clientes</strong> activos</li>
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:rgba(255,255,255,.9);"><span style="color:#6ee7b7;font-size:1rem;flex-shrink:0;">✓</span> Cuentas de personal <strong>ilimitadas</strong></li>
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:rgba(255,255,255,.9);"><span style="color:#6ee7b7;font-size:1rem;flex-shrink:0;">✓</span> Recordatorios de pago por WhatsApp</li>
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:rgba(255,255,255,.9);"><span style="color:#6ee7b7;font-size:1rem;flex-shrink:0;">✓</span> Todo lo del plan Starter</li>
                     </ul>
-                    <button id="btnElegirPro" onclick="abrirModalRegistro('Pro Mensual', 45)" class="w-full py-3 px-4 bg-white text-emerald-700 font-bold rounded-xl hover:bg-gray-50 transition shadow-lg">Comenzar Prueba Gratis</button>
+                    <button id="btnElegirPro" onclick="abrirModalRegistro('Pro Mensual', 45)" class="btn-primary" style="width:100%;padding:.875rem;background:#fff;color:var(--em-700);box-shadow:0 4px 16px rgba(0,0,0,.12);font-family:'DM Sans',sans-serif;">Comenzar Prueba Gratis</button>
                 </div>
 
-                <div class="bg-gray-50 rounded-3xl p-8 border border-gray-200 hover:border-emerald-300 transition-all hover:shadow-xl flex flex-col">
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Elite</h3>
-                    <p class="text-gray-500 text-sm mb-6">Para franquicias y negocios sin límites.</p>
-                    <div id="precioElite" class="text-4xl font-extrabold text-gray-900 mb-8">$125<span class="text-lg text-gray-500 font-normal">/mes</span></div>
-                    
-                    <ul class="space-y-4 mb-8 flex-1 text-gray-600">
-                        <li class="flex items-center gap-3">🔥 <span>Hasta <strong>2,000 clientes</strong> activos</span></li>
-                        <li class="flex items-center gap-3">🔥 <span>Reportes financieros avanzados</span></li>
-                        <li class="flex items-center gap-3">🔥 <span>Soporte prioritario 24/7</span></li>
-                        <li class="flex items-center gap-3">🔥 <span>Todo lo del plan Pro</span></li>
+                <!-- Elite -->
+                <div class="price-card">
+                    <p style="font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:.375rem;">Elite</p>
+                    <h3 style="font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;color:#111827;margin-bottom:.375rem;">Para franquicias</h3>
+                    <p style="color:#9ca3af;font-size:.875rem;margin-bottom:1.25rem;">Y negocios sin límites.</p>
+                    <div id="precioElite" style="font-family:'Syne',sans-serif;font-size:2.75rem;font-weight:800;color:#111827;line-height:1;margin-bottom:2rem;">$125<span style="font-size:1rem;color:#9ca3af;font-weight:400;font-family:'DM Sans',sans-serif;">/mes</span></div>
+
+                    <ul style="list-style:none;padding:0;margin:0 0 2rem;display:flex;flex-direction:column;gap:.875rem;flex:1;">
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:#374151;"><span style="color:var(--em-600);font-size:1rem;flex-shrink:0;">✓</span> Hasta <strong>2,000 clientes</strong> activos</li>
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:#374151;"><span style="color:var(--em-600);font-size:1rem;flex-shrink:0;">✓</span> Reportes financieros avanzados</li>
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:#374151;"><span style="color:var(--em-600);font-size:1rem;flex-shrink:0;">✓</span> Soporte prioritario 24/7</li>
+                        <li style="display:flex;align-items:center;gap:.75rem;font-size:.9rem;color:#374151;"><span style="color:var(--em-600);font-size:1rem;flex-shrink:0;">✓</span> Todo lo del plan Pro</li>
                     </ul>
-                    <button id="btnElegirElite" onclick="abrirModalRegistro('Elite Mensual', 125)" class="w-full py-3 px-4 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition">Comenzar Prueba Gratis</button>
+                    <button id="btnElegirElite" onclick="abrirModalRegistro('Elite Mensual', 125)" class="btn-secondary" style="width:100%;padding:.875rem;font-family:'DM Sans',sans-serif;">Comenzar Prueba Gratis</button>
                 </div>
             </div>
 
-            <div class="mt-12 text-center text-sm text-gray-500">
-                <p>¿Tienes una cadena de gimnasios con más de 2,000 clientes activos? <a href="#contacto" class="text-emerald-600 font-bold hover:underline">Contáctanos para un Plan Enterprise a la medida.</a></p>
+            <div style="margin-top:2.5rem;text-align:center;font-size:.875rem;color:#9ca3af;">
+                ¿Tienes una cadena de gimnasios con más de 2,000 clientes activos? <a href="#contacto" style="color:var(--em-600);font-weight:700;text-decoration:none;">Contáctanos para un Plan Enterprise a la medida →</a>
             </div>
         </div>
     </section>
 
-    <section class="py-24 bg-gray-50 border-t border-gray-100">
-        <div class="container mx-auto px-6 max-w-3xl">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl font-extrabold text-gray-900 mb-4">Preguntas Frecuentes</h2>
-                <p class="text-gray-500 text-lg">Todo lo que necesitas saber sobre JS MemberLy.</p>
+    <!-- ════════════════════ FAQ ════════════════════ -->
+    <section style="padding:5rem 1.5rem;background:#fff;border-top:1.5px solid #f0f0f0;">
+        <div style="max-width:680px;margin:auto;">
+            <div style="text-align:center;margin-bottom:3rem;">
+                <p class="section-eyebrow">FAQ</p>
+                <h2 class="section-title">Preguntas Frecuentes</h2>
+                <p class="section-sub">Todo lo que necesitas saber sobre JS MemberLy.</p>
             </div>
 
-            <div class="space-y-4">
-                <details class="group bg-white rounded-2xl border border-gray-200 shadow-sm [&_summary::-webkit-details-marker]:hidden">
-                    <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-6 text-gray-900 hover:text-emerald-600 transition">
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+                <details class="faq-item group [&_summary::-webkit-details-marker]:hidden">
+                    <summary>
                         <span>¿Necesito comprar equipos especiales para el acceso QR?</span>
-                        <span class="transition group-open:rotate-180">
-                            <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                        </span>
+                        <svg class="faq-chevron" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" width="20"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </summary>
-                    <div class="p-6 pt-0 text-gray-600 text-sm leading-relaxed border-t border-gray-50 mt-2">
-                        ¡Para nada! El escáner funciona abriendo nuestra plataforma web desde la cámara de cualquier teléfono celular, tablet o computadora con cámara web que tenga tu recepcionista.
-                    </div>
+                    <div class="faq-body">¡Para nada! El escáner funciona abriendo nuestra plataforma web desde la cámara de cualquier teléfono celular, tablet o computadora con cámara web que tenga tu recepcionista.</div>
                 </details>
 
-                <details class="group bg-white rounded-2xl border border-gray-200 shadow-sm [&_summary::-webkit-details-marker]:hidden">
-                    <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-6 text-gray-900 hover:text-emerald-600 transition">
+                <details class="faq-item group [&_summary::-webkit-details-marker]:hidden">
+                    <summary>
                         <span>¿Tengo un plazo forzoso o contrato mínimo?</span>
-                        <span class="transition group-open:rotate-180">
-                            <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                        </span>
+                        <svg class="faq-chevron" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" width="20"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </summary>
-                    <div class="p-6 pt-0 text-gray-600 text-sm leading-relaxed border-t border-gray-50 mt-2">
-                        No. JS MemberLy funciona como una suscripción de pago por uso (mes a mes). Puedes cancelar en cualquier momento desde tu panel de control sin penalizaciones ni preguntas.
-                    </div>
+                    <div class="faq-body">No. JS MemberLy funciona como una suscripción de pago por uso (mes a mes). Puedes cancelar en cualquier momento desde tu panel de control sin penalizaciones ni preguntas.</div>
                 </details>
 
-                <details class="group bg-white rounded-2xl border border-gray-200 shadow-sm [&_summary::-webkit-details-marker]:hidden">
-                    <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-6 text-gray-900 hover:text-emerald-600 transition">
+                <details class="faq-item group [&_summary::-webkit-details-marker]:hidden">
+                    <summary>
                         <span>¿Cómo funcionan los envíos de WhatsApp? ¿Tienen costo extra?</span>
-                        <span class="transition group-open:rotate-180">
-                            <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                        </span>
+                        <svg class="faq-chevron" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" width="20"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </summary>
-                    <div class="p-6 pt-0 text-gray-600 text-sm leading-relaxed border-t border-gray-50 mt-2">
-                        Nosotros cubrimos el 100% de la integración tecnológica. Nuestro robot envía los recordatorios automáticamente usando la API Oficial de Meta. No tienes que conectar tu teléfono ni escanear códigos extraños.
-                    </div>
+                    <div class="faq-body">Nosotros cubrimos el 100% de la integración tecnológica. Nuestro robot envía los recordatorios automáticamente usando la API Oficial de Meta. No tienes que conectar tu teléfono ni escanear códigos extraños.</div>
                 </details>
             </div>
         </div>
     </section>
 
-    <div id="modalRegistroSaaS" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-emerald-100 flex flex-col max-h-[90vh]">
-            
-            <div class="bg-emerald-600 p-6 text-white text-center relative shrink-0">
-                <h2 class="text-2xl font-bold">Crea tu cuenta de Gimnasio</h2>
-                <p class="text-emerald-100 text-sm mt-1">Estás a un paso de revolucionar tu negocio con el <span id="spanPlanSeleccionado" class="font-bold text-white uppercase tracking-wide">...</span></p>
-                <button type="button" onclick="cerrarModalRegistro()" class="absolute top-4 right-4 text-emerald-200 hover:text-white transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    <!-- ════════════════════ CONTACT ════════════════════ -->
+    <section id="contacto" style="padding:5rem 1.5rem;background:#fafafa;border-top:1.5px solid #f0f0f0;">
+        <div style="max-width:680px;margin:auto;">
+            <div style="text-align:center;margin-bottom:3rem;">
+                <p class="section-eyebrow">Contacto</p>
+                <h2 class="section-title">¿Tienes dudas adicionales?</h2>
+                <p class="section-sub">Déjanos tus datos y un asesor se pondrá en contacto contigo a la brevedad.</p>
+            </div>
+
+            <form id="formContactoLanding" class="contact-form" style="display:flex;flex-direction:column;gap:1.25rem;">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem;margin-top:.5rem;">
+                    <div>
+                        <label class="form-label">Nombre Completo</label>
+                        <input type="text" id="contactoNombre" required class="form-input" placeholder="Tu nombre">
+                    </div>
+                    <div>
+                        <label class="form-label">Teléfono / WhatsApp</label>
+                        <input type="text" id="contactoTelefono" class="form-input" placeholder="+593...">
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Correo Electrónico</label>
+                    <input type="email" id="contactoEmail" required class="form-input" placeholder="tu@correo.com">
+                </div>
+                <div>
+                    <label class="form-label">¿En qué podemos ayudarte?</label>
+                    <textarea id="contactoMensaje" required rows="4" class="form-input" style="resize:none;" placeholder="Escribe tu mensaje aquí..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width:100%;margin-top:.5rem;padding:1rem;">
+                    Enviar Mensaje <span>🚀</span>
+                </button>
+                <p id="contactoAlerta" class="text-center text-sm font-bold mt-2 hidden transition-all"></p>
+            </form>
+        </div>
+    </section>
+
+    <!-- ════════════════════ FOOTER ════════════════════ -->
+    <footer style="background:#111827;padding:3rem 1.5rem 2rem;">
+        <div style="max-width:1120px;margin:auto;">
+            <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1.5rem;margin-bottom:2.5rem;">
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    <img src="assets/logo.png" alt="JS MemberLy" style="width:36px;height:36px;border-radius:8px;object-fit:contain;">
+                    <span class="syne" style="font-size:1.125rem;font-weight:800;color:#fff;">JS MemberLy</span>
+                </div>
+                <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+                    <a href="#precios" style="color:#9ca3af;font-size:.875rem;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#9ca3af'">Precios</a>
+                    <a href="#contacto" style="color:#9ca3af;font-size:.875rem;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#9ca3af'">Contacto</a>
+                    <a href="panel.html" style="color:#9ca3af;font-size:.875rem;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#9ca3af'">Iniciar Sesión</a>
+                    <a onclick="document.getElementById('modalPoliticas').classList.remove('hidden')" style="color:#9ca3af;font-size:.875rem;cursor:pointer;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#9ca3af'">Términos y Privacidad</a>
+                </div>
+            </div>
+            <div style="border-top:1px solid #1f2937;padding-top:1.5rem;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;">
+                <p style="color:#4b5563;font-size:.8125rem;">© 2026 JS MemberLy. Todos los derechos reservados.</p>
+                <!-- <p style="color:#4b5563;font-size:.8125rem;">Hecho con ❤️ para el mundo fitness</p> -->
+            </div>
+        </div>
+    </footer>
+
+    <!-- ════════════════════ FLOATING CHAT BUTTON ════════════════════ -->
+    <button onclick="document.getElementById('chatIaPanel').classList.toggle('hidden')" style="position:fixed;bottom:1.5rem;right:1.5rem;width:56px;height:56px;background:var(--em-600);border-radius:50%;box-shadow:0 8px 32px rgba(5,150,105,.4);display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer;border:none;transition:background .2s,transform .2s;z-index:50;" onmouseover="this.style.background='var(--em-700)';this.style.transform='scale(1.08)'" onmouseout="this.style.background='var(--em-600)';this.style.transform='scale(1)'">
+        👩🏻‍💻
+    </button>
+
+    <!-- ════════════════════ CHAT PANEL ════════════════════ -->
+    <div id="chatIaPanel" style="position:fixed;bottom:5.5rem;right:1.5rem;width:320px;background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.15);border:1.5px solid #f0f0f0;z-index:50;overflow:hidden;" class="hidden">
+        <div style="background:var(--em-600);padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <h4 style="font-family:'Syne',sans-serif;font-weight:700;color:#fff;font-size:.9375rem;">Asistente JS MemberLy</h4>
+                <p style="font-size:.75rem;color:rgba(255,255,255,.7);">En línea (IA)</p>
+            </div>
+            <button onclick="document.getElementById('chatIaPanel').classList.add('hidden')" style="color:rgba(255,255,255,.7);background:none;border:none;cursor:pointer;font-size:1.4rem;line-height:1;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.7)'">×</button>
+        </div>
+        <div id="cuerpoChat" style="height:240px;background:#f9fafb;padding:1rem;overflow-y:auto;display:flex;flex-direction:column;gap:.75rem;font-size:.875rem;">
+            <div class="chat-bubble-ai">
+                ¡Hola! 👋 Soy el asistente de inteligencia artificial de JS MemberLy. ¿Tienes dudas sobre nuestros planes para tu gimnasio?
+            </div>
+        </div>
+        <form id="formChatIa" style="padding:.75rem;background:#fff;border-top:1.5px solid #f0f0f0;display:flex;gap:.5rem;">
+            <input type="text" id="inputMensajeIa" class="form-input" style="flex:1;padding:.625rem .875rem;border-radius:10px;" placeholder="Escribe tu duda..." required>
+            <button type="submit" style="width:38px;height:38px;background:var(--em-600);border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.875rem;transition:background .2s;flex-shrink:0;" onmouseover="this.style.background='var(--em-700)'" onmouseout="this.style.background='var(--em-600)'">➤</button>
+        </form>
+    </div>
+
+    <!-- ════════════════════ REGISTRATION MODAL ════════════════════ -->
+    <div id="modalRegistroSaaS" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:center;justify-content:center;z-index:100;padding:1rem;">
+        <div style="background:#fff;border-radius:24px;width:100%;max-width:480px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.25);">
+
+            <div style="background:var(--em-600);padding:1.75rem 2rem;color:#fff;text-align:center;position:relative;flex-shrink:0;">
+                <h2 style="font-family:'Syne',sans-serif;font-size:1.375rem;font-weight:800;margin-bottom:.25rem;">Crea tu cuenta de Gimnasio</h2>
+                <p style="font-size:.875rem;color:rgba(255,255,255,.75);">Estás a un paso de revolucionar tu negocio con el <span id="spanPlanSeleccionado" style="font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.04em;">...</span></p>
+                <button type="button" onclick="cerrarModalRegistro()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.7);transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.7)'">
+                    <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
-            <div class="p-8 overflow-y-auto">
-                <form id="formRegistroSaaS" class="space-y-5">
+            <div style="padding:1.75rem 2rem;overflow-y:auto;">
+                <form id="formRegistroSaaS" style="display:flex;flex-direction:column;gap:1rem;">
                     <input type="hidden" id="inputPlanElegido" value="">
                     <input type="hidden" id="inputPrecioElegido" value="">
 
                     <div>
-                        <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">Datos del Gimnasio</h3>
-                        
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Gimnasio o Estudio</label>
-                            <input type="text" id="regNombreGym" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: Iron Gym">
+                        <h3 style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#111827;margin-bottom:.875rem;padding-bottom:.625rem;border-bottom:1.5px solid #f0f0f0;">Datos del Gimnasio</h3>
+                        <div style="margin-bottom:.875rem;">
+                            <label class="modal-label">Nombre del Gimnasio o Estudio</label>
+                            <input type="text" id="regNombreGym" required class="modal-input" placeholder="Ej: Iron Gym">
                         </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.875rem;">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">País</label>
-                                <select id="regPais" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                                <label class="modal-label">País</label>
+                                <select id="regPais" required class="modal-input">
                                     <option value="Ecuador" selected>🇪🇨 Ecuador</option>
                                     <option value="Colombia">🇨🇴 Colombia</option>
                                     <option value="Mexico">🇲🇽 México</option>
@@ -318,58 +1071,50 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">RUC / ID Nacional</label>
-                                <input type="text" id="regIdNacional" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: 1712345678001">
+                                <label class="modal-label">RUC / ID Nacional</label>
+                                <input type="text" id="regIdNacional" required class="modal-input" placeholder="Ej: 1712345678001">
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2 mt-6">Datos del Administrador</h3>
-                        
-                        <div class="space-y-4">
+                        <h3 style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#111827;margin-bottom:.875rem;padding-bottom:.625rem;border-bottom:1.5px solid #f0f0f0;margin-top:.5rem;">Datos del Administrador</h3>
+                        <div style="display:flex;flex-direction:column;gap:.875rem;">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tu Nombre Completo</label>
-                                <input type="text" id="regNombreAdmin" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: Lenin Zapata">
+                                <label class="modal-label">Tu Nombre Completo</label>
+                                <input type="text" id="regNombreAdmin" required class="modal-input" placeholder="Ej: Lenin Zapata">
                             </div>
-                            
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico (Será tu usuario)</label>
-                                <input type="email" id="regEmailAdmin" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="tu@correo.com">
+                                <label class="modal-label">Correo Electrónico (Será tu usuario)</label>
+                                <input type="email" id="regEmailAdmin" required class="modal-input" placeholder="tu@correo.com">
                             </div>
-
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Confirma tu Correo</label>
-                                <input type="email" id="regEmailAdminConfirm" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Repite tu correo">
+                                <label class="modal-label">Confirma tu Correo</label>
+                                <input type="email" id="regEmailAdminConfirm" required class="modal-input" placeholder="Repite tu correo">
                             </div>
-
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono / WhatsApp</label>
-                                <input type="text" id="regTelefonoAdmin" required class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="+593...">
+                                <label class="modal-label">Teléfono / WhatsApp</label>
+                                <input type="text" id="regTelefonoAdmin" required class="modal-input" placeholder="+593...">
                             </div>
-
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Crea una Contraseña</label>
-                                <input type="password" id="regPassAdmin" required minlength="6" class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Mínimo 6 caracteres">
+                                <label class="modal-label">Crea una Contraseña</label>
+                                <input type="password" id="regPassAdmin" required minlength="6" class="modal-input" placeholder="Mínimo 6 caracteres">
                             </div>
-
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Confirma tu Contraseña</label>
-                                <input type="password" id="regPassAdminConfirm" required minlength="6" class="w-full border border-gray-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Repite tu contraseña">
+                                <label class="modal-label">Confirma tu Contraseña</label>
+                                <input type="password" id="regPassAdminConfirm" required minlength="6" class="modal-input" placeholder="Repite tu contraseña">
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex items-start mb-6">
-                        <div class="flex items-center h-5">
-                            <input id="terminosUso" type="checkbox" value="" class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-emerald-300" required>
-                        </div>
-                        <label for="terminosUso" class="ml-2 text-sm font-medium text-gray-900">
-                            He leído y acepto los <a onclick="document.getElementById('modalPoliticas').classList.remove('hidden')" class="text-emerald-600 hover:underline">Términos de Uso y Política de Privacidad</a>.
+                    <div style="display:flex;align-items:flex-start;gap:.625rem;margin-bottom:.5rem;">
+                        <input id="terminosUso" type="checkbox" value="" style="width:16px;height:16px;margin-top:2px;border:1.5px solid #d1d5db;border-radius:4px;accent-color:var(--em-600);flex-shrink:0;" required>
+                        <label for="terminosUso" style="font-size:.875rem;color:#374151;line-height:1.5;cursor:pointer;">
+                            He leído y acepto los <a onclick="document.getElementById('modalPoliticas').classList.remove('hidden')" style="color:var(--em-600);font-weight:700;cursor:pointer;text-decoration:none;">Términos de Uso y Política de Privacidad</a>.
                         </label>
                     </div>
 
-                    <div class="pt-6 border-t border-gray-100 mt-2">
+                    <div style="padding-top:1rem;border-top:1.5px solid #f0f0f0;">
                         <!-- <button type="submit" id="btnPagarSaaS" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md flex justify-center items-center gap-2.5 border border-gray-800">
                             <span class="text-sm tracking-wide">Completar pago seguro con</span>
                             <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" class="h-4 brightness-0 invert opacity-90">
@@ -379,10 +1124,10 @@
                             <p>Pago 100% seguro y encriptado.</p>
                         </div> -->
 
-                        <button type="submit" id="btnPagarSaaS" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 shadow-md flex justify-center items-center gap-2.5">
-                            <span class="text-sm tracking-wide">🚀 Comenzar mis 14 días gratis</span>
+                        <button type="submit" id="btnPagarSaaS" class="btn-primary" style="width:100%;padding:1rem;font-size:.9375rem;">
+                            🚀 Comenzar mis 14 días gratis
                         </button>
-                        <div class="flex justify-center items-center gap-2 mt-4 text-xs text-gray-400">
+                        <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:.875rem;font-size:.8rem;color:#9ca3af;">
                             <span>✅</span>
                             <p>No se requiere tarjeta de crédito.</p>
                         </div>
@@ -392,86 +1137,28 @@
         </div>
     </div>
 
-    <section id="contacto" class="py-20 bg-white border-t border-gray-100">
-        <div class="max-w-3xl mx-auto px-6">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-extrabold text-gray-900 mb-4">¿Tienes dudas adicionales?</h2>
-                <p class="text-gray-500">Déjanos tus datos y un asesor se pondrá en contacto contigo a la brevedad.</p>
-            </div>
-            
-            <form id="formContactoLanding" class="bg-gray-50 p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-5 relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500"></div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre Completo</label>
-                        <input type="text" id="contactoNombre" required class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition" placeholder="Tu nombre">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Teléfono / WhatsApp</label>
-                        <input type="text" id="contactoTelefono" class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition" placeholder="+593...">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Correo Electrónico</label>
-                    <input type="email" id="contactoEmail" required class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition" placeholder="tu@correo.com">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">¿En qué podemos ayudarte?</label>
-                    <textarea id="contactoMensaje" required rows="4" class="w-full border border-gray-200 bg-white p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition resize-none" placeholder="Escribe tu mensaje aquí..."></textarea>
-                </div>
-                
-                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 mt-2 flex justify-center items-center gap-2">
-                    Enviar Mensaje <span>🚀</span>
-                </button>
-                <p id="contactoAlerta" class="text-center text-sm font-bold mt-2 hidden transition-all"></p>
-            </form>
-        </div>
-    </section>
+    <!-- ════════════════════ POLICIES MODAL ════════════════════ -->
+    <div id="modalPoliticas" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:center;justify-content:center;z-index:200;padding:1rem;">
+        <div style="background:#fff;border-radius:24px;max-width:720px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.25);">
 
-    <button onclick="document.getElementById('chatIaPanel').classList.toggle('hidden')" class="fixed bottom-6 right-6 w-14 h-14 bg-emerald-600 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl hover:bg-emerald-700 transition z-50">
-        👩🏻‍💻
-    </button>
-
-    <div id="chatIaPanel" class="fixed bottom-24 right-6 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 hidden flex-col z-50 overflow-hidden">
-        <div class="bg-emerald-600 p-4 text-white flex justify-between items-center">
-            <div>
-                <h4 class="font-bold">Asistente JS MemberLy</h4>
-                <p class="text-xs text-emerald-100">En línea (IA)</p>
-            </div>
-            <button onclick="document.getElementById('chatIaPanel').classList.add('hidden')" class="text-white hover:text-gray-200 text-xl">×</button>
-        </div>
-        <div id="cuerpoChat" class="h-64 bg-gray-50 p-4 overflow-y-auto flex flex-col gap-3 text-sm">
-            <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm border border-gray-100 text-gray-700 self-start max-w-[85%]">
-                ¡Hola! 👋 Soy el asistente de inteligencia artificial de JS MemberLy. ¿Tienes dudas sobre nuestros planes para tu gimnasio?
-            </div>
-        </div>
-        <form id="formChatIa" class="p-3 bg-white border-t border-gray-100 flex gap-2">
-            <input type="text" id="inputMensajeIa" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-emerald-500 text-sm" placeholder="Escribe tu duda..." required>
-            <button type="submit" class="bg-emerald-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-700">➤</button>
-        </form>
-    </div>
-
-    <div id="modalPoliticas" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-[200] backdrop-blur-sm p-4">
-        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
-            <div class="bg-emerald-700 p-6 text-white flex justify-between items-center shrink-0">
+            <div style="background:var(--em-700);padding:1.5rem 2rem;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
                 <div>
-                    <h2 class="font-bold text-xl">Términos de Uso y Políticas de Privacidad</h2>
-                    <p class="text-xs text-emerald-200 mt-1">Última actualización: Febrero 2026 | JS MemberLy</p>
+                    <h2 style="font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;">Términos de Uso y Políticas de Privacidad</h2>
+                    <p style="font-size:.75rem;color:rgba(255,255,255,.65);margin-top:.25rem;">Última actualización: Febrero 2026 | JS MemberLy</p>
                 </div>
-                <button onclick="document.getElementById('modalPoliticas').classList.add('hidden')" class="text-emerald-200 hover:text-white text-3xl leading-none transition">×</button>
+                <button onclick="document.getElementById('modalPoliticas').classList.add('hidden')" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.65);font-size:1.75rem;line-height:1;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.65)'">×</button>
             </div>
-            
-            <div class="p-8 overflow-y-auto text-sm text-gray-600 leading-relaxed space-y-6">
-                
+
+            <div style="padding:2rem;overflow-y:auto;font-size:.875rem;color:#6b7280;line-height:1.75;display:flex;flex-direction:column;gap:1.5rem;">
+
                 <section>
-                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>1.</span> Naturaleza del Servicio y Roles</h3>
+                    <h3 style="font-family:'Syne',sans-serif;font-weight:700;color:#111827;font-size:.9375rem;margin-bottom:.5rem;">1. Naturaleza del Servicio y Roles</h3>
                     <p><strong>JS MemberLy</strong> proporciona una plataforma tecnológica (SaaS) diseñada para la administración de centros deportivos. En este ecosistema existen tres roles: <strong>La Plataforma</strong> (Nosotros), el <strong>Gimnasio/Cliente</strong> (Usted, quien contrata nuestro software), y el <strong>Suscriptor Final</strong> (El cliente del gimnasio). Nosotros proveemos la infraestructura tecnológica, pero la relación comercial directa existe estrictamente entre el Gimnasio y su Suscriptor Final.</p>
                 </section>
 
                 <section>
-                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>2.</span> Protección de Datos y Privacidad (LOPDP y GDPR)</h3>
-                    <ul class="list-disc pl-5 space-y-2">
+                    <h3 style="font-family:'Syne',sans-serif;font-weight:700;color:#111827;font-size:.9375rem;margin-bottom:.5rem;">2. Protección de Datos y Privacidad (LOPDP y GDPR)</h3>
+                    <ul style="padding-left:1.25rem;list-style:disc;display:flex;flex-direction:column;gap:.5rem;">
                         <li><strong>Propiedad de los datos:</strong> El Gimnasio es el titular y único responsable legal de los datos recolectados de sus Suscriptores (nombres, identificaciones, fotos, teléfonos). JS MemberLy actúa únicamente como <em>"Encargado del Tratamiento"</em> para almacenar y procesar esta información en servidores seguros en la nube.</li>
                         <li><strong>Confidencialidad:</strong> Nos comprometemos a no vender, alquilar ni compartir las bases de datos de los Gimnasios con terceros bajo ninguna circunstancia.</li>
                         <li><strong>Seguridad:</strong> Utilizamos encriptación de grado bancario (protocolos HTTPS, bases de datos cifradas y autenticación segura mediante tokens) para proteger la información.</li>
@@ -479,8 +1166,8 @@
                 </section>
 
                 <section>
-                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>3.</span> Pagos, Suscripciones y Renovaciones Automáticas</h3>
-                    <ul class="list-disc pl-5 space-y-2">
+                    <h3 style="font-family:'Syne',sans-serif;font-weight:700;color:#111827;font-size:.9375rem;margin-bottom:.5rem;">3. Pagos, Suscripciones y Renovaciones Automáticas</h3>
+                    <ul style="padding-left:1.25rem;list-style:disc;display:flex;flex-direction:column;gap:.5rem;">
                         <li><strong>Suscripción SaaS:</strong> El pago por el uso de JS MemberLy se realiza mediante PayPal. Al elegir un plan (Mensual o Anual), el Gimnasio autoriza el cobro automático recurrente. Los pagos realizados no son reembolsables.</li>
                         <li><strong>Cobros a Suscriptores Finales:</strong> JS MemberLy integra pasarelas de pago para que el Gimnasio cobre a sus clientes. Nosotros <strong>no retenemos ni tocamos los fondos</strong> de los usuarios finales; el dinero viaja directamente desde la tarjeta del Suscriptor a la cuenta comercial (PayPal u otra) del Gimnasio.</li>
                         <li><strong>Responsabilidad Fiscal:</strong> JS MemberLy no emite facturas al consumidor final. Es responsabilidad exclusiva y legal del Gimnasio emitir los comprobantes de venta válidos (facturación electrónica, SRI, etc.) a sus clientes por los servicios deportivos prestados.</li>
@@ -488,32 +1175,32 @@
                 </section>
 
                 <section>
-                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>4.</span> Uso de la API de WhatsApp (Meta)</h3>
-                    <p>Nuestra plataforma automatiza el envío de notificaciones mediante la API Oficial de Meta. El Gimnasio acepta cumplir estrictamente con las <a href="https://www.whatsapp.com/legal/business-policy/" target="_blank" class="text-emerald-600 hover:underline font-bold">Políticas de Comercio de WhatsApp</a>.</p>
-                    <p class="mt-2">Queda estrictamente prohibido utilizar el sistema para enviar Spam, mensajes promocionales no solicitados, o contenido que infrinja la ley. <strong>JS MemberLy no se hace responsable</strong> si Meta bloquea el número de teléfono o la cuenta del Gimnasio debido a reportes de spam por parte de los usuarios finales.</p>
+                    <h3 style="font-family:'Syne',sans-serif;font-weight:700;color:#111827;font-size:.9375rem;margin-bottom:.5rem;">4. Uso de la API de WhatsApp (Meta)</h3>
+                    <p>Nuestra plataforma automatiza el envío de notificaciones mediante la API Oficial de Meta. El Gimnasio acepta cumplir estrictamente con las <a href="https://www.whatsapp.com/legal/business-policy/" target="_blank" style="color:var(--em-600);font-weight:700;">Políticas de Comercio de WhatsApp</a>.</p>
+                    <p style="margin-top:.5rem;">Queda estrictamente prohibido utilizar el sistema para enviar Spam, mensajes promocionales no solicitados, o contenido que infrinja la ley. <strong>JS MemberLy no se hace responsable</strong> si Meta bloquea el número de teléfono o la cuenta del Gimnasio debido a reportes de spam por parte de los usuarios finales.</p>
                 </section>
 
                 <section>
-                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>5.</span> Disponibilidad del Servicio (SLA) y Limitación de Responsabilidad</h3>
+                    <h3 style="font-family:'Syne',sans-serif;font-weight:700;color:#111827;font-size:.9375rem;margin-bottom:.5rem;">5. Disponibilidad del Servicio (SLA) y Limitación de Responsabilidad</h3>
                     <p>Nos esforzamos por mantener una disponibilidad operativa del 99.9%. Sin embargo, el servicio se proporciona "tal cual" (As is). No nos hacemos responsables por caídas temporales del servidor debido a mantenimientos programados, fallos masivos en proveedores de nube (AWS, Cloudflare), o interrupciones en las pasarelas de pago de terceros.</p>
-                    <p class="mt-2 text-red-600 font-medium">En ningún caso JS MemberLy será responsable por lucro cesante, pérdida de datos derivada de un mal uso del usuario (ej. compartir contraseñas), o disputas legales, quejas o demandas entre los Suscriptores Finales y el Gimnasio.</p>
+                    <p style="margin-top:.5rem;color:#ef4444;font-weight:500;">En ningún caso JS MemberLy será responsable por lucro cesante, pérdida de datos derivada de un mal uso del usuario (ej. compartir contraseñas), o disputas legales, quejas o demandas entre los Suscriptores Finales y el Gimnasio.</p>
                 </section>
 
                 <section>
-                    <h3 class="font-extrabold text-gray-900 text-base mb-2 flex items-center gap-2"><span>6.</span> Cancelación y Retención de Datos</h3>
+                    <h3 style="font-family:'Syne',sans-serif;font-weight:700;color:#111827;font-size:.9375rem;margin-bottom:.5rem;">6. Cancelación y Retención de Datos</h3>
                     <p>El Gimnasio puede cancelar su suscripción SaaS en cualquier momento desde su panel de control. Tras la cancelación, la cuenta pasará a estado inactivo. Mantendremos la base de datos del Gimnasio protegida por un periodo de gracia de <strong>30 días</strong> por si desea reactivar su cuenta. Pasado este tiempo, los datos podrán ser eliminados permanentemente de nuestros servidores por seguridad.</p>
                 </section>
-
             </div>
-            
-            <div class="bg-gray-50 p-6 border-t border-gray-100 flex justify-end shrink-0">
-                <button onclick="document.getElementById('modalPoliticas').classList.add('hidden')" class="bg-emerald-600 text-white font-bold py-2.5 px-6 rounded-xl hover:bg-emerald-700 transition shadow-md">
+
+            <div style="background:#f9fafb;padding:1.25rem 2rem;border-top:1.5px solid #f0f0f0;display:flex;justify-content:flex-end;flex-shrink:0;">
+                <button onclick="document.getElementById('modalPoliticas').classList.add('hidden')" class="btn-primary" style="padding:.75rem 1.5rem;font-size:.9rem;">
                     He leído y entiendo los términos
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- ════════════════════ SCRIPTS (UNTOUCHED) ════════════════════ -->
     <script src="config.js"></script>
 
     <script>
@@ -703,9 +1390,9 @@
                 labelMensual.classList.remove('font-bold');
                 
                 // Cambiar textos a precios anuales
-                document.getElementById('precioStarter').innerHTML = '$200<span class="text-lg text-gray-500 font-normal">/año</span>';
-                document.getElementById('precioPro').innerHTML = '$450<span class="text-lg text-emerald-200 font-normal">/año</span>';
-                document.getElementById('precioElite').innerHTML = '$1250<span class="text-lg text-gray-500 font-normal">/año</span>';
+                document.getElementById('precioStarter').innerHTML = '$200<span style="font-size:1rem;color:#9ca3af;font-weight:400;font-family:\'DM Sans\',sans-serif;">/año</span>';
+                document.getElementById('precioPro').innerHTML = '$450<span style="font-size:1rem;color:rgba(255,255,255,.6);font-weight:400;font-family:\'DM Sans\',sans-serif;">/año</span>';
+                document.getElementById('precioElite').innerHTML = '$1250<span style="font-size:1rem;color:#9ca3af;font-weight:400;font-family:\'DM Sans\',sans-serif;">/año</span>';
 
                 // Actualizar los botones
                 document.getElementById('btnElegirStarter').setAttribute('onclick', "abrirModalRegistro('Starter Anual', 200)");
@@ -720,9 +1407,9 @@
                 labelAnual.classList.remove('font-bold');
                 
                 // Regresar a precios mensuales
-                document.getElementById('precioStarter').innerHTML = '$20<span class="text-lg text-gray-500 font-normal">/mes</span>';
-                document.getElementById('precioPro').innerHTML = '$45<span class="text-lg text-emerald-200 font-normal">/mes</span>';
-                document.getElementById('precioElite').innerHTML = '$125<span class="text-lg text-gray-500 font-normal">/mes</span>';
+                document.getElementById('precioStarter').innerHTML = '$20<span style="font-size:1rem;color:#9ca3af;font-weight:400;font-family:\'DM Sans\',sans-serif;">/mes</span>';
+                document.getElementById('precioPro').innerHTML = '$45<span style="font-size:1rem;color:rgba(255,255,255,.6);font-weight:400;font-family:\'DM Sans\',sans-serif;">/mes</span>';
+                document.getElementById('precioElite').innerHTML = '$125<span style="font-size:1rem;color:#9ca3af;font-weight:400;font-family:\'DM Sans\',sans-serif;">/mes</span>';
 
                 // Regresar botones a mensual
                 document.getElementById('btnElegirStarter').setAttribute('onclick', "abrirModalRegistro('Starter Mensual', 20)");
@@ -744,7 +1431,7 @@
 
             // 1. Mostrar el mensaje del usuario (Burbuja verde a la derecha)
             cuerpoChat.innerHTML += `
-                <div class="bg-emerald-600 text-white p-3 rounded-lg rounded-tr-none shadow-sm self-end max-w-[85%] text-sm">
+                <div class="chat-bubble-user">
                     ${mensaje}
                 </div>
             `;
@@ -753,7 +1440,7 @@
             // 2. Mostrar indicador de "escribiendo..."
             const idTemp = 'mensaje-' + Date.now();
             cuerpoChat.innerHTML += `
-                <div id="${idTemp}" class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm border border-gray-100 text-gray-400 self-start max-w-[85%] text-sm italic">
+                <div id="${idTemp}" class="chat-bubble-ai" style="color:#9ca3af;font-style:italic;">
                     Escribiendo... ⏳
                 </div>
             `;
@@ -780,12 +1467,12 @@
                 const burbujaRespuesta = document.getElementById(idTemp);
                 // Reemplazamos los saltos de línea por etiquetas <br> de HTML
                 burbujaRespuesta.innerHTML = data.respuesta.replace(/\n/g, '<br>'); 
-                burbujaRespuesta.classList.remove('text-gray-400', 'italic');
-                burbujaRespuesta.classList.add('text-gray-700');
+                burbujaRespuesta.style.color = '#374151';
+                burbujaRespuesta.style.fontStyle = 'normal';
 
             } catch (error) {
                 document.getElementById(idTemp).innerHTML = "❌ Ocurrió un error. Por favor intenta más tarde.";
-                document.getElementById(idTemp).classList.remove('italic');
+                document.getElementById(idTemp).style.fontStyle = 'normal';
             }
 
             cuerpoChat.scrollTop = cuerpoChat.scrollHeight; // Auto-scroll final
