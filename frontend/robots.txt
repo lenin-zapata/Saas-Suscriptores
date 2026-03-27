@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /panel.html
+Disallow: /assets/demo.mp4
+
+Sitemap: https://www.jsmemberly.com/sitemap.xml
