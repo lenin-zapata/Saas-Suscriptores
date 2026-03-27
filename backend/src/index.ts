@@ -20,6 +20,8 @@ export default {
   // 1. EVENTO FETCH (Atiende las peticiones HTTP del Frontend)
   // =========================================================================
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+    
     //if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
     // 1. Definimos quiénes tienen la llave para entrar a tu API
@@ -49,13 +51,6 @@ export default {
     if (request.method === 'OPTIONS') {
         return new Response(null, { headers: corsHeaders });
     }
-
-    const authHeader = request.headers.get('Authorization');
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader ? authHeader : '' } }
-    });
-
-    const url = new URL(request.url);
 
     // =========================================================================
     // 🌍 EDGE SEO PROGRAMÁTICO: Landing Pages Dinámicas por Ciudad
@@ -93,7 +88,12 @@ export default {
                 .transform(responseOriginal);
         }
     }
-    
+
+    const authHeader = request.headers.get('Authorization');
+    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader ? authHeader : '' } }
+    });
+
     // --- ENDPOINTS DE LECTURA ---
     if (url.pathname === '/planes' && request.method === 'GET') {
       try {
