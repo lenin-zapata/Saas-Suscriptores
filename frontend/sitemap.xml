@@ -6,24 +6,19 @@
       <changefreq>weekly</changefreq>
       <priority>1.0</priority>
    </url>
-   <url>
-      <loc>https://www.jsmemberly.com/loc/quito</loc>
-      <priority>0.8</priority>
-   </url>
-   <url>
-      <loc>https://www.jsmemberly.com/loc/guayaquil</loc>
-      <priority>0.8</priority>
-   </url>
-   <url>
-      <loc>https://www.jsmemberly.com/loc/bogota</loc>
-      <priority>0.8</priority>
-   </url>
-   <url>
-      <loc>https://www.jsmemberly.com/loc/lima</loc>
-      <priority>0.8</priority>
-   </url>
-   <url>
-      <loc>https://www.jsmemberly.com/loc/ciudad-de-mexico</loc>
-      <priority>0.8</priority>
-   </url>
+
+   <url><loc>https://www.jsmemberly.com/loc/quito</loc><priority>0.8</priority></url>
+   <url><loc>https://www.jsmemberly.com/loc/guayaquil</loc><priority>0.8</priority></url>
+   <url><loc>https://www.jsmemberly.com/loc/cuenca</loc><priority>0.8</priority></url>
+
+   <url><loc>https://www.jsmemberly.com/loc/bogota</loc><priority>0.8</priority></url>
+   <url><loc>https://www.jsmemberly.com/loc/medellin</loc><priority>0.8</priority></url>
+   <url><loc>https://www.jsmemberly.com/loc/cali</loc><priority>0.8</priority></url>
+
+   <url><loc>https://www.jsmemberly.com/loc/ciudad-de-mexico</loc><priority>0.8</priority></url>
+   <url><loc>https://www.jsmemberly.com/loc/monterrey</loc><priority>0.8</priority></url>
+   <url><loc>https://www.jsmemberly.com/loc/guadalajara</loc><priority>0.8</priority></url>
+
+   <url><loc>https://www.jsmemberly.com/loc/lima</loc><priority>0.8</priority></url>
+   <url><loc>https://www.jsmemberly.com/loc/santiago</loc><priority>0.8</priority></url>
 </urlset>
