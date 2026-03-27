@@ -61,20 +61,17 @@ export default {
     // 🌍 EDGE SEO PROGRAMÁTICO: Landing Pages Dinámicas por Ciudad
     // =========================================================================
     if (url.pathname.startsWith('/loc/') && request.method === 'GET') {
-        // 1. Extraemos la ciudad de la URL (Ej: /loc/quito -> "quito")
         const ciudadSlug = url.pathname.split('/')[2];
 
         if (ciudadSlug) {
-            // 2. Formateamos: "quito" -> "Quito", "ciudad-de-mexico" -> "Ciudad de Mexico"
             const ciudadNombre = ciudadSlug
                 .split('-')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
 
-            // 3. Descargamos tu Landing Page original
+            // Es fundamental hacer fetch con https y www para evitar redirecciones raras
             const responseOriginal = await fetch('https://www.jsmemberly.com/');
             
-            // 4. Reescribimos el HTML "al vuelo" usando HTMLRewriter
             return new HTMLRewriter()
                 .on('title', {
                     element(element) {
@@ -86,17 +83,17 @@ export default {
                         element.setAttribute('content', `Automatiza los cobros y controla el acceso de tu gimnasio en ${ciudadNombre}. Prueba 14 días gratis sin tarjeta.`);
                     }
                 })
-                .on('h1', {
+                // 👇 ESTE ES EL CAMBIO CLAVE 👇
+                // En lugar de apuntar a todo el H1, apuntamos directamente al span con la clase específica
+                .on('h1 span.gradient-text', {
                     element(element) {
-                        // Mantenemos tus clases de Tailwind y tu diseño, solo cambiamos el texto
-                        element.setInnerContent(`El sistema inteligente para escalar tu gimnasio en <br><span class="gradient-text">${ciudadNombre}</span>`, { html: true });
+                        element.setInnerContent(ciudadNombre);
                     }
                 })
                 .transform(responseOriginal);
         }
     }
-    // =========================================================================
-
+    
     // --- ENDPOINTS DE LECTURA ---
     if (url.pathname === '/planes' && request.method === 'GET') {
       try {
